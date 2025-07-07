@@ -40,7 +40,7 @@
             color: #c09a58;
             font-weight: 600;
         }
-        #cart-modal {
+        #cart-modal, #product-details-modal-content {
             transition: transform 0.3s ease-in-out;
         }
         /* Custom checkbox style */
@@ -191,8 +191,8 @@
                         <img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl">
                     </div>
                     <div class="md:w-1/2">
-                        <p class="text-gray-600 mb-4 leading-relaxed">[modificar depois.]</p>
-                        <p class="text-gray-600 leading-relaxed">[extençao]</p>
+                        <p class="text-gray-600 mb-4 leading-relaxed">[modificar depois]</p>
+                        <p class="text-gray-600 leading-relaxed">[extenção]</p>
                     </div>
                 </div>
             </div>
@@ -262,18 +262,27 @@
         </div>
     </div>
 
+    <!-- Product Details Modal -->
+    <div id="product-details-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden"></div>
+    <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-50 hidden">
+        <div id="product-details-content" class="flex flex-col md:flex-row">
+            <!-- Content will be injected by JS -->
+        </div>
+    </div>
+
+
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         // =================================================================
         // E-COMMERCE BACKEND SIMULATION
         // =================================================================
         const products = [
-            { id: 1, name: 'Perfume Absoluto', price: 499.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+A', category: 'perfume' },
-            { id: 2, name: 'Fragrância Imperial', price: 649.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+B', category: 'perfume' },
-            { id: 3, name: 'Decant Essencial', price: 89.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+C', category: 'decant' },
-            { id: 4, name: 'Decant Noturno', price: 129.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+D', category: 'decant' },
-            { id: 5, name: 'Perfume Oriental', price: 720.50, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+E', category: 'perfume' },
-            { id: 6, name: 'Decant Floral', price: 99.00, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+F', category: 'decant' },
+            { id: 1, name: 'Perfume Absoluto', price: 499.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+A', category: 'perfume', description: 'Uma fragrância amadeirada intensa, com notas de sândalo e patchouli, perfeita para ocasiões especiais.' },
+            { id: 2, name: 'Fragrância Imperial', price: 649.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+B', category: 'perfume', description: 'Um perfume opulento e luxuoso, com um coração de jasmim imperial e um fundo de âmbar e baunilha.' },
+            { id: 3, name: 'Decant Essencial', price: 89.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+C', category: 'decant', description: 'Experimente o aroma cítrico e refrescante do nosso best-seller. Ideal para o uso diário e para levar consigo.' },
+            { id: 4, name: 'Decant Noturno', price: 129.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+D', category: 'decant', description: 'Uma amostra da nossa fragrância mais sedutora, com notas de fava tonka, tabaco e especiarias.' },
+            { id: 5, name: 'Perfume Oriental', price: 720.50, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+E', category: 'perfume', description: 'Uma viagem exótica através de especiarias raras e resinas preciosas. Um perfume marcante e inesquecível.' },
+            { id: 6, name: 'Decant Floral', price: 99.00, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+F', category: 'decant', description: 'Um buquê de flores brancas, com gardênia, jasmim e um toque de tuberosa. Delicado e feminino.' },
         ];
         let cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
         
@@ -339,14 +348,14 @@
 
             productsToRender.forEach(product => {
                 productListEl.innerHTML += `
-                    <div class="bg-white group text-center rounded-lg shadow-sm" data-aos="fade-up">
+                    <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer" data-aos="fade-up" onclick="showProductDetails(${product.id})">
                         <div class="relative overflow-hidden rounded-t-lg">
                             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
                         </div>
                         <div class="p-6">
                             <h3 class="font-heading font-semibold text-2xl">${product.name}</h3>
                             <p class="text-gold-500 font-bold mt-2 text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                            <button onclick="addToCart(${product.id})" class="mt-4 bg-gray-800 text-white py-2 px-6 rounded-full hover:bg-gold-500 transition-all-ease">Adicionar ao Carrinho</button>
+                            <button onclick="event.stopPropagation(); addToCart(${product.id})" class="mt-4 bg-gray-800 text-white py-2 px-6 rounded-full hover:bg-gold-500 transition-all-ease">Adicionar ao Carrinho</button>
                         </div>
                     </div>
                 `;
@@ -379,11 +388,16 @@
             
             renderProducts(filteredProducts, 'product-list-fragrances');
         }
-
+        
+        // Modal Logic
         const cartModal = document.getElementById('cart-modal');
         const cartModalOverlay = document.getElementById('cart-modal-overlay');
         const cartButton = document.getElementById('cart-button');
         const closeCartButton = document.getElementById('close-cart-button');
+        const productDetailsModal = document.getElementById('product-details-modal');
+        const productDetailsModalOverlay = document.getElementById('product-details-modal-overlay');
+        const productDetailsContent = document.getElementById('product-details-content');
+
         function toggleCart(show) {
             if (show) {
                 cartModalOverlay.classList.remove('hidden');
@@ -394,9 +408,38 @@
                 cartModal.classList.add('translate-x-full');
             }
         }
+        
+        function showProductDetails(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            productDetailsContent.innerHTML = `
+                <div class="md:w-1/2">
+                    <img src="${product.image.replace('400x500', '800x1000')}" alt="${product.name}" class="w-full h-full object-cover md:rounded-l-lg">
+                </div>
+                <div class="md:w-1/2 p-8 flex flex-col">
+                    <button onclick="closeProductDetails()" class="self-end text-gray-500 hover:text-gray-800 mb-2"><i data-feather="x" class="w-6 h-6"></i></button>
+                    <h2 class="font-heading text-4xl font-bold">${product.name}</h2>
+                    <p class="text-gold-500 font-bold mt-2 text-2xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                    <p class="text-gray-600 leading-relaxed mb-6 flex-grow">${product.description}</p>
+                    <button onclick="addToCart(${product.id}); closeProductDetails();" class="w-full bg-gold-500 text-white font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Adicionar ao Carrinho</button>
+                </div>
+            `;
+            
+            productDetailsModal.classList.remove('hidden');
+            productDetailsModalOverlay.classList.remove('hidden');
+            feather.replace();
+        }
+
+        function closeProductDetails() {
+            productDetailsModal.classList.add('hidden');
+            productDetailsModalOverlay.classList.add('hidden');
+        }
+
         cartButton.addEventListener('click', () => toggleCart(true));
         closeCartButton.addEventListener('click', () => toggleCart(false));
         cartModalOverlay.addEventListener('click', () => toggleCart(false));
+        productDetailsModalOverlay.addEventListener('click', closeProductDetails);
 
         // =================================================================
         // PAGE INITIALIZATION & NAVIGATION
