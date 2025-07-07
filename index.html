@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SANSEI DECANTS - Fragrâncias e Decants</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Cormorant Garamond (for headings) & Lato (for body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Feather Icons for Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+
+    <!-- AOS (Animate on Scroll) Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            overflow-x: hidden;
+        }
+        .font-heading {
+            font-family: 'Cormorant Garamond', serif;
+        }
+        .transition-all-ease {
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .text-gold-500 { color: #c09a58; }
+        .hover\:text-gold-600:hover { color: #a98447; }
+        .bg-gold-500 { background-color: #c09a58; }
+        .hover\:bg-gold-600:hover { background-color: #a98447; }
+        .border-gold-500 { border-color: #c09a58; }
+        .ring-gold-500:focus { --tw-ring-color: #c09a58; }
+        .nav-link.active {
+            color: #c09a58;
+            font-weight: 600;
+        }
+        #cart-modal {
+            transition: transform 0.3s ease-in-out;
+        }
+        /* Custom checkbox style */
+        .form-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.25rem;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+        .form-checkbox:checked {
+            background-color: #c09a58;
+            border-color: #c09a58;
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            background-size: 100% 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-gray-800">
+
+    <!-- =========== Header / Navigation Bar =========== -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="javascript:void(0);" onclick="showPage('inicio')" class="text-3xl font-bold text-gold-500 font-heading">SANSEI DECANTS</a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="javascript:void(0);" onclick="showPage('inicio')" id="nav-inicio" class="nav-link">Início</a>
+                <a href="javascript:void(0);" onclick="showPage('fragrancias')" id="nav-fragrancias" class="nav-link">Fragrâncias</a>
+                <a href="javascript:void(0);" onclick="showPage('decants')" id="nav-decants" class="nav-link">Decants</a>
+                <a href="javascript:void(0);" onclick="showPage('sobre')" id="nav-sobre" class="nav-link">Sobre</a>
+            </div>
+            <div class="flex items-center space-x-5">
+                <button class="text-gray-500 hover:text-gold-600 focus:outline-none transition-all-ease"><i data-feather="search" class="w-6 h-6"></i></button>
+                <button id="cart-button" class="text-gray-500 hover:text-gold-600 focus:outline-none relative transition-all-ease">
+                    <i data-feather="shopping-cart" class="w-6 h-6"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-gold-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-sans">0</span>
+                </button>
+                <button class="hidden md:block text-gray-500 hover:text-gold-600 focus:outline-none transition-all-ease"><i data-feather="user" class="w-6 h-6"></i></button>
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gold-600 focus:outline-none"><i data-feather="menu" class="w-6 h-6"></i></button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2">
+            <a href="javascript:void(0);" onclick="showPage('inicio')" class="block text-gray-600 hover:text-gold-600">Início</a>
+            <a href="javascript:void(0);" onclick="showPage('fragrancias')" class="block text-gray-600 hover:text-gold-600">Fragrâncias</a>
+            <a href="javascript:void(0);" onclick="showPage('decants')" class="block text-gray-600 hover:text-gold-600">Decants</a>
+            <a href="javascript:void(0);" onclick="showPage('sobre')" class="block text-gray-600 hover:text-gold-600">Sobre</a>
+            <a href="#" class="block text-gray-600 hover:text-gold-600">Minha Conta</a>
+        </div>
+    </header>
+
+    <!-- =========== Main Content =========== -->
+    <main>
+        <!-- =========== INICIO Page Content =========== -->
+        <div id="page-inicio" class="page-content">
+            <!-- Hero Section -->
+            <section class="relative bg-gray-900 text-white py-24 md:py-40">
+                <div class="absolute inset-0 bg-cover bg-center opacity-20" style="background-image: url('https://placehold.co/1600x900/111827/FFFFFF?text=Imagem+Atmosférica');"></div>
+                <div class="container mx-auto px-6 text-center relative z-10" data-aos="fade-up">
+                    <h1 class="font-heading text-5xl md:text-7xl font-bold leading-tight mb-4">Fragrâncias que Contam Histórias</h1>
+                    <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto text-gray-300 font-light">Descubra aromas únicos e encontre a sua assinatura olfativa.</p>
+                    <a href="javascript:void(0);" onclick="showPage('fragrancias')" class="bg-gold-500 text-white font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider">VER COLEÇÃO</a>
+                </div>
+            </section>
+            <!-- Benefits Bar -->
+            <section class="bg-white py-12">
+                <div class="container mx-auto px-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" data-aos="fade-up">
+                        <div class="flex flex-col items-center"><i data-feather="award" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Fragrâncias Raras</h3><p class="text-gray-600 text-sm">Curadoria de perfumes de nicho e exclusivos.</p></div>
+                        <div class="flex flex-col items-center"><i data-feather="box" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Embalagem de Luxo</h3><p class="text-gray-600 text-sm">Uma experiência premium do início ao fim.</p></div>
+                        <div class="flex flex-col items-center"><i data-feather="truck" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Envio para Todo o Brasil</h3><p class="text-gray-600 text-sm">Receba seus decants com segurança e rapidez.</p></div>
+                    </div>
+                </div>
+            </section>
+            <!-- Featured Products Section -->
+            <section class="py-20 bg-stone-50">
+                <div class="container mx-auto px-6">
+                    <h2 class="font-heading text-4xl font-bold text-center mb-12" data-aos="fade-up">Mais Desejados</h2>
+                    <div id="product-list-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"></div>
+                </div>
+            </section>
+            <!-- Other homepage sections -->
+        </div>
+
+        <!-- =========== FRAGRANCIAS Page Content =========== -->
+        <div id="page-fragrancias" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Nossa Coleção</h1>
+                    <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Explore e encontre a sua fragrância perfeita.</p>
+                </div>
+                <div class="flex flex-col md:flex-row gap-12">
+                    <!-- Filter Sidebar -->
+                    <aside class="w-full md:w-1/4" data-aos="fade-right">
+                        <div class="bg-white p-6 rounded-lg shadow-sm sticky top-28">
+                            <h3 class="font-heading text-2xl font-semibold mb-6">Filtros</h3>
+                            <!-- Category Filter -->
+                            <div class="mb-6">
+                                <h4 class="font-semibold mb-3">Categoria</h4>
+                                <div class="space-y-2">
+                                    <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" onchange="applyFilters()" class="form-checkbox" value="perfume"> <span class="ml-2">Perfumes</span></label></div>
+                                    <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" onchange="applyFilters()" class="form-checkbox" value="decant"> <span class="ml-2">Decants</span></label></div>
+                                </div>
+                            </div>
+                            <!-- Price Filter -->
+                            <div>
+                                <h4 class="font-semibold mb-3">Faixa de Preço</h4>
+                                <div class="space-y-2">
+                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="all" checked> <span class="ml-2">Todos</span></label></div>
+                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="150"> <span class="ml-2">Até R$ 150</span></label></div>
+                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="500"> <span class="ml-2">R$ 150 - R$ 500</span></label></div>
+                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="501"> <span class="ml-2">Acima de R$ 500</span></label></div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                    <!-- Product Grid -->
+                    <div id="product-list-fragrances" class="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <!-- Filtered products will be inserted here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== DECANTS Page Content =========== -->
+        <div id="page-decants" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Nossos Decants</h1>
+                    <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">A forma perfeita de experimentar antes de se comprometer.</p>
+                </div>
+                <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- Decant products will be inserted here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== SOBRE Page Content =========== -->
+        <div id="page-sobre" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Nossa História</h1>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
+                    <div class="md:w-1/2">
+                        <img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl">
+                    </div>
+                    <div class="md:w-1/2">
+                        <p class="text-gray-600 mb-4 leading-relaxed">A SANSEI DECANTS nasceu da paixão por aromas e da crença de que a perfumaria de nicho deve ser acessível. Nossa missão é permitir que explore um universo de fragrâncias exclusivas, descobrindo novos favoritos de uma forma económica e sustentável.</p>
+                        <p class="text-gray-600 leading-relaxed">Selecionamos cada perfume com o máximo cuidado, garantindo autenticidade e qualidade em cada decant, para que a sua única preocupação seja encontrar o aroma que conta a sua história.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="bg-gray-900"> <!-- Newsletter --> </section>
+    </main>
+
+    <footer class="bg-gray-900 text-white border-t border-gray-800"> <!-- Footer --> </footer>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
+    <div id="cart-modal" class="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-xl z-50 transform translate-x-full">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center p-6 border-b"><h2 class="font-heading text-2xl font-bold">Seu Carrinho</h2><button id="close-cart-button" class="text-gray-500 hover:text-gray-800"><i data-feather="x" class="w-6 h-6"></i></button></div>
+            <div id="cart-items" class="flex-grow p-6 overflow-y-auto"></div>
+            <div class="p-6 border-t"><div class="flex justify-between items-center font-bold text-lg mb-4"><span>Total</span><span id="cart-total">R$ 0,00</span></div><button class="w-full bg-gold-500 text-white font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Finalizar Compra</button></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // =================================================================
+        // E-COMMERCE BACKEND SIMULATION
+        // =================================================================
+        const products = [
+            { id: 1, name: 'Perfume Absoluto', price: 499.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+A', category: 'perfume' },
+            { id: 2, name: 'Fragrância Imperial', price: 649.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+B', category: 'perfume' },
+            { id: 3, name: 'Decant Essencial', price: 89.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+C', category: 'decant' },
+            { id: 4, name: 'Decant Noturno', price: 129.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+D', category: 'decant' },
+            { id: 5, name: 'Perfume Oriental', price: 720.50, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+E', category: 'perfume' },
+            { id: 6, name: 'Decant Floral', price: 99.00, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+F', category: 'decant' },
+        ];
+        let cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+        
+        function saveCart() { localStorage.setItem('sanseiCart', JSON.stringify(cart)); }
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            const cartItem = cart.find(item => item.id === productId);
+            if (cartItem) { cartItem.quantity++; } else { cart.push({ ...product, quantity: 1 }); }
+            saveCart();
+            updateCartIcon();
+            renderCart();
+            toggleCart(true);
+        }
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            saveCart();
+            updateCartIcon();
+            renderCart();
+        }
+        function updateQuantity(productId, newQuantity) {
+            const cartItem = cart.find(item => item.id === productId);
+            if (!cartItem) return;
+            if (newQuantity <= 0) { removeFromCart(productId); } else {
+                cartItem.quantity = newQuantity;
+                saveCart();
+                updateCartIcon();
+                renderCart();
+            }
+        }
+        function updateCartIcon() {
+            const cartCountEl = document.getElementById('cart-count');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            cartCountEl.textContent = totalItems;
+        }
+        function renderCart() {
+            const cartItemsEl = document.getElementById('cart-items');
+            const cartTotalEl = document.getElementById('cart-total');
+            cartItemsEl.innerHTML = '';
+            if (cart.length === 0) {
+                cartItemsEl.innerHTML = '<p class="text-gray-500 text-center">Seu carrinho está vazio.</p>';
+                cartTotalEl.textContent = 'R$ 0,00';
+                return;
+            }
+            let total = 0;
+            cart.forEach(item => {
+                total += item.price * item.quantity;
+                cartItemsEl.innerHTML += `<div class="flex items-center gap-4 mb-4"><img src="${item.image}" alt="${item.name}" class="w-16 h-20 object-cover rounded-md"><div class="flex-grow"><h4 class="font-semibold">${item.name}</h4><p class="text-sm text-gray-600">R$ ${item.price.toFixed(2).replace('.',',')}</p><div class="flex items-center mt-2"><button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="w-6 h-6 border rounded-md">-</button><span class="px-3">${item.quantity}</span><button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="w-6 h-6 border rounded-md">+</button></div></div><button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700"><i data-feather="trash-2" class="w-5 h-5"></i></button></div>`;
+            });
+            cartTotalEl.textContent = `R$ ${total.toFixed(2).replace('.',',')}`;
+            feather.replace();
+        }
+
+        function renderProducts(productsToRender, containerId) {
+            const productListEl = document.getElementById(containerId);
+            if (!productListEl) return;
+            productListEl.innerHTML = '';
+
+            if (productsToRender.length === 0) {
+                productListEl.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum produto encontrado.</p>';
+                return;
+            }
+
+            productsToRender.forEach(product => {
+                productListEl.innerHTML += `
+                    <div class="bg-white group text-center rounded-lg shadow-sm" data-aos="fade-up">
+                        <div class="relative overflow-hidden rounded-t-lg">
+                            <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
+                        </div>
+                        <div class="p-6">
+                            <h3 class="font-heading font-semibold text-2xl">${product.name}</h3>
+                            <p class="text-gold-500 font-bold mt-2 text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                            <button onclick="addToCart(${product.id})" class="mt-4 bg-gray-800 text-white py-2 px-6 rounded-full hover:bg-gold-500 transition-all-ease">Adicionar ao Carrinho</button>
+                        </div>
+                    </div>
+                `;
+            });
+            AOS.refresh();
+            feather.replace();
+        }
+
+        function applyFilters() {
+            let filteredProducts = [...products];
+            
+            const selectedCategories = [];
+            if (document.getElementById('filter-cat-perfume').checked) selectedCategories.push('perfume');
+            if (document.getElementById('filter-cat-decant').checked) selectedCategories.push('decant');
+            
+            if (selectedCategories.length > 0) {
+                filteredProducts = filteredProducts.filter(p => selectedCategories.includes(p.category));
+            }
+
+            const priceFilter = document.querySelector('input[name="price"]:checked').value;
+            if (priceFilter !== 'all') {
+                if (priceFilter === '150') {
+                    filteredProducts = filteredProducts.filter(p => p.price <= 150);
+                } else if (priceFilter === '500') {
+                    filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500);
+                } else if (priceFilter === '501') {
+                    filteredProducts = filteredProducts.filter(p => p.price > 500);
+                }
+            }
+            
+            renderProducts(filteredProducts, 'product-list-fragrances');
+        }
+
+        const cartModal = document.getElementById('cart-modal');
+        const cartModalOverlay = document.getElementById('cart-modal-overlay');
+        const cartButton = document.getElementById('cart-button');
+        const closeCartButton = document.getElementById('close-cart-button');
+        function toggleCart(show) {
+            if (show) {
+                cartModalOverlay.classList.remove('hidden');
+                cartModal.classList.remove('translate-x-full');
+                renderCart();
+            } else {
+                cartModalOverlay.classList.add('hidden');
+                cartModal.classList.add('translate-x-full');
+            }
+        }
+        cartButton.addEventListener('click', () => toggleCart(true));
+        closeCartButton.addEventListener('click', () => toggleCart(false));
+        cartModalOverlay.addEventListener('click', () => toggleCart(false));
+
+        // =================================================================
+        // PAGE INITIALIZATION & NAVIGATION
+        // =================================================================
+        const pages = document.querySelectorAll('.page-content');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const mobileMenu = document.getElementById('mobile-menu');
+        function showPage(pageId) {
+            pages.forEach(page => page.classList.add('hidden'));
+            const targetPage = document.getElementById('page-' + pageId);
+            if(targetPage) { targetPage.classList.remove('hidden'); }
+            navLinks.forEach(link => link.classList.remove('active'));
+            const activeLink = document.getElementById('nav-' + pageId);
+            if(activeLink) { activeLink.classList.add('active'); }
+            if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+            
+            if (pageId === 'fragrancias') {
+                applyFilters();
+            } else if (pageId === 'decants') {
+                const decantProducts = products.filter(p => p.category === 'decant');
+                renderProducts(decantProducts, 'product-list-decants');
+            }
+            
+            window.scrollTo(0, 0);
+            AOS.refresh();
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts(products.slice(0, 4), 'product-list-home');
+            updateCartIcon();
+            feather.replace();
+            AOS.init({ duration: 800, once: true });
+            showPage('inicio');
+        });
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        mobileMenuButton.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+    </script>
+</body>
+</html>
