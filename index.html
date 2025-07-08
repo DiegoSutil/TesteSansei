@@ -97,6 +97,19 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Parallax Effect */
+        .parallax-bg {
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        /* Gold Gradient Text */
+        .text-gold-gradient {
+            background: -webkit-linear-gradient(45deg, #D4AF37, #c09a58);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800">
@@ -149,12 +162,12 @@
         <!-- =========== INICIO Page Content =========== -->
         <div id="page-inicio" class="page-content">
             <!-- Hero Section -->
-            <section class="relative bg-black text-white py-24 md:py-40">
-                <div class="absolute inset-0 bg-cover bg-center opacity-40" style="background-image: url('https://raw.githubusercontent.com/DiegoSutil/TesteSansei/7d368b520b04e2693d0313b19f040a0611f20ba3/Gemini_Generated_Image_17fx3q17fx3q17fx.png');"></div>
+            <section class="relative bg-black text-white py-24 md:py-40 parallax-bg" style="background-image: url('https://raw.githubusercontent.com/DiegoSutil/TesteSansei/7d368b520b04e2693d0313b19f040a0611f20ba3/Gemini_Generated_Image_17fx3q17fx3q17fx.png');">
+                <div class="absolute inset-0 bg-black bg-opacity-50"></div>
                 <div class="container mx-auto px-6 text-center relative z-10" data-aos="fade-up">
-                    <h1 class="font-heading text-5xl md:text-7xl font-bold leading-tight mb-4">Fragrâncias que Contam Histórias</h1>
+                    <h1 class="font-heading text-5xl md:text-7xl font-bold leading-tight mb-4 text-gold-gradient">Fragrâncias que Contam Histórias</h1>
                     <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto text-gray-200 font-light">Descubra aromas únicos e encontre a sua assinatura olfativa.</p>
-                    <a href="javascript:void(0);" onclick="showPage('fragrancias')" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider">VER COLEÇÃO</a>
+                    <a href="javascript:void(0);" onclick="showPage('fragrancias')" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider shadow-lg hover:shadow-gold-500/50">VER COLEÇÃO</a>
                 </div>
             </section>
             <!-- Benefits Bar -->
@@ -611,7 +624,7 @@
                     productListEl.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum produto encontrado.</p>';
                 } else {
                     productListEl.innerHTML = productsToRender.map(product => `
-                        <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer flex flex-col" data-aos="fade-up" onclick="showProductDetails(${product.id})">
+                        <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl" data-aos="fade-up" onclick="showProductDetails(${product.id})">
                             <div class="relative overflow-hidden rounded-t-lg">
                                 <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
                             </div>
@@ -864,7 +877,12 @@
                     <div class="flex items-center my-2">${renderStars(product.rating)} <span class="ml-2 text-sm text-gray-500">(${product.reviews.length} avaliações)</span></div>
                     <p class="text-gold-500 font-bold text-2xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
                     <p class="text-gray-600 leading-relaxed mb-6">${product.description}</p>
-                    <button onclick="addToCart(${product.id});" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease mb-8">Adicionar ao Carrinho</button>
+                    <div class="flex gap-2 mb-8">
+                        <button onclick="addToCart(${product.id});" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Adicionar ao Carrinho</button>
+                        <a href="https://api.whatsapp.com/send?text=Veja%20este%20produto%20incrível:%20${encodeURIComponent(product.name)}%20-%20${encodeURIComponent(window.location.href)}" target="_blank" class="p-3 bg-gray-200 rounded-md hover:bg-gray-300"><i data-feather="message-circle"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="p-3 bg-gray-200 rounded-md hover:bg-gray-300"><i data-feather="facebook"></i></a>
+                        <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=Veja%20este%20produto%20incrível:%20${encodeURIComponent(product.name)}" target="_blank" class="p-3 bg-gray-200 rounded-md hover:bg-gray-300"><i data-feather="twitter"></i></a>
+                    </div>
                     
                     <div class="border-t pt-6">
                         <h3 class="font-heading text-2xl font-semibold mb-4">Avaliações de Clientes</h3>
