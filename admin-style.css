@@ -1,0 +1,25 @@
+body { 
+    font-family: 'Lato', sans-serif; 
+}
+.text-gold-500 { 
+    color: #D4AF37; 
+}
+.bg-gold-500 { 
+    background-color: #D4AF37; 
+}
+.hover\:bg-gold-600:hover { 
+    background-color: #c09a58; 
+}
+.ring-gold-500:focus { 
+    --tw-ring-color: #D4AF37; 
+}
+.admin-nav-link {
+    border-color: transparent;
+    color: #6b7280; /* text-gray-500 */
+    transition: all 0.2s ease-in-out;
+}
+.admin-nav-link.active {
+    border-color: #D4AF37;
+    color: #111827; /* text-gray-900 */
+    font-weight: 600;
+}
