@@ -84,6 +84,19 @@
             overflow: hidden;
             transition: max-height 0.5s ease-in-out;
         }
+        /* Loader Styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #D4AF37;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800">
@@ -201,7 +214,7 @@
                                         <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" onchange="applyFilters()" class="form-checkbox" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
                                     </div>
                                 </div>
-                                <div>
+                                <div class="mb-6">
                                     <h4 class="font-semibold mb-3 text-gray-800">Faixa de Preço</h4>
                                     <div class="space-y-2">
                                         <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
@@ -209,6 +222,14 @@
                                         <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
                                         <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
                                     </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold mb-3 text-gray-800">Ordenar Por</h4>
+                                    <select id="sort-by" onchange="applyFilters()" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                        <option value="popularity">Popularidade</option>
+                                        <option value="price-asc">Preço: Menor para Maior</option>
+                                        <option value="price-desc">Preço: Maior para Menor</option>
+                                    </select>
                                 </div>
                             </div>
                         </aside>
@@ -390,7 +411,14 @@
         <div class="flex flex-col h-full">
             <div class="flex justify-between items-center p-6 border-b"><h2 class="font-heading text-2xl font-bold">Seu Carrinho</h2><button id="close-cart-button" class="text-gray-500 hover:text-gray-800"><i data-feather="x" class="w-6 h-6"></i></button></div>
             <div id="cart-items" class="flex-grow p-6 overflow-y-auto"></div>
-            <div class="p-6 border-t"><div class="flex justify-between items-center font-bold text-lg mb-4"><span>Total</span><span id="cart-total">R$ 0,00</span></div><button class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Finalizar Compra</button></div>
+            <div class="p-6 border-t">
+                <form id="coupon-form" class="flex gap-2 mb-4">
+                    <input type="text" id="coupon-input" placeholder="Código do cupom" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    <button type="submit" class="bg-gray-800 text-white px-4 rounded-md hover:bg-black">Aplicar</button>
+                </form>
+                <div id="discount-info" class="text-sm text-green-600 mb-2"></div>
+                <div class="flex justify-between items-center font-bold text-lg mb-4"><span>Total</span><span id="cart-total">R$ 0,00</span></div><button class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Finalizar Compra</button>
+            </div>
         </div>
     </div>
 
@@ -413,6 +441,11 @@
         <span id="toast-message"></span>
     </div>
 
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center hidden">
+        <div class="loader"></div>
+    </div>
+
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
@@ -429,6 +462,9 @@
             { id: 6, name: 'Decant Floral', price: 99.00, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+F', category: 'decant', description: 'Um buquê de flores brancas, com gardênia, jasmim e um toque de tuberosa. Delicado e feminino.', rating: 4.6, reviews: [] },
         ];
         let cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+        let appliedCoupon = null;
+
+        const coupons = [{ code: 'SANSEI10', discount: 0.10 }]; // 10% de desconto
         
         function saveProducts() { localStorage.setItem('sanseiProducts', JSON.stringify(products)); }
         function saveCart() { localStorage.setItem('sanseiCart', JSON.stringify(cart)); }
@@ -486,19 +522,68 @@
         function renderCart() {
             const cartItemsEl = document.getElementById('cart-items');
             const cartTotalEl = document.getElementById('cart-total');
+            const discountInfoEl = document.getElementById('discount-info');
             cartItemsEl.innerHTML = '';
             if (cart.length === 0) {
                 cartItemsEl.innerHTML = '<p class="text-gray-500 text-center">Seu carrinho está vazio.</p>';
                 cartTotalEl.textContent = 'R$ 0,00';
+                discountInfoEl.innerHTML = '';
                 return;
             }
             let total = 0;
             cart.forEach(item => {
                 total += item.price * item.quantity;
-                cartItemsEl.innerHTML += `<div class="flex items-center gap-4 mb-4"><img src="${item.image}" alt="${item.name}" class="w-16 h-20 object-cover rounded-md"><div class="flex-grow"><h4 class="font-semibold">${item.name}</h4><p class="text-sm text-gray-600">R$ ${item.price.toFixed(2).replace('.',',')}</p><div class="flex items-center mt-2"><button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="w-6 h-6 border rounded-md">-</button><span class="px-3">${item.quantity}</span><button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="w-6 h-6 border rounded-md">+</button></div></div><button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700"><i data-feather="trash-2" class="w-5 h-5"></i></button></div>`;
             });
+
+            if (appliedCoupon) {
+                const discountAmount = total * appliedCoupon.discount;
+                total -= discountAmount;
+                discountInfoEl.innerHTML = `Cupom "${appliedCoupon.code}" aplicado! (-R$ ${discountAmount.toFixed(2).replace('.',',')}) <button onclick="removeCoupon()" class="text-red-500 ml-2 font-semibold">Remover</button>`;
+            } else {
+                discountInfoEl.innerHTML = '';
+            }
+
             cartTotalEl.textContent = `R$ ${total.toFixed(2).replace('.',',')}`;
+            
+            cartItemsEl.innerHTML = cart.map(item => `
+                <div class="flex items-center gap-4 mb-4">
+                    <img src="${item.image}" alt="${item.name}" class="w-16 h-20 object-cover rounded-md">
+                    <div class="flex-grow">
+                        <h4 class="font-semibold">${item.name}</h4>
+                        <p class="text-sm text-gray-600">R$ ${item.price.toFixed(2).replace('.',',')}</p>
+                        <div class="flex items-center mt-2">
+                            <button onclick="updateQuantity(${item.id}, ${item.quantity - 1})" class="w-6 h-6 border rounded-md">-</button>
+                            <span class="px-3">${item.quantity}</span>
+                            <button onclick="updateQuantity(${item.id}, ${item.quantity + 1})" class="w-6 h-6 border rounded-md">+</button>
+                        </div>
+                    </div>
+                    <button onclick="removeFromCart(${item.id})" class="text-red-500 hover:text-red-700"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                </div>
+            `).join('');
+            
             feather.replace();
+        }
+        
+        function handleApplyCoupon(e) {
+            e.preventDefault();
+            const couponInput = document.getElementById('coupon-input');
+            const code = couponInput.value.trim().toUpperCase();
+            const coupon = coupons.find(c => c.code === code);
+
+            if (coupon) {
+                appliedCoupon = coupon;
+                showToast(`Cupom "${code}" aplicado com sucesso!`);
+                renderCart();
+            } else {
+                showToast('Cupom inválido.', true);
+            }
+            couponInput.value = '';
+        }
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            renderCart();
+            showToast('Cupom removido.');
         }
 
         function renderStars(rating) {
@@ -516,30 +601,33 @@
         function renderProducts(productsToRender, containerId) {
             const productListEl = document.getElementById(containerId);
             if (!productListEl) return;
+            
+            const loader = document.getElementById('loader');
+            loader.classList.remove('hidden');
             productListEl.innerHTML = '';
 
-            if (productsToRender.length === 0) {
-                productListEl.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum produto encontrado.</p>';
-                return;
-            }
-
-            productsToRender.forEach(product => {
-                productListEl.innerHTML += `
-                    <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer flex flex-col" data-aos="fade-up" onclick="showProductDetails(${product.id})">
-                        <div class="relative overflow-hidden rounded-t-lg">
-                            <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
+            setTimeout(() => {
+                if (productsToRender.length === 0) {
+                    productListEl.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum produto encontrado.</p>';
+                } else {
+                    productListEl.innerHTML = productsToRender.map(product => `
+                        <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer flex flex-col" data-aos="fade-up" onclick="showProductDetails(${product.id})">
+                            <div class="relative overflow-hidden rounded-t-lg">
+                                <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
+                            </div>
+                            <div class="p-6 flex flex-col flex-grow">
+                                <h3 class="font-heading font-semibold text-2xl">${product.name}</h3>
+                                <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
+                                <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                                <button onclick="event.stopPropagation(); addToCart(${product.id})" class="mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease">Adicionar ao Carrinho</button>
+                            </div>
                         </div>
-                        <div class="p-6 flex flex-col flex-grow">
-                            <h3 class="font-heading font-semibold text-2xl">${product.name}</h3>
-                            <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
-                            <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                            <button onclick="event.stopPropagation(); addToCart(${product.id})" class="mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease">Adicionar ao Carrinho</button>
-                        </div>
-                    </div>
-                `;
-            });
-            AOS.refresh();
-            feather.replace();
+                    `).join('');
+                }
+                loader.classList.add('hidden');
+                AOS.refresh();
+                feather.replace();
+            }, 300); // Simulating network delay
         }
 
         function applyFilters() {
@@ -556,6 +644,16 @@
                 else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); } 
                 else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
             }
+            
+            const sortBy = document.getElementById('sort-by').value;
+            if (sortBy === 'price-asc') {
+                filteredProducts.sort((a, b) => a.price - b.price);
+            } else if (sortBy === 'price-desc') {
+                filteredProducts.sort((a, b) => b.price - a.price);
+            } else if (sortBy === 'popularity') {
+                filteredProducts.sort((a, b) => b.rating - a.rating);
+            }
+
             renderProducts(filteredProducts, 'product-list-fragrances');
         }
         
@@ -864,6 +962,7 @@
             document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
             document.getElementById('product-details-modal-overlay').addEventListener('click', closeProductDetails);
             document.getElementById('mobile-menu-button').addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+            document.getElementById('coupon-form').addEventListener('submit', handleApplyCoupon);
 
             // FAQ Accordion Logic
             const faqQuestions = document.querySelectorAll('.faq-question');
