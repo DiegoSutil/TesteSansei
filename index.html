@@ -29,7 +29,7 @@
     <!-- Google Fonts: Cormorant Garamond (for headings) & Lato (for body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     
     <!-- Feather Icons for Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
@@ -37,109 +37,8 @@
     <!-- AOS (Animate on Scroll) Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-    <style>
-        body {
-            font-family: 'Lato', sans-serif;
-            overflow-x: hidden;
-        }
-        .font-heading {
-            font-family: 'Cormorant Garamond', serif;
-        }
-        .transition-all-ease {
-            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-        .text-gold-500 { color: #D4AF37; } /* Brighter Gold */
-        .hover\:text-gold-600:hover { color: #c09a58; }
-        .bg-gold-500 { background-color: #D4AF37; }
-        .hover\:bg-gold-600:hover { background-color: #c09a58; }
-        .border-gold-500 { border-color: #D4AF37; }
-        .ring-gold-500:focus { --tw-ring-color: #D4AF37; }
-        .nav-link.active {
-            color: #D4AF37;
-            font-weight: 600;
-        }
-        #cart-modal, #product-details-modal-content, #auth-modal {
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-        }
-        /* Custom checkbox style */
-        .form-checkbox {
-            appearance: none;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid #d1d5db;
-            border-radius: 0.25rem;
-            vertical-align: middle;
-            cursor: pointer;
-        }
-        .form-checkbox:checked {
-            background-color: #D4AF37;
-            border-color: #D4AF37;
-            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
-            background-size: 100% 100%;
-            background-position: center;
-            background-repeat: no-repeat;
-        }
-        .form-radio:checked {
-            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23D4AF37' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
-        }
-        /* Star Rating Styles */
-        .star-rating .feather-star {
-            width: 1.25rem;
-            height: 1.25rem;
-            color: #d1d5db; /* Cor de estrela vazia */
-        }
-        .star-rating .feather-star.filled {
-            fill: #D4AF37;
-            color: #D4AF37;
-        }
-        /* Toast Notification Styles */
-        #toast-notification {
-            transition: opacity 0.5s, transform 0.5s;
-        }
-        /* FAQ Accordion Styles */
-        .faq-answer {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.5s ease-in-out;
-        }
-        /* Loader Styles */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #D4AF37;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        /* Parallax Effect */
-        .parallax-bg {
-            background-attachment: fixed;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-size: cover;
-        }
-        /* Mobile fallback for Parallax */
-        @media (max-width: 768px) {
-            .parallax-bg {
-                background-attachment: scroll;
-            }
-        }
-        /* Gold Gradient Text */
-        .text-gold-gradient {
-            background: -webkit-linear-gradient(45deg, #D4AF37, #c09a58);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        /* Wishlist Heart */
-        .wishlist-heart.active svg {
-            fill: #D4AF37;
-            color: #D4AF37;
-        }
-    </style>
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-white text-gray-800">
 
@@ -150,12 +49,12 @@
                 <img src="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" alt="SANSEI DECANTS Logo" class="h-full w-auto">
             </a>
             <div class="hidden md:flex items-center space-x-8">
-                <a href="#" data-page="inicio" id="nav-inicio" class="nav-link">Início</a>
-                <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link">Fragrâncias</a>
-                <a href="#" data-page="decants" id="nav-decants" class="nav-link">Decants</a>
-                <a href="#" data-page="sobre" id="nav-sobre" class="nav-link">Sobre</a>
-                <a href="#" data-page="faq" id="nav-faq" class="nav-link">FAQ</a>
-                <a href="#" data-page="contato" id="nav-contato" class="nav-link">Contato</a>
+                <a href="#" data-page="inicio" id="nav-inicio" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Início</a>
+                <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Fragrâncias</a>
+                <a href="#" data-page="decants" id="nav-decants" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Decants</a>
+                <a href="#" data-page="sobre" id="nav-sobre" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Sobre</a>
+                <a href="#" data-page="faq" id="nav-faq" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">FAQ</a>
+                <a href="#" data-page="contato" id="nav-contato" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Contato</a>
             </div>
             <div class="flex items-center space-x-5">
                 <button id="search-button" class="text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="search" class="w-6 h-6"></i></button>
@@ -168,13 +67,13 @@
             </div>
         </nav>
         <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2 bg-white">
-            <a href="#" class="mobile-nav-link" data-page="inicio">Início</a>
-            <a href="#" class="mobile-nav-link" data-page="fragrancias">Fragrâncias</a>
-            <a href="#" class="mobile-nav-link" data-page="decants">Decants</a>
-            <a href="#" class="mobile-nav-link" data-page="sobre">Sobre</a>
-            <a href="#" class="mobile-nav-link" data-page="faq">FAQ</a>
-            <a href="#" class="mobile-nav-link" data-page="contato">Contato</a>
-            <a href="#" id="mobile-user-link" class="block text-gray-600 hover:text-gold-500">Minha Conta</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="inicio">Início</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="fragrancias">Fragrâncias</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="decants">Decants</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="sobre">Sobre</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="faq">FAQ</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="contato">Contato</a>
+             <a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>
         </div>
         <!-- Search Bar -->
         <div id="search-bar" class="hidden bg-white border-t border-gray-200">
@@ -182,7 +81,7 @@
                 <input type="text" id="search-input" placeholder="O que você procura?" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
                 <button id="close-search-bar" class="text-gray-500 hover:text-black"><i data-feather="x"></i></button>
             </div>
-            <div id="search-results" class="container mx-auto px-4 pb-4"></div>
+            <div id="search-results" class="container mx-auto px-4 pb-4 max-h-96 overflow-y-auto"></div>
         </div>
     </header>
 
@@ -196,7 +95,7 @@
                 <div class="container mx-auto px-6 text-center relative z-10" data-aos="fade-up">
                     <h1 class="font-heading text-5xl md:text-7xl font-bold leading-tight mb-4 text-gold-gradient">Fragrâncias que Contam Histórias</h1>
                     <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto text-gray-200 font-light">Descubra aromas únicos e encontre a sua assinatura olfativa.</p>
-                    <a href="#" data-page="fragrancias" class="nav-link bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider shadow-lg hover:shadow-gold-500/50">VER COLEÇÃO</a>
+                    <a href="#" data-page="fragrancias" class="nav-link-button bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider shadow-lg hover:shadow-gold-500/50">VER COLEÇÃO</a>
                 </div>
             </section>
             <!-- Benefits Bar -->
@@ -210,9 +109,9 @@
                 </div>
             </section>
             <!-- Featured Products Section -->
-            <section class="py-20 bg-black">
+            <section class="py-20 bg-gray-50">
                 <div class="container mx-auto px-6">
-                    <h2 class="font-heading text-4xl font-bold text-center mb-12 text-white" data-aos="fade-up">Mais Desejados</h2>
+                    <h2 class="font-heading text-4xl font-bold text-center mb-12 text-black" data-aos="fade-up">Mais Desejados</h2>
                     <div id="product-list-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"></div>
                 </div>
             </section>
@@ -222,12 +121,12 @@
                     <h2 class="font-heading text-4xl font-bold text-black mb-4" data-aos="fade-up">Veja os nossos Reels</h2>
                     <p class="text-gray-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
                     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
-                        <a href="https://www.instagram.com/reel/DLP9iVzsBcA/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/000000/ffffff?text=Seu+Reel+Aqui" alt="Reel 1" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/333333/ffffff?text=Reel+2" alt="Reel 2" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/111111/ffffff?text=Reel+3" alt="Reel 3" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/222222/ffffff?text=Reel+4" alt="Reel 4" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/444444/ffffff?text=Reel+5" alt="Reel 5" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/555555/ffffff?text=Reel+6" alt="Reel 6" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/000000/ffffff?text=Reel+1" alt="Reel 1" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/333333/ffffff?text=Reel+2" alt="Reel 2" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/111111/ffffff?text=Reel+3" alt="Reel 3" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/222222/ffffff?text=Reel+4" alt="Reel 4" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/444444/ffffff?text=Reel+5" alt="Reel 5" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/555555/ffffff?text=Reel+6" alt="Reel 6" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
                     </div>
                     <div class="mt-12" data-aos="fade-up">
                         <a href="https://www.instagram.com/sanseidecants/reels/" target="_blank" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Ver mais no Instagram</a>
@@ -252,22 +151,22 @@
                                 <div class="mb-6">
                                     <h4 class="font-semibold mb-3 text-gray-800">Categoria</h4>
                                     <div class="space-y-2">
-                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" class="form-checkbox" value="perfume"> <span class="ml-2 text-gray-700">Perfumes</span></label></div>
-                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" class="form-checkbox" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" class="form-checkbox filter-control" value="perfume"> <span class="ml-2 text-gray-700">Perfumes</span></label></div>
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" class="form-checkbox filter-control" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
                                     </div>
                                 </div>
                                 <div class="mb-6">
                                     <h4 class="font-semibold mb-3 text-gray-800">Faixa de Preço</h4>
                                     <div class="space-y-2">
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="150"> <span class="ml-2 text-gray-700">Até R$ 150</span></label></div>
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="150"> <span class="ml-2 text-gray-700">Até R$ 150</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
                                     </div>
                                 </div>
                                 <div>
                                     <h4 class="font-semibold mb-3 text-gray-800">Ordenar Por</h4>
-                                    <select id="sort-by" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                    <select id="sort-by" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500 filter-control">
                                         <option value="popularity">Popularidade</option>
                                         <option value="price-asc">Preço: Menor para Maior</option>
                                         <option value="price-desc">Preço: Maior para Menor</option>
@@ -305,8 +204,8 @@
                     <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
                         <div class="md:w-1/2"><img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl"></div>
                         <div class="md:w-1/2">
-                            <p class="text-gray-600 mb-4 leading-relaxed">[Aqui pode descrever a filosofia da sua marca. Fale sobre a sua paixão por perfumes, a sua missão e os valores que guiam a SANSEI DECANTS. Conte a história que torna a sua loja única.]</p>
-                            <p class="text-gray-600 leading-relaxed">[Detalhe o seu processo de curadoria. Explique como seleciona os seus produtos, o compromisso com a qualidade e a autenticidade, e como garante uma experiência de luxo para os seus clientes.]</p>
+                            <p class="text-gray-600 mb-4 leading-relaxed">A SANSEI DECANTS nasceu da paixão por fragrâncias que transcendem o comum. Acreditamos que um perfume é mais do que um aroma; é uma forma de expressão, uma assinatura pessoal que conta uma história. Nossa missão é democratizar o acesso à alta perfumaria, permitindo que você explore um universo de aromas de nicho e de luxo sem o compromisso de um frasco completo.</p>
+                            <p class="text-gray-600 leading-relaxed">Cada decant é cuidadosamente preparado, extraído diretamente do frasco original para garantir 100% de autenticidade e qualidade. Nosso processo de curadoria é rigoroso, selecionando apenas as fragrâncias mais cativantes e memoráveis para fazer parte da nossa coleção. Bem-vindo ao nosso mundo, onde cada gota é uma nova descoberta.</p>
                         </div>
                     </div>
                 </div>
@@ -423,8 +322,8 @@
             <div class="container mx-auto px-6 py-16 text-center" data-aos="fade-up">
                 <h3 class="font-heading text-4xl font-bold text-white">Junte-se ao Círculo SANSEI</h3>
                 <p class="mt-3 text-gray-300 max-w-xl mx-auto">Seja o primeiro a saber sobre lançamentos, coleções limitadas e eventos exclusivos.</p>
-                <form class="mt-8 flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
-                    <input type="email" placeholder="Seu melhor e-mail" class="w-full flex-grow px-4 py-3 rounded-md text-gray-800 bg-white border border-transparent focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <form id="newsletter-form" class="mt-8 flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
+                    <input type="email" id="newsletter-email" placeholder="Seu melhor e-mail" required class="w-full flex-grow px-4 py-3 rounded-md text-gray-800 bg-white border border-transparent focus:outline-none focus:ring-2 focus:ring-gold-500">
                     <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-6 rounded-md hover:bg-gold-600 transition-all-ease">INSCREVER</button>
                 </form>
             </div>
@@ -442,16 +341,16 @@
                 <div>
                     <h4 class="font-heading text-lg font-semibold mb-4">Descubra</h4>
                     <ul>
-                        <li class="mb-2"><a href="#" data-page="sobre" class="nav-link text-gray-400 hover:text-white transition-all-ease">Sobre Nós</a></li>
-                        <li class="mb-2"><a href="#" data-page="contato" class="nav-link text-gray-400 hover:text-white transition-all-ease">Contato</a></li>
-                        <li class="mb-2"><a href="#" data-page="faq" class="nav-link text-gray-400 hover:text-white transition-all-ease">FAQ</a></li>
+                        <li class="mb-2"><a href="#" data-page="sobre" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">Sobre Nós</a></li>
+                        <li class="mb-2"><a href="#" data-page="contato" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">Contato</a></li>
+                        <li class="mb-2"><a href="#" data-page="faq" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">FAQ</a></li>
                         <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white transition-all-ease">Política de Privacidade</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="font-heading text-lg font-semibold mb-4">Siga-nos</h4>
                     <div class="flex space-x-4">
-                        <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="instagram"></i></a>
+                        <a href="https://www.instagram.com/sanseidecants/" target="_blank" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="instagram"></i></a>
                         <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="facebook"></i></a>
                         <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="twitter"></i></a>
                     </div>
@@ -486,574 +385,34 @@
     </div>
 
     <!-- Product Details Modal -->
-    <div id="product-details-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden"></div>
-    <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-50 hidden">
-        <div id="product-details-content" class="max-h-[90vh] overflow-y-auto flex flex-col md:flex-row"></div>
+    <div id="product-details-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden"></div>
+    <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-[70] hidden opacity-0 transform scale-95 transition-all duration-300">
+        <div id="product-details-content-wrapper" class="relative max-h-[90vh] overflow-y-auto">
+             <button id="close-product-details-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black z-10 bg-white rounded-full p-1"><i data-feather="x"></i></button>
+            <div id="product-details-content" class="flex flex-col md:flex-row"></div>
+        </div>
     </div>
 
     <!-- Auth Modal -->
-    <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden"></div>
-    <div id="auth-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-md bg-white rounded-lg shadow-xl z-50 hidden p-8">
+    <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden"></div>
+    <div id="auth-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-md bg-white rounded-lg shadow-xl z-[70] hidden p-8 opacity-0 transform scale-95 transition-all duration-300">
         <button id="close-auth-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black"><i data-feather="x"></i></button>
         <div id="auth-content"></div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="toast-notification" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 opacity-0 transform translate-y-10 z-50">
+    <div id="toast-notification" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 opacity-0 transform translate-y-10 z-[80]">
         <span id="toast-icon-container"></span>
         <span id="toast-message"></span>
     </div>
 
     <!-- Loader -->
-    <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 z-50 flex items-center justify-center hidden">
+    <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 z-[90] flex items-center justify-center hidden">
         <div class="loader"></div>
     </div>
 
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script type="module">
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore.js";
-
-        // Your web app's Firebase configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyC4-kp4wBq6fz-pG1Rm3VQcq6pO17OEeOI",
-          authDomain: "sansei-d3cf6.firebaseapp.com",
-          projectId: "sansei-d3cf6",
-          storageBucket: "sansei-d3cf6.appspot.com",
-          messagingSenderId: "774111823223",
-          appId: "1:774111823223:web:c03c73c4b89d96244b8d72"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // =================================================================
-        // GLOBAL STATE & VARIABLES
-        // =================================================================
-        let allProducts = [];
-        let cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
-        let appliedCoupon = null;
-        let currentUserData = null;
-
-        const coupons = [{ code: 'SANSEI10', discount: 0.10 }];
-        
-        // =================================================================
-        // UTILITY FUNCTIONS
-        // =================================================================
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast-notification');
-            const toastMessage = document.getElementById('toast-message');
-            const iconContainer = document.getElementById('toast-icon-container');
-            if (!toast || !toastMessage || !iconContainer) return;
-
-            const iconName = isError ? 'x-circle' : 'check-circle';
-            const iconColorClass = isError ? 'text-red-400' : 'text-green-400';
-
-            iconContainer.innerHTML = `<i data-feather="${iconName}" class="${iconColorClass}"></i>`;
-            toastMessage.textContent = message;
-            
-            feather.replace();
-            
-            toast.classList.remove('opacity-0', 'translate-y-10');
-            toast.classList.add('opacity-100', 'translate-y-0');
-
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-10');
-            }, 3000);
-        }
-
-        // =================================================================
-        // CART FUNCTIONS
-        // =================================================================
-        function addToCart(productId) {
-            const product = allProducts.find(p => p.id === productId);
-            if (!product) return;
-            const cartItem = cart.find(item => item.id === productId);
-            if (cartItem) { cartItem.quantity++; } else { cart.push({ ...product, quantity: 1 }); }
-            localStorage.setItem('sanseiCart', JSON.stringify(cart));
-            updateCartIcon();
-            showToast(`${product.name} foi adicionado ao carrinho!`);
-        }
-        function removeFromCart(productId) {
-            cart = cart.filter(item => item.id !== productId);
-            localStorage.setItem('sanseiCart', JSON.stringify(cart));
-            updateCartIcon();
-            renderCart();
-        }
-        function updateQuantity(productId, newQuantity) {
-            const cartItem = cart.find(item => item.id === productId);
-            if (!cartItem) return;
-            if (newQuantity <= 0) { removeFromCart(productId); } else {
-                cartItem.quantity = newQuantity;
-                localStorage.setItem('sanseiCart', JSON.stringify(cart));
-                updateCartIcon();
-                renderCart();
-            }
-        }
-        function updateCartIcon() {
-            const cartCountEl = document.getElementById('cart-count');
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCountEl.textContent = totalItems;
-        }
-        function renderCart() {
-            const cartItemsEl = document.getElementById('cart-items');
-            const cartTotalEl = document.getElementById('cart-total');
-            const discountInfoEl = document.getElementById('discount-info');
-            cartItemsEl.innerHTML = '';
-            if (cart.length === 0) {
-                cartItemsEl.innerHTML = '<p class="text-gray-500 text-center">Seu carrinho está vazio.</p>';
-                cartTotalEl.textContent = 'R$ 0,00';
-                discountInfoEl.innerHTML = '';
-                return;
-            }
-            let total = 0;
-            cart.forEach(item => {
-                total += item.price * item.quantity;
-            });
-
-            if (appliedCoupon) {
-                const discountAmount = total * appliedCoupon.discount;
-                total -= discountAmount;
-                discountInfoEl.innerHTML = `Cupom "${appliedCoupon.code}" aplicado! (-R$ ${discountAmount.toFixed(2).replace('.',',')}) <button onclick="removeCoupon()" class="text-red-500 ml-2 font-semibold">Remover</button>`;
-            } else {
-                discountInfoEl.innerHTML = '';
-            }
-
-            cartTotalEl.textContent = `R$ ${total.toFixed(2).replace('.',',')}`;
-            
-            cartItemsEl.innerHTML = cart.map(item => `
-                <div class="flex items-center gap-4 mb-4">
-                    <img src="${item.image}" alt="${item.name}" class="w-16 h-20 object-cover rounded-md">
-                    <div class="flex-grow">
-                        <h4 class="font-semibold">${item.name}</h4>
-                        <p class="text-sm text-gray-600">R$ ${item.price.toFixed(2).replace('.',',')}</p>
-                        <div class="flex items-center mt-2">
-                            <button onclick="updateQuantity('${item.id}', ${item.quantity - 1})" class="w-6 h-6 border rounded-md">-</button>
-                            <span class="px-3">${item.quantity}</span>
-                            <button onclick="updateQuantity('${item.id}', ${item.quantity + 1})" class="w-6 h-6 border rounded-md">+</button>
-                        </div>
-                    </div>
-                    <button onclick="removeFromCart('${item.id}')" class="text-red-500 hover:text-red-700"><i data-feather="trash-2" class="w-5 h-5"></i></button>
-                </div>
-            `).join('');
-            
-            feather.replace();
-        }
-        
-        function handleApplyCoupon(e) {
-            e.preventDefault();
-            const couponInput = document.getElementById('coupon-input');
-            const code = couponInput.value.trim().toUpperCase();
-            const coupon = coupons.find(c => c.code === code);
-
-            if (coupon) {
-                appliedCoupon = coupon;
-                showToast(`Cupom "${code}" aplicado com sucesso!`);
-                renderCart();
-            } else {
-                showToast('Cupom inválido.', true);
-            }
-            couponInput.value = '';
-        }
-
-        function removeCoupon() {
-            appliedCoupon = null;
-            renderCart();
-            showToast('Cupom removido.');
-        }
-
-        // =================================================================
-        // PRODUCT & RENDERING FUNCTIONS
-        // =================================================================
-        function renderStars(rating) {
-            let stars = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= rating) {
-                    stars += '<i data-feather="star" class="feather-star filled"></i>';
-                } else {
-                    stars += '<i data-feather="star" class="feather-star"></i>';
-                }
-            }
-            return `<div class="flex items-center star-rating">${stars}</div>`;
-        }
-
-        function renderProducts(productsToRender, containerId) {
-            const productListEl = document.getElementById(containerId);
-            if (!productListEl) return;
-            
-            const loader = document.getElementById('loader');
-            loader.classList.remove('hidden');
-            productListEl.innerHTML = '';
-
-            setTimeout(() => {
-                if (productsToRender.length === 0) {
-                    productListEl.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum produto encontrado.</p>';
-                } else {
-                    productListEl.innerHTML = productsToRender.map(product => {
-                        const isInWishlist = currentUserData && currentUserData.wishlist.includes(product.id);
-                        return `
-                            <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl" data-aos="fade-up" onclick="showProductDetails('${product.id}')">
-                                <div class="relative overflow-hidden rounded-t-lg">
-                                    <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
-                                    <button onclick="event.stopPropagation(); toggleWishlist('${product.id}')" class="wishlist-heart absolute top-4 right-4 p-2 bg-white/70 rounded-full ${isInWishlist ? 'active' : ''}">
-                                        <i data-feather="heart" class="w-5 h-5"></i>
-                                    </button>
-                                </div>
-                                <div class="p-6 flex flex-col flex-grow">
-                                    <h3 class="font-heading font-semibold text-2xl">${product.name}</h3>
-                                    <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
-                                    <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                                    <button onclick="event.stopPropagation(); addToCart('${product.id}')" class="mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease">Adicionar ao Carrinho</button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-                }
-                loader.classList.add('hidden');
-                AOS.refresh();
-                feather.replace();
-            }, 300); // Simulating network delay
-        }
-
-        function applyFilters() {
-            let filteredProducts = [...allProducts];
-            const selectedCategories = [];
-            if (document.getElementById('filter-cat-perfume').checked) selectedCategories.push('perfume');
-            if (document.getElementById('filter-cat-decant').checked) selectedCategories.push('decant');
-            if (selectedCategories.length > 0) {
-                filteredProducts = filteredProducts.filter(p => selectedCategories.includes(p.category));
-            }
-            const priceFilter = document.querySelector('input[name="price"]:checked').value;
-            if (priceFilter !== 'all') {
-                if (priceFilter === '150') { filteredProducts = filteredProducts.filter(p => p.price <= 150); } 
-                else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); } 
-                else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
-            }
-            
-            const sortBy = document.getElementById('sort-by').value;
-            if (sortBy === 'price-asc') {
-                filteredProducts.sort((a, b) => a.price - b.price);
-            } else if (sortBy === 'price-desc') {
-                filteredProducts.sort((a, b) => b.price - a.price);
-            } else if (sortBy === 'popularity') {
-                filteredProducts.sort((a, b) => b.rating - a.rating);
-            }
-
-            renderProducts(filteredProducts, 'product-list-fragrances');
-        }
-        
-        // =================================================================
-        // AUTHENTICATION, WISHLIST & SEARCH LOGIC
-        // =================================================================
-        
-        function renderAuthForm(isLogin = true) {
-            const authContent = document.getElementById('auth-content');
-            let formHtml = `
-                <h2 class="font-heading text-3xl font-bold text-center mb-6">${isLogin ? 'Login' : 'Criar Conta'}</h2>
-                <form id="auth-form">
-                    <div class="mb-4">
-                        <label for="auth-email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                        <input type="email" id="auth-email" required class="w-full px-4 py-2 border rounded-md">
-                    </div>
-                    <div class="mb-4">
-                        <label for="auth-password" class="block text-sm font-semibold text-gray-700 mb-2">Senha</label>
-                        <input type="password" id="auth-password" required class="w-full px-4 py-2 border rounded-md">
-                    </div>
-            `;
-            if (!isLogin) {
-                formHtml += `
-                    <div class="mb-6">
-                        <label for="auth-confirm-password" class="block text-sm font-semibold text-gray-700 mb-2">Confirmar Senha</label>
-                        <input type="password" id="auth-confirm-password" required class="w-full px-4 py-2 border rounded-md">
-                    </div>
-                `;
-            }
-            formHtml += `
-                    <button type="submit" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md">${isLogin ? 'Entrar' : 'Registar'}</button>
-                </form>
-                <p class="text-center text-sm mt-4">
-                    ${isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
-                    <a href="#" id="auth-switch" class="text-gold-500 font-semibold">
-                        ${isLogin ? 'Crie uma aqui.' : 'Faça login.'}
-                    </a>
-                </p>
-            `;
-            authContent.innerHTML = formHtml;
-            document.getElementById('auth-form').addEventListener('submit', isLogin ? handleLogin : handleRegister);
-            document.getElementById('auth-switch').addEventListener('click', (e) => {
-                e.preventDefault();
-                renderAuthForm(!isLogin);
-            });
-        }
-
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                toggleAuthModal(false);
-                showToast(`Bem-vindo(a) de volta!`);
-            } catch (error) {
-                showToast('Email ou senha inválidos.', true);
-                console.error("Login error:", error);
-            }
-        }
-
-        async function handleRegister(e) {
-            e.preventDefault();
-            const email = document.getElementById('auth-email').value;
-            const password = document.getElementById('auth-password').value;
-            const confirmPassword = document.getElementById('auth-confirm-password').value;
-            
-            if (password !== confirmPassword) {
-                showToast('As senhas não coincidem.', true);
-                return;
-            }
-            try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-                await setDoc(doc(db, "users", user.uid), {
-                    email: user.email,
-                    wishlist: [],
-                    cart: []
-                });
-                showToast('Conta criada com sucesso! Faça login para continuar.');
-                renderAuthForm(true);
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') {
-                    showToast('Este email já está registado.', true);
-                } else {
-                    showToast('Ocorreu um erro ao criar a conta.', true);
-                }
-                console.error("Register error:", error);
-            }
-        }
-        
-        async function logout() {
-            await signOut(auth);
-            currentUserData = null;
-            updateAuthUI();
-            showPage('inicio');
-            showToast('Sessão terminada.');
-        }
-
-        function updateAuthUI(user) {
-            const userButton = document.getElementById('user-button');
-            const mobileUserLink = document.getElementById('mobile-user-link');
-            if (user) {
-                userButton.onclick = () => showPage('profile');
-                mobileUserLink.onclick = () => showPage('profile');
-                mobileUserLink.textContent = 'Minha Conta';
-            } else {
-                userButton.onclick = () => toggleAuthModal(true);
-                mobileUserLink.onclick = () => toggleAuthModal(true);
-                mobileUserLink.textContent = 'Minha Conta';
-            }
-            feather.replace();
-        }
-
-        function toggleAuthModal(show) {
-            const overlay = document.getElementById('auth-modal-overlay');
-            const modal = document.getElementById('auth-modal');
-            if (show) {
-                renderAuthForm();
-                overlay.classList.remove('hidden');
-                modal.classList.remove('hidden');
-            } else {
-                overlay.classList.add('hidden');
-                modal.classList.add('hidden');
-            }
-        }
-        
-        // ... (Search Logic remains the same) ...
-
-        // =================================================================
-        // MODAL & PAGE LOGIC
-        // =================================================================
-        function toggleCart(show) {
-            const cartModalOverlay = document.getElementById('cart-modal-overlay');
-            const cartModal = document.getElementById('cart-modal');
-            if (show) {
-                cartModalOverlay.classList.remove('hidden');
-                cartModal.classList.remove('translate-x-full');
-                renderCart();
-            } else {
-                cartModalOverlay.classList.add('hidden');
-                cartModal.classList.add('translate-x-full');
-            }
-        }
-        
-        function showProductDetails(productId) {
-            // ... (showProductDetails logic remains the same)
-        }
-
-        function closeProductDetails() {
-            // ... (closeProductDetails logic remains the same)
-        }
-
-        async function handleReviewSubmit(event, productId) {
-            event.preventDefault();
-            if (!currentUserData) {
-                showToast('Faça login para deixar uma avaliação.', true);
-                return;
-            }
-            const form = event.target;
-            const name = currentUserData.email.split('@')[0]; // Use username part of email
-            const comment = form.querySelector('#review-comment').value;
-            const rating = parseInt(form.querySelector('input[name="rating"]:checked').value);
-
-            const productRef = doc(db, "products", productId);
-            try {
-                await updateDoc(productRef, {
-                    reviews: arrayUnion({ name, rating, comment, userId: currentUserData.uid, date: new Date() })
-                });
-                showToast("Avaliação enviada com sucesso!");
-                fetchProducts().then(() => showProductDetails(productId));
-            } catch (error) {
-                console.error("Error submitting review: ", error);
-                showToast("Erro ao enviar avaliação.", true);
-            }
-        }
-        
-        // =================================================================
-        // PAGE INITIALIZATION & NAVIGATION
-        // =================================================================
-        const pages = document.querySelectorAll('.page-content');
-        const navLinks = document.querySelectorAll('.nav-link');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        function showPage(pageId) {
-            pages.forEach(page => page.classList.add('hidden'));
-            const targetPage = document.getElementById('page-' + pageId);
-            if(targetPage) { targetPage.classList.remove('hidden'); }
-            navLinks.forEach(link => link.classList.remove('active'));
-            const activeLink = document.getElementById('nav-' + pageId);
-            if(activeLink) { activeLink.classList.add('active'); }
-            if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
-            
-            if (pageId === 'fragrancias') {
-                applyFilters();
-            } else if (pageId === 'decants') {
-                const decantProducts = allProducts.filter(p => p.category === 'decant');
-                renderProducts(decantProducts, 'product-list-decants');
-            } else if (pageId === 'profile') {
-                if (!currentUserData) {
-                    showPage('inicio');
-                    toggleAuthModal(true);
-                    return;
-                }
-                document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
-                renderWishlist();
-            }
-            
-            window.scrollTo(0, 0);
-            AOS.refresh();
-        }
-        
-        async function renderWishlist() {
-            const wishlistContainer = document.getElementById('wishlist-items');
-            if (!currentUserData || !wishlistContainer) return;
-
-            const wishlistProducts = allProducts.filter(p => currentUserData.wishlist.includes(p.id));
-            if (wishlistProducts.length === 0) {
-                wishlistContainer.innerHTML = '<p class="text-gray-500 col-span-full text-center">A sua lista de desejos está vazia.</p>';
-                return;
-            }
-            renderProducts(wishlistProducts, 'wishlist-items');
-        }
-
-        async function fetchProducts() {
-            const loader = document.getElementById('loader');
-            loader.classList.remove('hidden');
-            try {
-                const querySnapshot = await getDocs(collection(db, "products"));
-                allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderProducts(allProducts.slice(0, 4), 'product-list-home');
-                showPage('inicio');
-            } catch (error) {
-                console.error("Error fetching products: ", error);
-                showToast("Não foi possível carregar os produtos. Verifique as regras do Firestore.", true);
-            } finally {
-                loader.classList.add('hidden');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Setup all event listeners here programmatically
-            document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showPage(link.dataset.page);
-                });
-            });
-            document.querySelectorAll('.mobile-nav-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showPage(link.dataset.page);
-                });
-            });
-            document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
-            document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
-            document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
-            document.getElementById('product-details-modal-overlay').addEventListener('click', closeProductDetails);
-            document.getElementById('mobile-menu-button').addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
-            document.getElementById('coupon-form').addEventListener('submit', handleApplyCoupon);
-            document.getElementById('close-auth-modal').addEventListener('click', () => toggleAuthModal(false));
-            document.getElementById('auth-modal-overlay').addEventListener('click', () => toggleAuthModal(false));
-            document.getElementById('logout-button').addEventListener('click', logout);
-
-
-            // FAQ Accordion Logic
-            const faqQuestions = document.querySelectorAll('.faq-question');
-            faqQuestions.forEach(question => {
-                question.addEventListener('click', () => {
-                    const answer = question.nextElementSibling;
-                    const icon = question.querySelector('i svg');
-
-                    if (answer && icon) {
-                        if (answer.style.maxHeight) {
-                            answer.style.maxHeight = null;
-                            icon.style.transform = 'rotate(0deg)';
-                        } else {
-                            answer.style.maxHeight = answer.scrollHeight + "px";
-                            icon.style.transform = 'rotate(180deg)';
-                        }
-                    }
-                });
-            });
-
-            // Firebase Auth State Listener
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    const userDocRef = doc(db, "users", user.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    if (userDoc.exists()) {
-                        currentUserData = { uid: user.uid, ...userDoc.data() };
-                    } else {
-                        // Create user doc if it doesn't exist (e.g., first login)
-                        const newUser = { email: user.email, wishlist: [], cart: [] };
-                        await setDoc(userDocRef, newUser);
-                        currentUserData = { uid: user.uid, ...newUser };
-                    }
-                } else {
-                    currentUserData = null;
-                }
-                updateAuthUI(user);
-                fetchProducts(); // Fetch products after auth state is known
-            });
-
-            updateCartIcon();
-            feather.replace();
-            AOS.init({ duration: 800, once: true });
-        });
-    </script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
