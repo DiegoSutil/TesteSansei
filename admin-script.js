@@ -20,7 +20,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // IMPORTANT: List of authorized admin emails
-const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com"];
+const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com", "sanseiadmin@gmail.com"];
 
 // =================================================================
 // DOM ELEMENTS
