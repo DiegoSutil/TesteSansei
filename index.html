@@ -104,6 +104,12 @@
             background-repeat: no-repeat;
             background-size: cover;
         }
+        /* Mobile fallback for Parallax */
+        @media (max-width: 768px) {
+            .parallax-bg {
+                background-attachment: scroll;
+            }
+        }
         /* Gold Gradient Text */
         .text-gold-gradient {
             background: -webkit-linear-gradient(45deg, #D4AF37, #c09a58);
