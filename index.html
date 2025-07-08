@@ -532,6 +532,10 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // All the JavaScript logic will go here
+        // ...
+        // (The full script is included below)
+        
         // =================================================================
         // GLOBAL STATE & VARIABLES
         // =================================================================
@@ -668,9 +672,6 @@
             showToast('Cupom removido.');
         }
 
-        // =================================================================
-        // PRODUCT & RENDERING FUNCTIONS
-        // =================================================================
         function renderStars(rating) {
             let stars = '';
             for (let i = 1; i <= 5; i++) {
@@ -752,6 +753,46 @@
         // AUTHENTICATION, WISHLIST & SEARCH LOGIC
         // =================================================================
         
+        let users = [];
+        let currentUserData = null;
+
+        async function fetchUsers() {
+            const querySnapshot = await getDocs(collection(db, "users"));
+            users = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+
+        async function toggleWishlist(productId) {
+            if (!currentUserData) {
+                toggleAuthModal(true);
+                showToast('Faça login para adicionar à sua lista de desejos.', true);
+                return;
+            }
+            
+            const userDocRef = doc(db, "users", currentUserData.uid);
+            const isInWishlist = currentUserData.wishlist.includes(productId);
+
+            try {
+                if (isInWishlist) {
+                    await updateDoc(userDocRef, {
+                        wishlist: arrayRemove(productId)
+                    });
+                    currentUserData.wishlist = currentUserData.wishlist.filter(id => id !== productId);
+                    showToast('Removido da lista de desejos!');
+                } else {
+                    await updateDoc(userDocRef, {
+                        wishlist: arrayUnion(productId)
+                    });
+                    currentUserData.wishlist.push(productId);
+                    showToast('Adicionado à lista de desejos!');
+                }
+                const currentPage = document.querySelector('.page-content:not(.hidden)').id.replace('page-', '');
+                showPage(currentPage);
+            } catch (error) {
+                console.error("Error updating wishlist: ", error);
+                showToast("Ocorreu um erro ao atualizar a lista de desejos.", true);
+            }
+        }
+
         function renderAuthForm(isLogin = true) {
             const authContent = document.getElementById('auth-content');
             let formHtml = `
@@ -872,14 +913,50 @@
             }
         }
         
-        // ... (Search Logic remains the same) ...
+        // Search Logic
+        const searchInput = document.getElementById('search-input');
+        const searchResultsContainer = document.getElementById('search-results');
+        
+        document.getElementById('search-button').addEventListener('click', () => document.getElementById('search-bar').classList.toggle('hidden'));
+        document.getElementById('close-search-bar').addEventListener('click', () => {
+            document.getElementById('search-bar').classList.add('hidden');
+            searchResultsContainer.innerHTML = '';
+            searchInput.value = '';
+        });
+
+        searchInput.addEventListener('keyup', () => {
+            const query = searchInput.value.toLowerCase();
+            if (query.length < 2) {
+                searchResultsContainer.innerHTML = '';
+                return;
+            }
+            const results = allProducts.filter(p => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+            
+            if(results.length > 0) {
+                searchResultsContainer.innerHTML = results.map(p => `
+                    <div class="flex items-center gap-4 p-2 border-b border-gray-100 hover:bg-gray-50 cursor-pointer" onclick="showProductDetails('${p.id}')">
+                        <img src="${p.image}" class="w-12 h-12 object-cover rounded-md">
+                        <div>
+                            <h4 class="font-semibold">${p.name}</h4>
+                            <p class="text-sm text-gold-500">R$ ${p.price.toFixed(2).replace('.',',')}</p>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                searchResultsContainer.innerHTML = '<p class="text-center p-4 text-gray-500">Nenhum produto encontrado.</p>';
+            }
+        });
 
         // =================================================================
         // MODAL & PAGE LOGIC
         // =================================================================
+        const cartModal = document.getElementById('cart-modal');
+        const cartModalOverlay = document.getElementById('cart-modal-overlay');
+        const productDetailsModal = document.getElementById('product-details-modal');
+        const productDetailsModalOverlay = document.getElementById('product-details-modal-overlay');
+        const productDetailsContent = document.getElementById('product-details-content');
+
         function toggleCart(show) {
-            const cartModalOverlay = document.getElementById('cart-modal-overlay');
-            const cartModal = document.getElementById('cart-modal');
             if (show) {
                 cartModalOverlay.classList.remove('hidden');
                 cartModal.classList.remove('translate-x-full');
@@ -891,11 +968,86 @@
         }
         
         function showProductDetails(productId) {
-            // ... (showProductDetails logic remains the same)
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) return;
+
+            let reviewsHtml = product.reviews.length > 0 ? product.reviews.map(review => `
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <div class="flex items-center mb-1">
+                        ${renderStars(review.rating)}
+                        <h4 class="font-semibold ml-3">${review.name}</h4>
+                    </div>
+                    <p class="text-gray-600">${review.comment}</p>
+                </div>
+            `).join('') : '<p class="text-gray-500 mt-4">Este produto ainda não tem avaliações. Seja o primeiro a avaliar!</p>';
+
+            let relatedProducts = allProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+            let relatedHtml = relatedProducts.length > 0 ? relatedProducts.map(rp => `
+                <div class="text-center cursor-pointer" onclick="closeProductDetails(); showProductDetails('${rp.id}')">
+                    <img src="${rp.image}" alt="${rp.name}" class="w-full h-40 object-cover rounded-lg mb-2">
+                    <h5 class="font-semibold text-sm">${rp.name}</h5>
+                </div>
+            `).join('') : '';
+
+            productDetailsContent.innerHTML = `
+                <div class="w-full md:w-1/2">
+                    <img src="${product.image.replace('400x500', '800x1000')}" alt="${product.name}" class="w-full h-full object-cover md:rounded-l-lg">
+                </div>
+                <div class="w-full md:w-1/2 p-8 flex flex-col">
+                    <button onclick="closeProductDetails()" class="self-end text-gray-500 hover:text-gray-800 mb-2"><i data-feather="x" class="w-6 h-6"></i></button>
+                    <h2 class="font-heading text-4xl font-bold">${product.name}</h2>
+                    <div class="flex items-center my-2">${renderStars(product.rating)} <span class="ml-2 text-sm text-gray-500">(${product.reviews.length} avaliações)</span></div>
+                    <p class="text-gold-500 font-bold text-2xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                    <p class="text-gray-600 leading-relaxed mb-6">${product.description}</p>
+                    <div class="flex gap-2 mb-8">
+                        <button onclick="addToCart('${product.id}');" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Adicionar ao Carrinho</button>
+                        <a href="https://api.whatsapp.com/send?text=Veja%20este%20produto%20incrível:%20${encodeURIComponent(product.name)}%20-%20${encodeURIComponent(window.location.href)}" target="_blank" class="p-3 bg-gray-200 rounded-md hover:bg-gray-300"><i data-feather="message-circle"></i></a>
+                        <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="p-3 bg-gray-200 rounded-md hover:bg-gray-300"><i data-feather="facebook"></i></a>
+                        <a href="https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=Veja%20este%20produto%20incrível:%20${encodeURIComponent(product.name)}" target="_blank" class="p-3 bg-gray-200 rounded-md hover:bg-gray-300"><i data-feather="twitter"></i></a>
+                    </div>
+                    
+                    <div class="border-t pt-6">
+                        <h3 class="font-heading text-2xl font-semibold mb-4">Avaliações de Clientes</h3>
+                        <div id="reviews-list">${reviewsHtml}</div>
+                    </div>
+
+                    <div class="border-t pt-6 mt-6">
+                        <h3 class="font-heading text-2xl font-semibold mb-4">Deixe a sua Avaliação</h3>
+                        <form id="review-form">
+                            <div class="mb-4">
+                                <label class="block text-sm font-semibold mb-2">Sua nota</label>
+                                <div class="flex">
+                                    <input type="radio" name="rating" value="1" id="rate-1" class="sr-only peer"><label for="rate-1" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="2" id="rate-2" class="sr-only peer"><label for="rate-2" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="3" id="rate-3" class="sr-only peer"><label for="rate-3" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="4" id="rate-4" class="sr-only peer"><label for="rate-4" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="5" id="rate-5" class="sr-only peer" checked><label for="rate-5" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                </div>
+                            </div>
+                            <div class="mb-4"><input type="text" id="review-name" placeholder="Seu nome" required class="w-full px-3 py-2 border rounded-md"></div>
+                            <div class="mb-4"><textarea id="review-comment" placeholder="Seu comentário" required rows="3" class="w-full px-3 py-2 border rounded-md"></textarea></div>
+                            <button type="submit" class="w-full bg-black text-white font-bold py-2 rounded-md hover:bg-gray-800">Enviar Avaliação</button>
+                        </form>
+                    </div>
+
+                    ${relatedProducts.length > 0 ? `
+                    <div class="border-t pt-6 mt-6">
+                        <h3 class="font-heading text-2xl font-semibold mb-4">Pode também gostar de...</h3>
+                        <div class="grid grid-cols-3 gap-4">${relatedHtml}</div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            productDetailsModal.classList.remove('hidden');
+            productDetailsModalOverlay.classList.remove('hidden');
+            feather.replace();
+            document.getElementById('review-form').addEventListener('submit', (e) => handleReviewSubmit(e, productId));
         }
 
         function closeProductDetails() {
-            // ... (closeProductDetails logic remains the same)
+            productDetailsModal.classList.add('hidden');
+            productDetailsModalOverlay.classList.add('hidden');
         }
 
         async function handleReviewSubmit(event, productId) {
@@ -915,7 +1067,8 @@
                     reviews: arrayUnion({ name, rating, comment, userId: currentUserData.uid, date: new Date() })
                 });
                 showToast("Avaliação enviada com sucesso!");
-                fetchProducts().then(() => showProductDetails(productId));
+                await fetchProducts();
+                showProductDetails(productId);
             } catch (error) {
                 console.error("Error submitting review: ", error);
                 showToast("Erro ao enviar avaliação.", true);
@@ -986,20 +1139,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Setup all event listeners here programmatically
-            document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showPage(link.dataset.page);
-                });
-            });
-            document.querySelectorAll('.mobile-nav-link').forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    showPage(link.dataset.page);
-                });
-            });
             document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
             document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
             document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
@@ -1009,7 +1148,13 @@
             document.getElementById('close-auth-modal').addEventListener('click', () => toggleAuthModal(false));
             document.getElementById('auth-modal-overlay').addEventListener('click', () => toggleAuthModal(false));
             document.getElementById('logout-button').addEventListener('click', logout);
-
+            document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
+            document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPage(link.dataset.page);
+                });
+            });
 
             // FAQ Accordion Logic
             const faqQuestions = document.querySelectorAll('.faq-question');
