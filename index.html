@@ -61,6 +61,19 @@
             background-position: center;
             background-repeat: no-repeat;
         }
+        .form-radio:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='%23D4AF37' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+        }
+        /* Star Rating Styles */
+        .star-rating .feather-star {
+            width: 1.25rem;
+            height: 1.25rem;
+            color: #d1d5db; /* Cor de estrela vazia */
+        }
+        .star-rating .feather-star.filled {
+            fill: #D4AF37;
+            color: #D4AF37;
+        }
     </style>
 </head>
 <body class="bg-white text-gray-800">
@@ -128,66 +141,91 @@
                     <div id="product-list-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"></div>
                 </div>
             </section>
+            <!-- Instagram Reels Section -->
+            <section class="bg-white py-20">
+                <div class="container mx-auto px-6 text-center">
+                    <h2 class="font-heading text-4xl font-bold text-black mb-4" data-aos="fade-up">Veja os nossos Reels</h2>
+                    <p class="text-gray-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
+                        <!-- Post 1 - Link atualizado. Para a imagem, tire um print do seu Reel, carregue para um site como o imgbb.com e cole o link da imagem no 'src' abaixo. -->
+                        <a href="https://www.instagram.com/reel/DLP9iVzsBcA/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/000000/ffffff?text=Seu+Reel+Aqui" alt="Reel 1" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/333333/ffffff?text=Reel+2" alt="Reel 2" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/111111/ffffff?text=Reel+3" alt="Reel 3" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/222222/ffffff?text=Reel+4" alt="Reel 4" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/444444/ffffff?text=Reel+5" alt="Reel 5" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                        <a href="#" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/555555/ffffff?text=Reel+6" alt="Reel 6" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                    </div>
+                    <div class="mt-12" data-aos="fade-up">
+                        <a href="https://www.instagram.com/sanseidecants/reels/" target="_blank" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Ver mais no Instagram</a>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <!-- =========== FRAGRANCIAS Page Content =========== -->
         <div id="page-fragrancias" class="page-content hidden">
-            <div class="container mx-auto px-6 py-20">
-                <div class="text-center mb-16">
-                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Nossa Coleção</h1>
-                    <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Explore e encontre a sua fragrância perfeita.</p>
-                </div>
-                <div class="flex flex-col md:flex-row gap-12">
-                    <!-- Filter Sidebar -->
-                    <aside class="w-full md:w-1/4" data-aos="fade-right">
-                        <div class="bg-white p-6 rounded-lg shadow-sm sticky top-32">
-                            <h3 class="font-heading text-2xl font-semibold mb-6">Filtros</h3>
-                            <div class="mb-6">
-                                <h4 class="font-semibold mb-3">Categoria</h4>
-                                <div class="space-y-2">
-                                    <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" onchange="applyFilters()" class="form-checkbox" value="perfume"> <span class="ml-2">Perfumes</span></label></div>
-                                    <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" onchange="applyFilters()" class="form-checkbox" value="decant"> <span class="ml-2">Decants</span></label></div>
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa Coleção</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Explore e encontre a sua fragrância perfeita.</p>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-12">
+                        <!-- Filter Sidebar -->
+                        <aside class="w-full md:w-1/4" data-aos="fade-right">
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm sticky top-32">
+                                <h3 class="font-heading text-2xl font-semibold mb-6 text-black">Filtros</h3>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-gray-800">Categoria</h4>
+                                    <div class="space-y-2">
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" onchange="applyFilters()" class="form-checkbox" value="perfume"> <span class="ml-2 text-gray-700">Perfumes</span></label></div>
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" onchange="applyFilters()" class="form-checkbox" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold mb-3 text-gray-800">Faixa de Preço</h4>
+                                    <div class="space-y-2">
+                                        <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="150"> <span class="ml-2 text-gray-700">Até R$ 150</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <h4 class="font-semibold mb-3">Faixa de Preço</h4>
-                                <div class="space-y-2">
-                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="all" checked> <span class="ml-2">Todos</span></label></div>
-                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="150"> <span class="ml-2">Até R$ 150</span></label></div>
-                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="500"> <span class="ml-2">R$ 150 - R$ 500</span></label></div>
-                                    <div><label class="flex items-center"><input type="radio" name="price" onchange="applyFilters()" class="form-radio text-gold-500" value="501"> <span class="ml-2">Acima de R$ 500</span></label></div>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-                    <!-- Product Grid -->
-                    <div id="product-list-fragrances" class="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                        </aside>
+                        <!-- Product Grid -->
+                        <div id="product-list-fragrances" class="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- =========== DECANTS Page Content =========== -->
         <div id="page-decants" class="page-content hidden">
-            <div class="container mx-auto px-6 py-20">
-                <div class="text-center mb-16">
-                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Nossos Decants</h1>
-                    <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">A forma perfeita de experimentar antes de se comprometer.</p>
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossos Decants</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">A forma perfeita de experimentar antes de se comprometer.</p>
+                    </div>
+                    <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
                 </div>
-                <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
             </div>
         </div>
 
         <!-- =========== SOBRE Page Content =========== -->
         <div id="page-sobre" class="page-content hidden">
-            <div class="container mx-auto px-6 py-20">
-                <div class="text-center mb-16">
-                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Nossa História</h1>
-                </div>
-                <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
-                    <div class="md:w-1/2"><img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl"></div>
-                    <div class="md:w-1/2">
-                        <p class="text-gray-600 mb-4 leading-relaxed">[Aqui pode descrever a filosofia da sua marca. Fale sobre a sua paixão por perfumes, a sua missão e os valores que guiam a SANSEI DECANTS. Conte a história que torna a sua loja única.]</p>
-                        <p class="text-gray-600 leading-relaxed">[Detalhe o seu processo de curadoria. Explique como seleciona os seus produtos, o compromisso com a qualidade e a autenticidade, e como garante uma experiência de luxo para os seus clientes.]</p>
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa História</h1>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
+                        <div class="md:w-1/2"><img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl"></div>
+                        <div class="md:w-1/2">
+                            <p class="text-gray-600 mb-4 leading-relaxed">[Aqui pode descrever a filosofia da sua marca. Fale sobre a sua paixão por perfumes, a sua missão e os valores que guiam a SANSEI DECANTS. Conte a história que torna a sua loja única.]</p>
+                            <p class="text-gray-600 leading-relaxed">[Detalhe o seu processo de curadoria. Explique como seleciona os seus produtos, o compromisso com a qualidade e a autenticidade, e como garante uma experiência de luxo para os seus clientes.]</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -195,36 +233,38 @@
         
         <!-- =========== CONTATO Page Content =========== -->
         <div id="page-contato" class="page-content hidden">
-            <div class="container mx-auto px-6 py-20">
-                <div class="text-center mb-16">
-                    <h1 class="font-heading text-5xl font-bold mb-4" data-aos="fade-up">Entre em Contato</h1>
-                    <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Adoraríamos ouvir de você. Preencha o formulário abaixo.</p>
-                </div>
-                <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md" data-aos="fade-up">
-                    <div id="contact-form-message" class="hidden mb-6 p-4 rounded-md text-center"></div>
-                    <form id="contact-form">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div>
-                                <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
-                                <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Entre em Contato</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Adoraríamos ouvir de você. Preencha o formulário abaixo.</p>
+                    </div>
+                    <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded-lg shadow-md" data-aos="fade-up">
+                        <div id="contact-form-message" class="hidden mb-6 p-4 rounded-md text-center"></div>
+                        <form id="contact-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+                                    <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                </div>
                             </div>
-                            <div>
-                                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                                <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                            <div class="mb-6">
+                                <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Assunto</label>
+                                <input type="text" id="subject" name="subject" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
                             </div>
-                        </div>
-                        <div class="mb-6">
-                            <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Assunto</label>
-                            <input type="text" id="subject" name="subject" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
-                        </div>
-                        <div class="mb-6">
-                            <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Mensagem</label>
-                            <textarea id="message" name="message" rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
-                        </div>
-                        <div class="text-center">
-                            <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Enviar Mensagem</button>
-                        </div>
-                    </form>
+                            <div class="mb-6">
+                                <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Mensagem</label>
+                                <textarea id="message" name="message" rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Enviar Mensagem</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
@@ -292,7 +332,7 @@
     <!-- Product Details Modal -->
     <div id="product-details-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-50 hidden"></div>
     <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-50 hidden">
-        <div id="product-details-content" class="flex flex-col md:flex-row"></div>
+        <div id="product-details-content" class="max-h-[90vh] overflow-y-auto flex flex-col md:flex-row"></div>
     </div>
 
 
@@ -302,16 +342,17 @@
         // E-COMMERCE BACKEND SIMULATION
         // =================================================================
         
-        const products = [
-            { id: 1, name: 'Perfume Absoluto', price: 499.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+A', category: 'perfume', description: 'Uma fragrância amadeirada intensa, com notas de sândalo e patchouli, perfeita para ocasiões especiais.' },
-            { id: 2, name: 'Fragrância Imperial', price: 649.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+B', category: 'perfume', description: 'Um perfume opulento e luxuoso, com um coração de jasmim imperial e um fundo de âmbar e baunilha.' },
-            { id: 3, name: 'Decant Essencial', price: 89.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+C', category: 'decant', description: 'Experimente o aroma cítrico e refrescante do nosso best-seller. Ideal para o uso diário e para levar consigo.' },
-            { id: 4, name: 'Decant Noturno', price: 129.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+D', category: 'decant', description: 'Uma amostra da nossa fragrância mais sedutora, com notas de fava tonka, tabaco e especiarias.' },
-            { id: 5, name: 'Perfume Oriental', price: 720.50, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+E', category: 'perfume', description: 'Uma viagem exótica através de especiarias raras e resinas preciosas. Um perfume marcante e inesquecível.' },
-            { id: 6, name: 'Decant Floral', price: 99.00, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+F', category: 'decant', description: 'Um buquê de flores brancas, com gardênia, jasmim e um toque de tuberosa. Delicado e feminino.' },
+        let products = JSON.parse(localStorage.getItem('sanseiProducts')) || [
+            { id: 1, name: 'Perfume Absoluto', price: 499.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+A', category: 'perfume', description: 'Uma fragrância amadeirada intensa, com notas de sândalo e patchouli, perfeita para ocasiões especiais.', rating: 4.5, reviews: [{name: 'Ana', rating: 5, comment: 'Absolutamente incrível! Fixação excelente.'}, {name: 'Carlos', rating: 4, comment: 'Muito bom, mas um pouco forte para o meu gosto.'}] },
+            { id: 2, name: 'Fragrância Imperial', price: 649.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+B', category: 'perfume', description: 'Um perfume opulento e luxuoso, com um coração de jasmim imperial e um fundo de âmbar e baunilha.', rating: 5, reviews: [{name: 'Beatriz', rating: 5, comment: 'Perfeito! O meu novo perfume favorito.'}] },
+            { id: 3, name: 'Decant Essencial', price: 89.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+C', category: 'decant', description: 'Experimente o aroma cítrico e refrescante do nosso best-seller. Ideal para o uso diário e para levar consigo.', rating: 4, reviews: [] },
+            { id: 4, name: 'Decant Noturno', price: 129.90, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+D', category: 'decant', description: 'Uma amostra da nossa fragrância mais sedutora, com notas de fava tonka, tabaco e especiarias.', rating: 4.8, reviews: [{name: 'Mariana', rating: 5, comment: 'Sensacional, comprarei o frasco grande.'}, {name: 'Pedro', rating: 4.5, comment: 'Ótima qualidade.'}] },
+            { id: 5, name: 'Perfume Oriental', price: 720.50, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Perfume+E', category: 'perfume', description: 'Uma viagem exótica através de especiarias raras e resinas preciosas. Um perfume marcante e inesquecível.', rating: 4.2, reviews: [] },
+            { id: 6, name: 'Decant Floral', price: 99.00, image: 'https://placehold.co/400x500/f5f5f4/c09a58?text=Decant+F', category: 'decant', description: 'Um buquê de flores brancas, com gardênia, jasmim e um toque de tuberosa. Delicado e feminino.', rating: 4.6, reviews: [] },
         ];
         let cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
         
+        function saveProducts() { localStorage.setItem('sanseiProducts', JSON.stringify(products)); }
         function saveCart() { localStorage.setItem('sanseiCart', JSON.stringify(cart)); }
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
@@ -362,6 +403,18 @@
             feather.replace();
         }
 
+        function renderStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<i data-feather="star" class="feather-star filled"></i>';
+                } else {
+                    stars += '<i data-feather="star" class="feather-star"></i>';
+                }
+            }
+            return `<div class="flex items-center star-rating">${stars}</div>`;
+        }
+
         function renderProducts(productsToRender, containerId) {
             const productListEl = document.getElementById(containerId);
             if (!productListEl) return;
@@ -374,13 +427,14 @@
 
             productsToRender.forEach(product => {
                 productListEl.innerHTML += `
-                    <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer" data-aos="fade-up" onclick="showProductDetails(${product.id})">
+                    <div class="bg-white group text-center rounded-lg shadow-sm cursor-pointer flex flex-col" data-aos="fade-up" onclick="showProductDetails(${product.id})">
                         <div class="relative overflow-hidden rounded-t-lg">
                             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover group-hover:scale-105 transition-all-ease">
                         </div>
-                        <div class="p-6">
+                        <div class="p-6 flex flex-col flex-grow">
                             <h3 class="font-heading font-semibold text-2xl">${product.name}</h3>
-                            <p class="text-gold-500 font-bold mt-2 text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                            <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
+                            <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
                             <button onclick="event.stopPropagation(); addToCart(${product.id})" class="mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease">Adicionar ao Carrinho</button>
                         </div>
                     </div>
@@ -392,26 +446,18 @@
 
         function applyFilters() {
             let filteredProducts = [...products];
-            
             const selectedCategories = [];
             if (document.getElementById('filter-cat-perfume').checked) selectedCategories.push('perfume');
             if (document.getElementById('filter-cat-decant').checked) selectedCategories.push('decant');
-            
             if (selectedCategories.length > 0) {
                 filteredProducts = filteredProducts.filter(p => selectedCategories.includes(p.category));
             }
-
             const priceFilter = document.querySelector('input[name="price"]:checked').value;
             if (priceFilter !== 'all') {
-                if (priceFilter === '150') {
-                    filteredProducts = filteredProducts.filter(p => p.price <= 150);
-                } else if (priceFilter === '500') {
-                    filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500);
-                } else if (priceFilter === '501') {
-                    filteredProducts = filteredProducts.filter(p => p.price > 500);
-                }
+                if (priceFilter === '150') { filteredProducts = filteredProducts.filter(p => p.price <= 150); } 
+                else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); } 
+                else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
             }
-            
             renderProducts(filteredProducts, 'product-list-fragrances');
         }
         
@@ -438,17 +484,67 @@
         function showProductDetails(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
-            
+
+            let reviewsHtml = product.reviews.length > 0 ? product.reviews.map(review => `
+                <div class="border-t border-gray-200 pt-4 mt-4">
+                    <div class="flex items-center mb-1">
+                        ${renderStars(review.rating)}
+                        <h4 class="font-semibold ml-3">${review.name}</h4>
+                    </div>
+                    <p class="text-gray-600">${review.comment}</p>
+                </div>
+            `).join('') : '<p class="text-gray-500 mt-4">Este produto ainda não tem avaliações. Seja o primeiro a avaliar!</p>';
+
+            let relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 3);
+            let relatedHtml = relatedProducts.length > 0 ? relatedProducts.map(rp => `
+                <div class="text-center cursor-pointer" onclick="showProductDetails(${rp.id})">
+                    <img src="${rp.image}" alt="${rp.name}" class="w-full h-40 object-cover rounded-lg mb-2">
+                    <h5 class="font-semibold text-sm">${rp.name}</h5>
+                </div>
+            `).join('') : '';
+
             productDetailsContent.innerHTML = `
-                <div class="md:w-1/2">
+                <div class="w-full md:w-1/2">
                     <img src="${product.image.replace('400x500', '800x1000')}" alt="${product.name}" class="w-full h-full object-cover md:rounded-l-lg">
                 </div>
-                <div class="md:w-1/2 p-8 flex flex-col">
+                <div class="w-full md:w-1/2 p-8 flex flex-col">
                     <button onclick="closeProductDetails()" class="self-end text-gray-500 hover:text-gray-800 mb-2"><i data-feather="x" class="w-6 h-6"></i></button>
                     <h2 class="font-heading text-4xl font-bold">${product.name}</h2>
-                    <p class="text-gold-500 font-bold mt-2 text-2xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                    <p class="text-gray-600 leading-relaxed mb-6 flex-grow">${product.description}</p>
-                    <button onclick="addToCart(${product.id}); closeProductDetails();" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Adicionar ao Carrinho</button>
+                    <div class="flex items-center my-2">${renderStars(product.rating)} <span class="ml-2 text-sm text-gray-500">(${product.reviews.length} avaliações)</span></div>
+                    <p class="text-gold-500 font-bold text-2xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                    <p class="text-gray-600 leading-relaxed mb-6">${product.description}</p>
+                    <button onclick="addToCart(${product.id}); closeProductDetails();" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease mb-8">Adicionar ao Carrinho</button>
+                    
+                    <div class="border-t pt-6">
+                        <h3 class="font-heading text-2xl font-semibold mb-4">Avaliações de Clientes</h3>
+                        <div id="reviews-list">${reviewsHtml}</div>
+                    </div>
+
+                    <div class="border-t pt-6 mt-6">
+                        <h3 class="font-heading text-2xl font-semibold mb-4">Deixe a sua Avaliação</h3>
+                        <form id="review-form" onsubmit="handleReviewSubmit(event, ${product.id})">
+                            <div class="mb-4">
+                                <label class="block text-sm font-semibold mb-2">Sua nota</label>
+                                <div class="flex">
+                                    <input type="radio" name="rating" value="1" id="rate-1" class="sr-only peer"><label for="rate-1" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="2" id="rate-2" class="sr-only peer"><label for="rate-2" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="3" id="rate-3" class="sr-only peer"><label for="rate-3" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="4" id="rate-4" class="sr-only peer"><label for="rate-4" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                    <input type="radio" name="rating" value="5" id="rate-5" class="sr-only peer" checked><label for="rate-5" class="peer-hover:text-gold-500 text-gray-300 peer-checked:text-gold-500"><i data-feather="star"></i></label>
+                                </div>
+                            </div>
+                            <div class="mb-4"><input type="text" id="review-name" placeholder="Seu nome" required class="w-full px-3 py-2 border rounded-md"></div>
+                            <div class="mb-4"><textarea id="review-comment" placeholder="Seu comentário" required rows="3" class="w-full px-3 py-2 border rounded-md"></textarea></div>
+                            <button type="submit" class="w-full bg-black text-white font-bold py-2 rounded-md hover:bg-gray-800">Enviar Avaliação</button>
+                        </form>
+                    </div>
+
+                    ${relatedProducts.length > 0 ? `
+                    <div class="border-t pt-6 mt-6">
+                        <h3 class="font-heading text-2xl font-semibold mb-4">Pode também gostar de...</h3>
+                        <div class="grid grid-cols-3 gap-4">${relatedHtml}</div>
+                    </div>
+                    ` : ''}
                 </div>
             `;
             
@@ -460,6 +556,26 @@
         function closeProductDetails() {
             productDetailsModal.classList.add('hidden');
             productDetailsModalOverlay.classList.add('hidden');
+        }
+
+        function handleReviewSubmit(event, productId) {
+            event.preventDefault();
+            const form = event.target;
+            const name = form.querySelector('#review-name').value;
+            const comment = form.querySelector('#review-comment').value;
+            const rating = parseInt(form.querySelector('input[name="rating"]:checked').value);
+
+            const product = products.find(p => p.id === productId);
+            if(product) {
+                product.reviews.unshift({ name, rating, comment });
+                let totalRating = 0;
+                product.reviews.forEach(r => totalRating += r.rating);
+                product.rating = totalRating / product.reviews.length;
+                
+                saveProducts();
+                showProductDetails(productId); // Re-render the modal
+                renderProducts(products.slice(0, 4), 'product-list-home');
+            }
         }
 
         cartButton.addEventListener('click', () => toggleCart(true));
