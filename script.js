@@ -1,10 +1,9 @@
 // Import Firebase modules from the latest SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // IMPORTANT: Replace with your actual Firebase configuration
-// It's recommended to use environment variables for this in a real project
 const firebaseConfig = {
   apiKey: "AIzaSyC4-kp4wBq6fz-pG1Rm3VQcq6pO17OEeOI",
   authDomain: "sansei-d3cf6.firebaseapp.com",
@@ -26,8 +25,9 @@ let allProducts = [];
 let cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
 let appliedCoupon = null;
 let currentUserData = null;
+let allCoupons = [];
+let selectedShipping = null;
 
-const coupons = [{ code: 'SANSEI10', discount: 0.10 }];
 
 // =================================================================
 // UTILITY FUNCTIONS
@@ -58,6 +58,195 @@ function showToast(message, isError = false) {
 const showLoader = (show) => {
     document.getElementById('loader').classList.toggle('hidden', !show);
 }
+
+// =================================================================
+// CHECKOUT & ORDER FUNCTIONS
+// =================================================================
+async function handleCheckout() {
+    if (!currentUserData) {
+        showToast("Por favor, faça login para finalizar a compra.", true);
+        toggleAuthModal(true);
+        return;
+    }
+
+    if (cart.length === 0) {
+        showToast("O seu carrinho está vazio.", true);
+        return;
+    }
+    
+    if (!selectedShipping) {
+        showToast("Por favor, calcule e selecione uma opção de frete.", true);
+        return;
+    }
+
+    showLoader(true);
+
+    const total = calculateTotal();
+    const orderItems = cart.map(item => {
+        const product = allProducts.find(p => p.id === item.id);
+        return {
+            productId: item.id,
+            name: product.name,
+            quantity: item.quantity,
+            price: product.price
+        };
+    });
+
+    const newOrder = {
+        userId: currentUserData.uid,
+        userEmail: currentUserData.email,
+        items: orderItems,
+        total: total,
+        shipping: selectedShipping,
+        status: "Pendente",
+        createdAt: Timestamp.now(),
+        coupon: appliedCoupon ? appliedCoupon.code : null
+    };
+
+    try {
+        await addDoc(collection(db, "orders"), newOrder);
+        
+        // Clear cart after successful order
+        cart = [];
+        selectedShipping = null;
+        localStorage.removeItem('sanseiCart');
+        await syncCartWithFirestore();
+
+        showToast("Encomenda realizada com sucesso!");
+        updateCartIcon();
+        toggleCart(false);
+        showPage('profile'); // Redirect to profile to see the new order
+    } catch (error) {
+        console.error("Error creating order: ", error);
+        showToast("Ocorreu um erro ao processar a sua encomenda.", true);
+    } finally {
+        showLoader(false);
+    }
+}
+
+function calculateSubtotal() {
+    return cart.reduce((sum, item) => {
+        const product = allProducts.find(p => p.id === item.id);
+        return sum + (product ? product.price * item.quantity : 0);
+    }, 0);
+}
+
+function calculateTotal() {
+    let subtotal = calculateSubtotal();
+
+    if (appliedCoupon) {
+        subtotal *= (1 - appliedCoupon.discount);
+    }
+
+    const shippingCost = selectedShipping ? selectedShipping.price : 0;
+
+    return subtotal + shippingCost;
+}
+
+
+// =================================================================
+// SHIPPING FUNCTIONS
+// =================================================================
+async function handleCalculateShipping() {
+    const cepInput = document.getElementById('cep-input');
+    const cep = cepInput.value.replace(/\D/g, ''); // Remove non-digits
+    const btn = document.getElementById('calculate-shipping-btn');
+    const btnText = btn.querySelector('.btn-text');
+    const loader = btn.querySelector('.loader-sm');
+
+    if (cep.length !== 8) {
+        showToast("Por favor, insira um CEP válido.", true);
+        return;
+    }
+
+    btnText.classList.add('hidden');
+    loader.classList.remove('hidden');
+    btn.disabled = true;
+
+    const body = {
+        nCdServico: ["04510", "04014"], // PAC, SEDEX
+        sCepOrigem: "01001000", // CEP de origem (ex: São Paulo)
+        sCepDestino: cep,
+        nVlPeso: "0.5", // Peso em kg
+        nCdFormato: 1, // 1 para caixa/pacote
+        nVlComprimento: 20, // cm
+        nVlAltura: 10, // cm
+        nVlLargura: 15, // cm
+        nVlDiametro: 0,
+        sCdMaoPropria: "N",
+        nVlValorDeclarado: calculateSubtotal(),
+        sCdAvisoRecebimento: "N",
+    };
+
+    try {
+        const response = await fetch(`https://brasilapi.com.br/api/correios/preco/v2`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body)
+        });
+        
+        if (!response.ok) {
+            throw new Error('Erro ao calcular o frete.');
+        }
+
+        const data = await response.json();
+        renderShippingOptions(data);
+
+    } catch (error) {
+        console.error("Shipping calculation error:", error);
+        showToast("Não foi possível calcular o frete para este CEP.", true);
+        document.getElementById('shipping-options').innerHTML = '';
+    } finally {
+        btnText.classList.remove('hidden');
+        loader.classList.add('hidden');
+        btn.disabled = false;
+    }
+}
+
+function renderShippingOptions(options) {
+    const container = document.getElementById('shipping-options');
+    container.innerHTML = '';
+    selectedShipping = null;
+    renderCart(); // Recalculate total without shipping
+
+    if (options.every(opt => opt.erro)) {
+         container.innerHTML = `<p class="text-red-500 text-sm">Nenhuma opção de frete encontrada para o CEP informado.</p>`;
+         return;
+    }
+
+    options.forEach(option => {
+        if (option.erro) return;
+
+        const price = parseFloat(option.valor.replace(',', '.'));
+        const optionId = `shipping-${option.codigo}`;
+        const label = document.createElement('label');
+        label.className = 'flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-gray-50';
+        label.innerHTML = `
+            <div class="flex items-center">
+                <input type="radio" name="shipping-option" id="${optionId}" value="${price}" data-name="${option.nome}" class="form-radio text-gold-500">
+                <div class="ml-3">
+                    <p class="font-semibold">${option.nome}</p>
+                    <p class="text-sm text-gray-500">Prazo: ${option.prazoEntrega} dias úteis</p>
+                </div>
+            </div>
+            <span class="font-bold">R$ ${price.toFixed(2).replace('.', ',')}</span>
+        `;
+        
+        label.querySelector('input').addEventListener('change', () => {
+            selectedShipping = {
+                method: option.nome,
+                price: price,
+                deadline: option.prazoEntrega
+            };
+            renderCart();
+        });
+
+        container.appendChild(label);
+    });
+}
+
 
 // =================================================================
 // CART FUNCTIONS (WITH FIRESTORE INTEGRATION)
@@ -113,32 +302,42 @@ function updateCartIcon() {
 
 function renderCart() {
     const cartItemsEl = document.getElementById('cart-items');
+    const cartSubtotalEl = document.getElementById('cart-subtotal');
     const cartTotalEl = document.getElementById('cart-total');
     const discountInfoEl = document.getElementById('discount-info');
+    const shippingCostLine = document.getElementById('shipping-cost-line');
+    const shippingCostEl = document.getElementById('shipping-cost');
+    
     cartItemsEl.innerHTML = '';
     if (cart.length === 0) {
         cartItemsEl.innerHTML = '<p class="text-gray-500 text-center">Seu carrinho está vazio.</p>';
+        cartSubtotalEl.textContent = 'R$ 0,00';
         cartTotalEl.textContent = 'R$ 0,00';
+        shippingCostLine.classList.add('hidden');
         discountInfoEl.innerHTML = '';
         return;
     }
-    let total = 0;
-    cart.forEach(item => {
-        const product = allProducts.find(p => p.id === item.id);
-        if(product) {
-            total += product.price * item.quantity;
-        }
-    });
+    
+    let subtotal = calculateSubtotal();
+    cartSubtotalEl.textContent = `R$ ${subtotal.toFixed(2).replace('.',',')}`;
 
     if (appliedCoupon) {
-        const discountAmount = total * appliedCoupon.discount;
-        total -= discountAmount;
+        const discountAmount = subtotal * appliedCoupon.discount;
+        subtotal -= discountAmount;
         discountInfoEl.innerHTML = `Cupom "${appliedCoupon.code}" aplicado! (-R$ ${discountAmount.toFixed(2).replace('.',',')}) <button id="remove-coupon-btn" class="text-red-500 ml-2 font-semibold">Remover</button>`;
         document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
     } else {
         discountInfoEl.innerHTML = '';
     }
 
+    if(selectedShipping) {
+        shippingCostEl.textContent = `R$ ${selectedShipping.price.toFixed(2).replace('.', ',')}`;
+        shippingCostLine.classList.remove('hidden');
+    } else {
+        shippingCostLine.classList.add('hidden');
+    }
+
+    const total = calculateTotal();
     cartTotalEl.textContent = `R$ ${total.toFixed(2).replace('.',',')}`;
     
     cartItemsEl.innerHTML = cart.map(item => {
@@ -167,7 +366,7 @@ function handleApplyCoupon(e) {
     e.preventDefault();
     const couponInput = document.getElementById('coupon-input');
     const code = couponInput.value.trim().toUpperCase();
-    const coupon = coupons.find(c => c.code === code);
+    const coupon = allCoupons.find(c => c.code === code);
 
     if (coupon) {
         appliedCoupon = coupon;
@@ -493,7 +692,7 @@ function showProductDetails(productId) {
             <h2 class="font-heading text-4xl font-bold mb-2">${product.name}</h2>
             <div class="flex items-center gap-2 mb-4">
                 ${renderStars(product.rating)}
-                <span class="text-gray-500 text-sm">(${product.reviews.length} avaliações)</span>
+                <span class="text-gray-500 text-sm">(${product.reviews ? product.reviews.length : 0} avaliações)</span>
             </div>
             <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
             <div class="mt-auto">
@@ -583,6 +782,7 @@ function showPage(pageId) {
         }
         document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
         renderWishlist();
+        renderOrders();
     }
     
     window.scrollTo(0, 0);
@@ -599,6 +799,40 @@ async function renderWishlist() {
         return;
     }
     renderProducts(wishlistProducts, 'wishlist-items');
+}
+
+async function renderOrders() {
+    const ordersListContainer = document.getElementById('orders-list');
+    if (!currentUserData || !ordersListContainer) return;
+
+    const q = query(collection(db, "orders"), where("userId", "==", currentUserData.uid), orderBy("createdAt", "desc"));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        ordersListContainer.innerHTML = '<p class="text-gray-500 text-center">Você ainda não fez nenhuma encomenda.</p>';
+        return;
+    }
+
+    ordersListContainer.innerHTML = '';
+    querySnapshot.forEach(doc => {
+        const order = {id: doc.id, ...doc.data()};
+        const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
+        const orderElement = document.createElement('div');
+        orderElement.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
+        orderElement.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="font-bold">Encomenda #${order.id.substring(0, 7)}</p>
+                    <p class="text-sm text-gray-500">Data: ${orderDate}</p>
+                </div>
+                <div>
+                    <p class="font-bold">Total: R$ ${order.total.toFixed(2).replace('.',',')}</p>
+                    <p class="text-sm text-right font-semibold ${order.status === 'Pendente' ? 'text-yellow-500' : 'text-green-500'}">${order.status}</p>
+                </div>
+            </div>
+        `;
+        ordersListContainer.appendChild(orderElement);
+    });
 }
 
 function refreshAllProductViews() {
@@ -618,18 +852,20 @@ function refreshAllProductViews() {
     }
 }
 
-async function fetchProducts() {
+async function fetchInitialData() {
     showLoader(true);
     try {
-        // Ensure you have Firestore security rules allowing this read
-        // e.g., allow read: if true; for the 'products' collection
-        const querySnapshot = await getDocs(collection(db, "products"));
-        allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const couponsSnapshot = await getDocs(collection(db, "coupons"));
+        allCoupons = couponsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
         showPage('inicio');
     } catch (error) {
-        console.error("Error fetching products: ", error);
-        showToast("Não foi possível carregar os produtos. Verifique as regras do Firestore.", true);
+        console.error("Error fetching initial data: ", error);
+        showToast("Não foi possível carregar os dados do site.", true);
     } finally {
         showLoader(false);
     }
@@ -643,8 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartIcon();
     feather.replace();
     AOS.init({ duration: 800, once: true });
-    fetchAndRenderReels(); // Fetch reels on page load
-
+    
     // Static Listeners
     document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
     document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
@@ -656,6 +891,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
     document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
+    
+    document.getElementById('checkout-button').addEventListener('click', handleCheckout);
+    document.getElementById('calculate-shipping-btn').addEventListener('click', handleCalculateShipping);
     
     document.getElementById('close-product-details-modal').addEventListener('click', () => toggleProductDetailsModal(false));
     document.getElementById('product-details-modal-overlay').addEventListener('click', () => toggleProductDetailsModal(false));
@@ -760,7 +998,8 @@ document.addEventListener('DOMContentLoaded', () => {
             cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
         }
         updateAuthUI(user);
-        await fetchProducts(); // Fetch products after auth state is known
+        await fetchInitialData(); 
+        await fetchAndRenderReels();
         updateCartIcon();
         showLoader(false);
     });
