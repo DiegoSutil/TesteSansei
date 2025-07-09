@@ -46,14 +46,20 @@
             <div class="mb-6 border-b border-gray-200">
                 <nav class="flex space-x-8" aria-label="Tabs">
                     <a href="#" data-view="dashboard" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Dashboard</a>
+                    <a href="#" data-view="orders" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Encomendas</a>
                     <a href="#" data-view="products" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Produtos</a>
                     <a href="#" data-view="coupons" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Cupons</a>
+                    <a href="#" data-view="reels" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Reels</a>
                 </nav>
             </div>
 
             <!-- Dashboard View -->
             <div id="view-dashboard" class="admin-view">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-500">Total de Encomendas</h3>
+                        <p id="stats-orders" class="text-3xl font-bold mt-2">0</p>
+                    </div>
                     <div class="bg-white p-6 rounded-lg shadow-md">
                         <h3 class="text-lg font-semibold text-gray-500">Total de Produtos</h3>
                         <p id="stats-products" class="text-3xl font-bold mt-2">0</p>
@@ -67,6 +73,28 @@
                         <p id="stats-coupons" class="text-3xl font-bold mt-2">0</p>
                     </div>
                 </div>
+            </div>
+
+            <!-- Orders View -->
+            <div id="view-orders" class="admin-view hidden">
+                <section id="order-list-section" class="bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-6">Gerir Encomendas</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="py-2 px-2">ID</th>
+                                    <th class="py-2 px-2">Cliente</th>
+                                    <th class="py-2 px-2">Data</th>
+                                    <th class="py-2 px-2">Total</th>
+                                    <th class="py-2 px-2">Estado</th>
+                                    <th class="py-2 px-2">Itens</th>
+                                </tr>
+                            </thead>
+                            <tbody id="order-list-body"></tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
 
             <!-- Products View -->
@@ -157,6 +185,39 @@
                                 </tr>
                             </thead>
                             <tbody id="coupon-list-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Reels View -->
+            <div id="view-reels" class="admin-view hidden">
+                <section id="add-reel-section" class="bg-white p-8 rounded-lg shadow-md mb-8">
+                    <h2 class="text-2xl font-bold mb-6">Adicionar Novo Reel</h2>
+                    <form id="add-reel-form" class="flex flex-col md:flex-row md:items-end gap-4">
+                        <div class="flex-grow">
+                            <label for="reel-url" class="block text-sm font-semibold mb-2">URL do Reel (Instagram)</label>
+                            <input type="url" id="reel-url" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
+                        </div>
+                        <div class="flex-grow">
+                            <label for="reel-thumbnail" class="block text-sm font-semibold mb-2">URL da Imagem de Capa</label>
+                            <input type="url" id="reel-thumbnail" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
+                        </div>
+                        <button type="submit" class="bg-gold-500 text-black font-bold py-2 px-6 rounded-md hover:bg-gold-600 w-full md:w-auto">Adicionar</button>
+                    </form>
+                </section>
+                <section id="reel-list-section" class="bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-6">Lista de Reels</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="py-2 px-2">Imagem de Capa</th>
+                                    <th class="py-2 px-2">URL do Reel</th>
+                                    <th class="py-2 px-2">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reel-list-body"></tbody>
                         </table>
                     </div>
                 </section>
