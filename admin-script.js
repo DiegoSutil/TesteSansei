@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Use the same Firebase config as the e-commerce site
 const firebaseConfig = {
@@ -19,7 +18,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 // IMPORTANT: List of authorized admin emails
 const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com", "sanseiadmin@gmail.com"];
@@ -44,9 +42,6 @@ const DOMElements = {
     orderListBody: document.getElementById('order-list-body'),
     adminEmail: document.getElementById('admin-email'),
     productIdField: document.getElementById('product-id'),
-    productImageUrlField: document.getElementById('product-image-url'),
-    imagePreview: document.getElementById('image-preview'),
-    imageUploadInput: document.getElementById('product-image-upload'),
     submitProductBtn: document.getElementById('submit-product-btn'),
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
 };
@@ -252,9 +247,6 @@ async function updateOrderStatus(orderId, newStatus) {
 function resetProductForm() {
     DOMElements.productForm.reset();
     DOMElements.productIdField.value = '';
-    DOMElements.productImageUrlField.value = '';
-    DOMElements.imagePreview.src = '';
-    DOMElements.imagePreview.classList.add('hidden');
     DOMElements.submitProductBtn.textContent = 'Adicionar Produto';
     DOMElements.cancelEditBtn.classList.add('hidden');
     DOMElements.submitProductBtn.disabled = false;
@@ -270,12 +262,8 @@ function populateProductForm(productId) {
             document.getElementById('product-price').value = product.price;
             document.getElementById('product-category').value = product.category;
             document.getElementById('product-stock').value = product.stock;
+            document.getElementById('product-image').value = product.image;
             document.getElementById('product-description').value = product.description;
-            
-            // Store existing image URL and show preview
-            DOMElements.productImageUrlField.value = product.image;
-            DOMElements.imagePreview.src = product.image;
-            DOMElements.imagePreview.classList.remove('hidden');
 
             DOMElements.submitProductBtn.textContent = 'Salvar Alterações';
             DOMElements.cancelEditBtn.classList.remove('hidden');
@@ -290,33 +278,25 @@ async function handleProductFormSubmit(e) {
     DOMElements.submitProductBtn.textContent = 'A guardar...';
 
     const productId = DOMElements.productIdField.value;
-    const imageFile = DOMElements.imageUploadInput.files[0];
-    let imageUrl = DOMElements.productImageUrlField.value;
+    const imageUrl = document.getElementById('product-image').value;
+
+    if (!imageUrl) {
+        showToast("Por favor, insira a URL da imagem.", true);
+        DOMElements.submitProductBtn.disabled = false;
+        DOMElements.submitProductBtn.textContent = productId ? 'Salvar Alterações' : 'Adicionar Produto';
+        return;
+    }
+
+    const productData = {
+        name: document.getElementById('product-name').value,
+        price: parseFloat(document.getElementById('product-price').value),
+        category: document.getElementById('product-category').value,
+        stock: parseInt(document.getElementById('product-stock').value),
+        image: imageUrl,
+        description: document.getElementById('product-description').value,
+    };
 
     try {
-        // If a new image file is selected, upload it
-        if (imageFile) {
-            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-            const snapshot = await uploadBytes(storageRef, imageFile);
-            imageUrl = await getDownloadURL(snapshot.ref);
-        }
-
-        if (!imageUrl) {
-            showToast("Por favor, selecione uma imagem para o produto.", true);
-            DOMElements.submitProductBtn.disabled = false;
-            DOMElements.submitProductBtn.textContent = productId ? 'Salvar Alterações' : 'Adicionar Produto';
-            return;
-        }
-
-        const productData = {
-            name: document.getElementById('product-name').value,
-            price: parseFloat(document.getElementById('product-price').value),
-            category: document.getElementById('product-category').value,
-            stock: parseInt(document.getElementById('product-stock').value),
-            image: imageUrl,
-            description: document.getElementById('product-description').value,
-        };
-
         if (productId) {
             await updateDoc(doc(db, "products", productId), productData);
             showToast('Produto atualizado com sucesso!');
@@ -475,18 +455,6 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.addCouponForm.addEventListener('submit', handleCouponFormSubmit);
     DOMElements.addReelForm.addEventListener('submit', handleAddReelFormSubmit);
     DOMElements.cancelEditBtn.addEventListener('click', resetProductForm);
-
-    DOMElements.imageUploadInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                DOMElements.imagePreview.src = event.target.result;
-                DOMElements.imagePreview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
-        }
-    });
 
     DOMElements.navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
