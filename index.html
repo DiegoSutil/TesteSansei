@@ -120,13 +120,8 @@
                 <div class="container mx-auto px-6 text-center">
                     <h2 class="font-heading text-4xl font-bold text-black mb-4" data-aos="fade-up">Veja os nossos Reels</h2>
                     <p class="text-gray-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
-                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
-                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/000000/ffffff?text=Reel+1" alt="Reel 1" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/333333/ffffff?text=Reel+2" alt="Reel 2" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/111111/ffffff?text=Reel+3" alt="Reel 3" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/222222/ffffff?text=Reel+4" alt="Reel 4" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/444444/ffffff?text=Reel+5" alt="Reel 5" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
-                        <a href="https://www.instagram.com/reel/C8q8y_yOq9Z/" target="_blank" class="block relative group"><img src="https://placehold.co/400x400/555555/ffffff?text=Reel+6" alt="Reel 6" class="w-full h-full object-cover rounded-lg"><div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center"><i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i></div></a>
+                    <div id="reels-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
+                        <!-- Reels will be loaded here by JS -->
                     </div>
                     <div class="mt-12" data-aos="fade-up">
                         <a href="https://www.instagram.com/sanseidecants/reels/" target="_blank" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Ver mais no Instagram</a>
@@ -305,7 +300,11 @@
                         <p id="profile-email" class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100"></p>
                     </div>
                     <div class="max-w-4xl mx-auto" data-aos="fade-up">
-                        <h2 class="font-heading text-3xl font-semibold mb-6 text-black">Minha Lista de Desejos</h2>
+                        <h2 class="font-heading text-3xl font-semibold mb-6 text-black">Minhas Encomendas</h2>
+                        <div id="orders-list" class="space-y-4">
+                            <!-- Orders will be rendered here -->
+                        </div>
+                        <h2 class="font-heading text-3xl font-semibold mb-6 mt-12 text-black">Minha Lista de Desejos</h2>
                         <div id="wishlist-items" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             <!-- Wishlist items will be rendered here -->
                         </div>
@@ -379,7 +378,8 @@
                     <button type="submit" class="bg-gray-800 text-white px-4 rounded-md hover:bg-black">Aplicar</button>
                 </form>
                 <div id="discount-info" class="text-sm text-green-600 mb-2"></div>
-                <div class="flex justify-between items-center font-bold text-lg mb-4"><span>Total</span><span id="cart-total">R$ 0,00</span></div><button class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Finalizar Compra</button>
+                <div class="flex justify-between items-center font-bold text-lg mb-4"><span>Total</span><span id="cart-total">R$ 0,00</span></div>
+                <button id="checkout-button" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">Finalizar Compra</button>
             </div>
         </div>
     </div>
