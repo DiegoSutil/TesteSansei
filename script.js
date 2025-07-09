@@ -135,7 +135,8 @@ function calculateTotal() {
     let subtotal = calculateSubtotal();
 
     if (appliedCoupon) {
-        subtotal *= (1 - appliedCoupon.discount);
+        const discountAmount = subtotal * appliedCoupon.discount;
+        subtotal -= discountAmount;
     }
 
     const shippingCost = selectedShipping ? selectedShipping.price : 0;
@@ -853,7 +854,6 @@ function refreshAllProductViews() {
 }
 
 async function fetchInitialData() {
-    showLoader(true);
     try {
         const productsSnapshot = await getDocs(collection(db, "products"));
         allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -867,26 +867,20 @@ async function fetchInitialData() {
     } catch (error) {
         console.error("Error fetching initial data: ", error);
         showToast("Não foi possível carregar os dados do site.", true);
-    } finally {
-        showLoader(false);
     }
 }
 
 // =================================================================
-// EVENT LISTENERS INITIALIZATION
+// MAIN APP LOGIC
 // =================================================================
-document.addEventListener('DOMContentLoaded', async () => {
-    // Initial UI setup and data fetching
+async function main() {
+    // Initial UI setup that doesn't depend on data
     showLoader(true);
     feather.replace();
     AOS.init({ duration: 800, once: true });
-    
-    await fetchInitialData();
-    await fetchAndRenderReels();
-    
-    showLoader(false);
+    updateCartIcon();
 
-    // Static Listeners
+    // Set up all static event listeners
     document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
     document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
         link.addEventListener('click', (e) => {
@@ -897,22 +891,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
     document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
-    
     document.getElementById('checkout-button').addEventListener('click', handleCheckout);
     document.getElementById('calculate-shipping-btn').addEventListener('click', handleCalculateShipping);
-    
     document.getElementById('close-product-details-modal').addEventListener('click', () => toggleProductDetailsModal(false));
     document.getElementById('product-details-modal-overlay').addEventListener('click', () => toggleProductDetailsModal(false));
-    
-    document.getElementById('mobile-menu-button').addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); });
+    document.getElementById('mobile-menu-button').addEventListener('click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
     document.getElementById('coupon-form').addEventListener('submit', handleApplyCoupon);
     document.getElementById('close-auth-modal').addEventListener('click', () => toggleAuthModal(false));
     document.getElementById('auth-modal-overlay').addEventListener('click', () => toggleAuthModal(false));
     document.getElementById('logout-button').addEventListener('click', logout);
     document.getElementById('contact-form').addEventListener('submit', handleContactFormSubmit);
     document.getElementById('newsletter-form').addEventListener('submit', handleNewsletterSubmit);
-
-    // Search Bar
     document.getElementById('search-button').addEventListener('click', () => document.getElementById('search-bar').classList.toggle('hidden'));
     document.getElementById('close-search-bar').addEventListener('click', () => {
         document.getElementById('search-bar').classList.add('hidden');
@@ -920,11 +909,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('search-results').innerHTML = '';
     });
     document.getElementById('search-input').addEventListener('keyup', handleSearch);
-
-    // Filters
     document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
-
-    // FAQ Accordion
     document.querySelectorAll('.faq-question').forEach(question => {
         question.addEventListener('click', () => {
             const answer = question.nextElementSibling;
@@ -938,8 +923,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
-
-    // Delegated Event Listeners for dynamic content
     document.body.addEventListener('click', (e) => {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
@@ -948,49 +931,34 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
 
-        if (addToCartBtn) {
-            e.stopPropagation();
-            addToCart(addToCartBtn.dataset.id);
-        } else if (wishlistHeart) {
-            e.stopPropagation();
-            toggleWishlist(wishlistHeart.dataset.id);
-        } else if (productLink) {
-            e.stopPropagation();
-            showProductDetails(productLink.dataset.id);
-        } else if (searchResult) {
-            e.preventDefault();
-            showProductDetails(searchResult.dataset.id);
-            document.getElementById('search-bar').classList.add('hidden');
-            document.getElementById('search-input').value = '';
-            document.getElementById('search-results').innerHTML = '';
-        } else if (cartQtyBtn) {
-            updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty));
-        } else if (cartRemoveBtn) {
-            removeFromCart(cartRemoveBtn.dataset.id);
-        }
+        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id); }
+        else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
+        else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
+        else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
+        else if (cartQtyBtn) { updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty)); }
+        else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
     });
 
-    // Firebase Auth State Listener
+    // Fetch all site data first
+    await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
+
+    // Now set up the auth listener
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
                 currentUserData = { uid: user.uid, ...userDoc.data() };
-                // Merge local cart with Firestore cart
                 const firestoreCart = currentUserData.cart || [];
                 const localCart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
                 const mergedCart = [...firestoreCart];
                 localCart.forEach(localItem => {
                     const firestoreItem = mergedCart.find(fi => fi.id === localItem.id);
-                    if (firestoreItem) {
-                        firestoreItem.quantity += localItem.quantity;
-                    } else {
-                        mergedCart.push(localItem);
-                    }
+                    if (firestoreItem) { firestoreItem.quantity += localItem.quantity; }
+                    else { mergedCart.push(localItem); }
                 });
                 cart = mergedCart;
-                localStorage.removeItem('sanseiCart'); // Clear local after merge
+                localStorage.removeItem('sanseiCart');
                 await syncCartWithFirestore();
             } else {
                 const newUser = { email: user.email, wishlist: [], cart: cart };
@@ -1006,4 +974,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateCartIcon();
         refreshAllProductViews();
     });
-});
+
+    showLoader(false);
+}
+
+// Start the application
+document.addEventListener('DOMContentLoaded', main);
