@@ -862,7 +862,8 @@ async function fetchInitialData() {
         allCoupons = couponsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
-        showPage('inicio');
+        document.getElementById('nav-inicio').classList.add('active');
+        
     } catch (error) {
         console.error("Error fetching initial data: ", error);
         showToast("Não foi possível carregar os dados do site.", true);
@@ -874,12 +875,17 @@ async function fetchInitialData() {
 // =================================================================
 // EVENT LISTENERS INITIALIZATION
 // =================================================================
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial UI setup
-    updateCartIcon();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initial UI setup and data fetching
+    showLoader(true);
     feather.replace();
     AOS.init({ duration: 800, once: true });
     
+    await fetchInitialData();
+    await fetchAndRenderReels();
+    
+    showLoader(false);
+
     // Static Listeners
     document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
     document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
@@ -966,7 +972,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Firebase Auth State Listener
     onAuthStateChanged(auth, async (user) => {
-        showLoader(true);
         if (user) {
             const userDocRef = doc(db, "users", user.uid);
             const userDoc = await getDoc(userDocRef);
@@ -998,9 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
         }
         updateAuthUI(user);
-        await fetchInitialData(); 
-        await fetchAndRenderReels();
         updateCartIcon();
-        showLoader(false);
+        refreshAllProductViews();
     });
 });
