@@ -874,108 +874,114 @@ async function fetchInitialData() {
 // MAIN APP LOGIC
 // =================================================================
 async function main() {
-    // Initial UI setup that doesn't depend on data
-    showLoader(true);
-    feather.replace();
-    AOS.init({ duration: 800, once: true });
-    updateCartIcon();
-
-    // Set up all static event listeners
-    document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
-    document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            showPage(link.dataset.page);
-        });
-    });
-    document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
-    document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
-    document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
-    document.getElementById('checkout-button').addEventListener('click', handleCheckout);
-    document.getElementById('calculate-shipping-btn').addEventListener('click', handleCalculateShipping);
-    document.getElementById('close-product-details-modal').addEventListener('click', () => toggleProductDetailsModal(false));
-    document.getElementById('product-details-modal-overlay').addEventListener('click', () => toggleProductDetailsModal(false));
-    document.getElementById('mobile-menu-button').addEventListener('click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
-    document.getElementById('coupon-form').addEventListener('submit', handleApplyCoupon);
-    document.getElementById('close-auth-modal').addEventListener('click', () => toggleAuthModal(false));
-    document.getElementById('auth-modal-overlay').addEventListener('click', () => toggleAuthModal(false));
-    document.getElementById('logout-button').addEventListener('click', logout);
-    document.getElementById('contact-form').addEventListener('submit', handleContactFormSubmit);
-    document.getElementById('newsletter-form').addEventListener('submit', handleNewsletterSubmit);
-    document.getElementById('search-button').addEventListener('click', () => document.getElementById('search-bar').classList.toggle('hidden'));
-    document.getElementById('close-search-bar').addEventListener('click', () => {
-        document.getElementById('search-bar').classList.add('hidden');
-        document.getElementById('search-input').value = '';
-        document.getElementById('search-results').innerHTML = '';
-    });
-    document.getElementById('search-input').addEventListener('keyup', handleSearch);
-    document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
-    document.querySelectorAll('.faq-question').forEach(question => {
-        question.addEventListener('click', () => {
-            const answer = question.nextElementSibling;
-            const icon = question.querySelector('i');
-            if (answer.style.maxHeight) {
-                answer.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                answer.style.maxHeight = answer.scrollHeight + "px";
-                icon.style.transform = 'rotate(180deg)';
-            }
-        });
-    });
-    document.body.addEventListener('click', (e) => {
-        const addToCartBtn = e.target.closest('.add-to-cart-btn');
-        const wishlistHeart = e.target.closest('.wishlist-heart');
-        const productLink = e.target.closest('img[data-id], h3[data-id]');
-        const searchResult = e.target.closest('.search-result-item');
-        const cartQtyBtn = e.target.closest('.cart-qty-btn');
-        const cartRemoveBtn = e.target.closest('.cart-remove-btn');
-
-        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id); }
-        else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
-        else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
-        else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
-        else if (cartQtyBtn) { updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty)); }
-        else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
-    });
-
-    // Fetch all site data first
-    await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
-
-    // Now set up the auth listener
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-                currentUserData = { uid: user.uid, ...userDoc.data() };
-                const firestoreCart = currentUserData.cart || [];
-                const localCart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
-                const mergedCart = [...firestoreCart];
-                localCart.forEach(localItem => {
-                    const firestoreItem = mergedCart.find(fi => fi.id === localItem.id);
-                    if (firestoreItem) { firestoreItem.quantity += localItem.quantity; }
-                    else { mergedCart.push(localItem); }
-                });
-                cart = mergedCart;
-                localStorage.removeItem('sanseiCart');
-                await syncCartWithFirestore();
-            } else {
-                const newUser = { email: user.email, wishlist: [], cart: cart };
-                await setDoc(userDocRef, newUser);
-                currentUserData = { uid: user.uid, ...newUser };
-                await syncCartWithFirestore();
-            }
-        } else {
-            currentUserData = null;
-            cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
-        }
-        updateAuthUI(user);
+    try {
+        showLoader(true);
+        
+        // Initial UI setup that doesn't depend on data
+        feather.replace();
+        AOS.init({ duration: 800, once: true });
         updateCartIcon();
-        refreshAllProductViews();
-    });
 
-    showLoader(false);
+        // Set up all static event listeners
+        document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
+        document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage(link.dataset.page);
+            });
+        });
+        document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
+        document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
+        document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
+        document.getElementById('checkout-button').addEventListener('click', handleCheckout);
+        document.getElementById('calculate-shipping-btn').addEventListener('click', handleCalculateShipping);
+        document.getElementById('close-product-details-modal').addEventListener('click', () => toggleProductDetailsModal(false));
+        document.getElementById('product-details-modal-overlay').addEventListener('click', () => toggleProductDetailsModal(false));
+        document.getElementById('mobile-menu-button').addEventListener('click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
+        document.getElementById('coupon-form').addEventListener('submit', handleApplyCoupon);
+        document.getElementById('close-auth-modal').addEventListener('click', () => toggleAuthModal(false));
+        document.getElementById('auth-modal-overlay').addEventListener('click', () => toggleAuthModal(false));
+        document.getElementById('logout-button').addEventListener('click', logout);
+        document.getElementById('contact-form').addEventListener('submit', handleContactFormSubmit);
+        document.getElementById('newsletter-form').addEventListener('submit', handleNewsletterSubmit);
+        document.getElementById('search-button').addEventListener('click', () => document.getElementById('search-bar').classList.toggle('hidden'));
+        document.getElementById('close-search-bar').addEventListener('click', () => {
+            document.getElementById('search-bar').classList.add('hidden');
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-results').innerHTML = '';
+        });
+        document.getElementById('search-input').addEventListener('keyup', handleSearch);
+        document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const answer = question.nextElementSibling;
+                const icon = question.querySelector('i');
+                if (answer.style.maxHeight) {
+                    answer.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            });
+        });
+        document.body.addEventListener('click', (e) => {
+            const addToCartBtn = e.target.closest('.add-to-cart-btn');
+            const wishlistHeart = e.target.closest('.wishlist-heart');
+            const productLink = e.target.closest('img[data-id], h3[data-id]');
+            const searchResult = e.target.closest('.search-result-item');
+            const cartQtyBtn = e.target.closest('.cart-qty-btn');
+            const cartRemoveBtn = e.target.closest('.cart-remove-btn');
+
+            if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id); }
+            else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
+            else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
+            else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
+            else if (cartQtyBtn) { updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty)); }
+            else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
+        });
+
+        // Fetch all site data first
+        await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
+
+        // Now set up the auth listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDocRef = doc(db, "users", user.uid);
+                const userDoc = await getDoc(userDocRef);
+                if (userDoc.exists()) {
+                    currentUserData = { uid: user.uid, ...userDoc.data() };
+                    const firestoreCart = currentUserData.cart || [];
+                    const localCart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+                    const mergedCart = [...firestoreCart];
+                    localCart.forEach(localItem => {
+                        const firestoreItem = mergedCart.find(fi => fi.id === localItem.id);
+                        if (firestoreItem) { firestoreItem.quantity += localItem.quantity; }
+                        else { mergedCart.push(localItem); }
+                    });
+                    cart = mergedCart;
+                    localStorage.removeItem('sanseiCart');
+                    await syncCartWithFirestore();
+                } else {
+                    const newUser = { email: user.email, wishlist: [], cart: cart };
+                    await setDoc(userDocRef, newUser);
+                    currentUserData = { uid: user.uid, ...newUser };
+                    await syncCartWithFirestore();
+                }
+            } else {
+                currentUserData = null;
+                cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+            }
+            updateAuthUI(user);
+            updateCartIcon();
+            refreshAllProductViews();
+        });
+    } catch (error) {
+        console.error("Critical error during initialization:", error);
+        showToast("Ocorreu um erro crítico ao carregar o site.", true);
+    } finally {
+        showLoader(false);
+    }
 }
 
 // Start the application
