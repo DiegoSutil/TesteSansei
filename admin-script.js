@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // Use the same Firebase config as the e-commerce site
 const firebaseConfig = {
@@ -18,6 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 // IMPORTANT: List of authorized admin emails
 const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com", "sanseiadmin@gmail.com"];
@@ -42,6 +44,9 @@ const DOMElements = {
     orderListBody: document.getElementById('order-list-body'),
     adminEmail: document.getElementById('admin-email'),
     productIdField: document.getElementById('product-id'),
+    productImageUrlField: document.getElementById('product-image-url'),
+    imagePreview: document.getElementById('image-preview'),
+    imageUploadInput: document.getElementById('product-image-upload'),
     submitProductBtn: document.getElementById('submit-product-btn'),
     cancelEditBtn: document.getElementById('cancel-edit-btn'),
 };
@@ -114,11 +119,12 @@ async function fetchAndRenderProducts() {
             const row = document.createElement('tr');
             row.className = 'border-b';
             row.innerHTML = `
+                <td class="py-2 px-2"><img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded-md"></td>
                 <td class="py-3 px-2">${product.name}</td>
                 <td class="py-3 px-2 capitalize">${product.category}</td>
                 <td class="py-3 px-2">R$ ${product.price.toFixed(2)}</td>
                 <td class="py-3 px-2">${product.stock}</td>
-                <td class="py-3 px-2 flex gap-2">
+                <td class="py-3 px-2 flex gap-2 items-center">
                     <button class="edit-btn text-blue-500 hover:text-blue-700" data-id="${product.id}"><i data-feather="edit-2" class="w-5 h-5"></i></button>
                     <button class="delete-btn text-red-500 hover:text-red-700" data-id="${product.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
                 </td>
@@ -246,8 +252,12 @@ async function updateOrderStatus(orderId, newStatus) {
 function resetProductForm() {
     DOMElements.productForm.reset();
     DOMElements.productIdField.value = '';
+    DOMElements.productImageUrlField.value = '';
+    DOMElements.imagePreview.src = '';
+    DOMElements.imagePreview.classList.add('hidden');
     DOMElements.submitProductBtn.textContent = 'Adicionar Produto';
     DOMElements.cancelEditBtn.classList.add('hidden');
+    DOMElements.submitProductBtn.disabled = false;
 }
 
 function populateProductForm(productId) {
@@ -260,8 +270,12 @@ function populateProductForm(productId) {
             document.getElementById('product-price').value = product.price;
             document.getElementById('product-category').value = product.category;
             document.getElementById('product-stock').value = product.stock;
-            document.getElementById('product-image').value = product.image;
             document.getElementById('product-description').value = product.description;
+            
+            // Store existing image URL and show preview
+            DOMElements.productImageUrlField.value = product.image;
+            DOMElements.imagePreview.src = product.image;
+            DOMElements.imagePreview.classList.remove('hidden');
 
             DOMElements.submitProductBtn.textContent = 'Salvar Alterações';
             DOMElements.cancelEditBtn.classList.remove('hidden');
@@ -272,22 +286,41 @@ function populateProductForm(productId) {
 
 async function handleProductFormSubmit(e) {
     e.preventDefault();
+    DOMElements.submitProductBtn.disabled = true;
+    DOMElements.submitProductBtn.textContent = 'A guardar...';
+
     const productId = DOMElements.productIdField.value;
-    const productData = {
-        name: document.getElementById('product-name').value,
-        price: parseFloat(document.getElementById('product-price').value),
-        category: document.getElementById('product-category').value,
-        stock: parseInt(document.getElementById('product-stock').value),
-        image: document.getElementById('product-image').value,
-        description: document.getElementById('product-description').value,
-    };
+    const imageFile = DOMElements.imageUploadInput.files[0];
+    let imageUrl = DOMElements.productImageUrlField.value;
 
     try {
-        if (productId) { // Update existing product
+        // If a new image file is selected, upload it
+        if (imageFile) {
+            const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
+            const snapshot = await uploadBytes(storageRef, imageFile);
+            imageUrl = await getDownloadURL(snapshot.ref);
+        }
+
+        if (!imageUrl) {
+            showToast("Por favor, selecione uma imagem para o produto.", true);
+            DOMElements.submitProductBtn.disabled = false;
+            DOMElements.submitProductBtn.textContent = productId ? 'Salvar Alterações' : 'Adicionar Produto';
+            return;
+        }
+
+        const productData = {
+            name: document.getElementById('product-name').value,
+            price: parseFloat(document.getElementById('product-price').value),
+            category: document.getElementById('product-category').value,
+            stock: parseInt(document.getElementById('product-stock').value),
+            image: imageUrl,
+            description: document.getElementById('product-description').value,
+        };
+
+        if (productId) {
             await updateDoc(doc(db, "products", productId), productData);
             showToast('Produto atualizado com sucesso!');
-        } else { // Add new product
-            // Add fields that are only set on creation
+        } else {
             productData.rating = 0;
             productData.reviews = [];
             await addDoc(collection(db, "products"), productData);
@@ -296,9 +329,13 @@ async function handleProductFormSubmit(e) {
         resetProductForm();
         await fetchAndRenderProducts();
         await fetchStats();
+
     } catch (error) {
         console.error("Error saving product: ", error);
         showToast('Erro ao salvar produto.', true);
+    } finally {
+        DOMElements.submitProductBtn.disabled = false;
+        // The text is reset inside resetProductForm
     }
 }
 
@@ -438,6 +475,18 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.addCouponForm.addEventListener('submit', handleCouponFormSubmit);
     DOMElements.addReelForm.addEventListener('submit', handleAddReelFormSubmit);
     DOMElements.cancelEditBtn.addEventListener('click', resetProductForm);
+
+    DOMElements.imageUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                DOMElements.imagePreview.src = event.target.result;
+                DOMElements.imagePreview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     DOMElements.navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
