@@ -167,43 +167,40 @@ async function handleCalculateShipping() {
     loader.classList.remove('hidden');
     btn.disabled = true;
 
-    // A API da BrasilAPI é mais moderna e não precisa de tantos parâmetros.
-    // Ela calcula o valor baseado no CEP de origem/destino e no valor do seguro.
     const body = {
-        "nCdServico": "04510,04014", // PAC, SEDEX
-        "sCepOrigem": "84261090", // Substitua pelo seu CEP de origem
-        "sCepDestino": cep,
-        "nVlPeso": "1",
-        "nCdFormato": 1,
-        "nVlComprimento": "20",
-        "nVlAltura": "10",
-        "nVlLargura": "15",
-        "nVlDiametro": "0",
-        "sCdMaoPropria": "n",
-        "nVlValorDeclarado": calculateSubtotal(),
-        "sCdAvisoRecebimento": "n"
+        from: { postal_code: "84261090" }, // Substitua pelo seu CEP de origem
+        to: { postal_code: cep },
+        services: ["PAC", "SEDEX"],
+        package: {
+            weight: 0.5,
+            width: 15,
+            height: 10,
+            length: 20,
+        },
+        products: cart.map(item => {
+            const product = allProducts.find(p => p.id === item.id);
+            return {
+                id: item.id,
+                quantity: item.quantity,
+                price: product ? product.price : 0
+            }
+        })
     };
 
     try {
-        // Usando um proxy CORS para evitar problemas de bloqueio de API no navegador
-        const response = await fetch(`https://cors-anywhere.herokuapp.com/https://ws.correios.com.br/calculador/CalcPrecoPrazo.aspx?${new URLSearchParams(body)}&nIndicaCalculo=3&sSQLXML=true`);
+        const response = await fetch(`https://brasilapi.com.br/api/shipping/v1`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
         
         if (!response.ok) {
-            throw new Error('Erro ao calcular o frete. Tente novamente.');
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Erro ao calcular o frete.');
         }
 
-        const text = await response.text();
-        const parser = new DOMParser();
-        const xml = parser.parseFromString(text, "application/xml");
-        const services = xml.getElementsByTagName('cServico');
-        const options = Array.from(services).map(s => ({
-            Codigo: s.getElementsByTagName('Codigo')[0].textContent,
-            Valor: parseFloat(s.getElementsByTagName('Valor')[0].textContent.replace(',', '.')),
-            PrazoEntrega: s.getElementsByTagName('PrazoEntrega')[0].textContent,
-            Erro: s.getElementsByTagName('Erro')[0].textContent !== '0' ? s.getElementsByTagName('MsgErro')[0].textContent : null
-        }));
-
-        renderShippingOptions(options);
+        const data = await response.json();
+        renderShippingOptions(data.services);
 
     } catch (error) {
         console.error("Shipping calculation error:", error);
@@ -222,34 +219,33 @@ function renderShippingOptions(options) {
     selectedShipping = null;
     renderCart();
 
-    if (!options || options.length === 0 || options.every(opt => opt.Erro)) {
+    if (!options || options.length === 0 || options.every(opt => opt.error)) {
         container.innerHTML = `<p class="text-red-500 text-sm">Nenhuma opção de frete encontrada para o CEP informado.</p>`;
         return;
     }
 
     options.forEach(option => {
-        if (option.Erro) return;
+        if (option.error) return;
 
-        const serviceName = option.Codigo === '04510' ? 'PAC' : 'SEDEX';
-        const optionId = `shipping-${serviceName}`;
+        const optionId = `shipping-${option.name.replace(/\s+/g, '-')}`;
         const label = document.createElement('label');
         label.className = 'flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-gray-50';
         label.innerHTML = `
             <div class="flex items-center">
                 <input type="radio" name="shipping-option" id="${optionId}" class="form-radio text-gold-500">
                 <div class="ml-3">
-                    <p class="font-semibold">${serviceName}</p>
-                    <p class="text-sm text-gray-500">Prazo: ${option.PrazoEntrega} dias úteis</p>
+                    <p class="font-semibold">${option.name}</p>
+                    <p class="text-sm text-gray-500">Prazo: ${option.delivery_time} dias úteis</p>
                 </div>
             </div>
-            <span class="font-bold">R$ ${option.Valor.toFixed(2).replace('.', ',')}</span>
+            <span class="font-bold">R$ ${option.price.toFixed(2).replace('.', ',')}</span>
         `;
         
         label.querySelector('input').addEventListener('change', () => {
             selectedShipping = {
-                method: serviceName,
-                price: option.Valor,
-                deadline: option.PrazoEntrega
+                method: option.name,
+                price: option.price,
+                deadline: option.delivery_time
             };
             renderCart();
         });
@@ -1030,3 +1026,5 @@ async function main() {
 }
 
 document.addEventListener('DOMContentLoaded', main);
+" of the Canvas. Please provide a response based on my query below.
+o site esta em portugues mas o script esta em ingles, pode arrum
