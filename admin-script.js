@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Use the same Firebase config as the e-commerce site
 const firebaseConfig = {
@@ -37,6 +37,9 @@ const DOMElements = {
     views: document.querySelectorAll('.admin-view'),
     addCouponForm: document.getElementById('add-coupon-form'),
     couponListBody: document.getElementById('coupon-list-body'),
+    addReelForm: document.getElementById('add-reel-form'),
+    reelListBody: document.getElementById('reel-list-body'),
+    orderListBody: document.getElementById('order-list-body'),
     adminEmail: document.getElementById('admin-email'),
     productIdField: document.getElementById('product-id'),
     submitProductBtn: document.getElementById('submit-product-btn'),
@@ -47,11 +50,6 @@ const DOMElements = {
 // UTILITY & UI FUNCTIONS
 // =================================================================
 
-/**
- * Shows a toast notification.
- * @param {string} message - The message to display.
- * @param {boolean} [isError=false] - If true, displays an error-styled toast.
- */
 function showToast(message, isError = false) {
     const toast = document.getElementById('admin-toast');
     const toastMessage = document.getElementById('admin-toast-message');
@@ -72,20 +70,11 @@ function showToast(message, isError = false) {
     }, 3000);
 }
 
-/**
- * Shows a message on the authentication screen.
- * @param {string} message - The message to display.
- * @param {'green' | 'red'} color - The color theme for the message.
- */
 function showAuthMessage(message, color) {
     DOMElements.authMessage.textContent = message;
     DOMElements.authMessage.className = `mb-4 p-3 rounded-md text-center bg-${color}-100 text-${color}-700`;
 }
 
-/**
- * Switches the active view in the admin panel.
- * @param {string} viewToShow - The data-view attribute of the view to show.
- */
 function switchView(viewToShow) {
     DOMElements.views.forEach(view => view.classList.add('hidden'));
     document.getElementById(`view-${viewToShow}`).classList.remove('hidden');
@@ -104,7 +93,9 @@ async function fetchStats() {
         const productsSnapshot = await getDocs(collection(db, "products"));
         const usersSnapshot = await getDocs(collection(db, "users"));
         const couponsSnapshot = await getDocs(collection(db, "coupons"));
+        const ordersSnapshot = await getDocs(collection(db, "orders"));
         
+        document.getElementById('stats-orders').textContent = ordersSnapshot.size;
         document.getElementById('stats-products').textContent = productsSnapshot.size;
         document.getElementById('stats-users').textContent = usersSnapshot.size;
         document.getElementById('stats-coupons').textContent = couponsSnapshot.size;
@@ -117,7 +108,7 @@ async function fetchStats() {
 async function fetchAndRenderProducts() {
     try {
         const querySnapshot = await getDocs(collection(db, "products"));
-        DOMElements.productListBody.innerHTML = ''; // Clear list
+        DOMElements.productListBody.innerHTML = '';
         querySnapshot.forEach((doc) => {
             const product = { id: doc.id, ...doc.data() };
             const row = document.createElement('tr');
@@ -165,9 +156,92 @@ async function fetchAndRenderCoupons() {
     }
 }
 
+async function fetchAndRenderReels() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "reels"));
+        DOMElements.reelListBody.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const reel = { id: doc.id, ...doc.data() };
+            const row = document.createElement('tr');
+            row.className = 'border-b';
+            row.innerHTML = `
+                <td class="py-3 px-2">
+                    <img src="${reel.thumbnail}" alt="Reel Thumbnail" class="w-24 h-24 object-cover rounded-md">
+                </td>
+                <td class="py-3 px-2 break-all"><a href="${reel.url}" target="_blank" class="text-blue-500 hover:underline">${reel.url}</a></td>
+                <td class="py-3 px-2">
+                    <button class="delete-reel-btn text-red-500 hover:text-red-700" data-id="${reel.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                </td>
+            `;
+            DOMElements.reelListBody.appendChild(row);
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching reels: ", error);
+        showToast("Erro ao carregar reels.", true);
+    }
+}
+
+async function fetchAndRenderOrders() {
+    try {
+        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        DOMElements.orderListBody.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const order = { id: doc.id, ...doc.data() };
+            const row = document.createElement('tr');
+            row.className = 'border-b hover:bg-gray-50';
+            const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
+
+            const statusColors = {
+                Pendente: 'bg-yellow-100 text-yellow-800',
+                Enviado: 'bg-blue-100 text-blue-800',
+                Entregue: 'bg-green-100 text-green-800',
+                Cancelado: 'bg-red-100 text-red-800',
+            };
+
+            const statusSelect = `
+                <select class="order-status-select p-2 rounded-md border-gray-300 focus:ring-gold-500 ${statusColors[order.status]}" data-id="${order.id}">
+                    <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                    <option value="Enviado" ${order.status === 'Enviado' ? 'selected' : ''}>Enviado</option>
+                    <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                    <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                </select>
+            `;
+
+            const itemsList = order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('');
+
+            row.innerHTML = `
+                <td class="py-3 px-2 font-mono text-xs">${order.id}</td>
+                <td class="py-3 px-2">${order.userEmail}</td>
+                <td class="py-3 px-2">${orderDate}</td>
+                <td class="py-3 px-2 font-semibold">R$ ${order.total.toFixed(2)}</td>
+                <td class="py-3 px-2">${statusSelect}</td>
+                <td class="py-3 px-2"><ul>${itemsList}</ul></td>
+            `;
+            DOMElements.orderListBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching orders: ", error);
+        showToast('Erro ao carregar encomendas.', true);
+    }
+}
+
 // =================================================================
 // CRUD & FORM HANDLING
 // =================================================================
+
+async function updateOrderStatus(orderId, newStatus) {
+    const orderRef = doc(db, "orders", orderId);
+    try {
+        await updateDoc(orderRef, { status: newStatus });
+        showToast(`Estado da encomenda atualizado para ${newStatus}.`);
+        fetchAndRenderOrders(); // Refresh the list to show color changes
+    } catch (error) {
+        console.error("Error updating order status: ", error);
+        showToast("Erro ao atualizar o estado da encomenda.", true);
+    }
+}
 
 function resetProductForm() {
     DOMElements.productForm.reset();
@@ -272,6 +346,34 @@ async function deleteCoupon(couponId) {
     }
 }
 
+async function handleAddReelFormSubmit(e) {
+    e.preventDefault();
+    const newReel = {
+        url: document.getElementById('reel-url').value,
+        thumbnail: document.getElementById('reel-thumbnail').value
+    };
+    try {
+        await addDoc(collection(db, "reels"), newReel);
+        DOMElements.addReelForm.reset();
+        showToast('Reel adicionado com sucesso!');
+        await fetchAndRenderReels();
+    } catch (error) {
+        showToast('Erro ao adicionar reel.', true);
+    }
+}
+
+async function deleteReel(reelId) {
+    if (confirm('Tem a certeza que quer eliminar este reel?')) {
+        try {
+            await deleteDoc(doc(db, "reels", reelId));
+            showToast('Reel eliminado com sucesso.');
+            await fetchAndRenderReels();
+        } catch (error) {
+            showToast('Erro ao eliminar reel.', true);
+        }
+    }
+}
+
 // =================================================================
 // AUTHENTICATION
 // =================================================================
@@ -318,10 +420,12 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchStats();
             await fetchAndRenderProducts();
             await fetchAndRenderCoupons();
+            await fetchAndRenderReels();
+            await fetchAndRenderOrders();
         } else {
             DOMElements.authScreen.classList.remove('hidden');
             DOMElements.adminPanel.classList.add('hidden');
-            if (user) { // If a non-admin user is logged in, sign them out
+            if (user) { 
                 signOut(auth);
             }
         }
@@ -332,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.logoutButton.addEventListener('click', handleLogout);
     DOMElements.productForm.addEventListener('submit', handleProductFormSubmit);
     DOMElements.addCouponForm.addEventListener('submit', handleCouponFormSubmit);
+    DOMElements.addReelForm.addEventListener('submit', handleAddReelFormSubmit);
     DOMElements.cancelEditBtn.addEventListener('click', resetProductForm);
 
     DOMElements.navLinks.forEach(link => {
@@ -351,5 +456,18 @@ document.addEventListener('DOMContentLoaded', () => {
     DOMElements.couponListBody.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.delete-coupon-btn');
         if (deleteBtn) deleteCoupon(deleteBtn.dataset.id);
+    });
+
+    DOMElements.reelListBody.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-reel-btn');
+        if (deleteBtn) deleteReel(deleteBtn.dataset.id);
+    });
+
+    DOMElements.orderListBody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('order-status-select')) {
+            const orderId = e.target.dataset.id;
+            const newStatus = e.target.value;
+            updateOrderStatus(orderId, newStatus);
+        }
     });
 });
