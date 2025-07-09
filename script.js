@@ -1,10 +1,9 @@
 // Import Firebase modules from the latest SDK
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, Timestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // IMPORTANT: Replace with your actual Firebase configuration
-// It's recommended to use environment variables for this in a real project
 const firebaseConfig = {
   apiKey: "AIzaSyC4-kp4wBq6fz-pG1Rm3VQcq6pO17OEeOI",
   authDomain: "sansei-d3cf6.firebaseapp.com",
@@ -58,6 +57,77 @@ function showToast(message, isError = false) {
 const showLoader = (show) => {
     document.getElementById('loader').classList.toggle('hidden', !show);
 }
+
+// =================================================================
+// CHECKOUT & ORDER FUNCTIONS
+// =================================================================
+async function handleCheckout() {
+    if (!currentUserData) {
+        showToast("Por favor, faça login para finalizar a compra.", true);
+        toggleAuthModal(true);
+        return;
+    }
+
+    if (cart.length === 0) {
+        showToast("O seu carrinho está vazio.", true);
+        return;
+    }
+
+    showLoader(true);
+
+    const total = calculateTotal();
+    const orderItems = cart.map(item => {
+        const product = allProducts.find(p => p.id === item.id);
+        return {
+            productId: item.id,
+            name: product.name,
+            quantity: item.quantity,
+            price: product.price
+        };
+    });
+
+    const newOrder = {
+        userId: currentUserData.uid,
+        userEmail: currentUserData.email,
+        items: orderItems,
+        total: total,
+        status: "Pendente",
+        createdAt: Timestamp.now(),
+        coupon: appliedCoupon ? appliedCoupon.code : null
+    };
+
+    try {
+        await addDoc(collection(db, "orders"), newOrder);
+        
+        // Clear cart after successful order
+        cart = [];
+        localStorage.removeItem('sanseiCart');
+        await syncCartWithFirestore();
+
+        showToast("Encomenda realizada com sucesso!");
+        updateCartIcon();
+        toggleCart(false);
+        showPage('profile'); // Redirect to profile to see the new order
+    } catch (error) {
+        console.error("Error creating order: ", error);
+        showToast("Ocorreu um erro ao processar a sua encomenda.", true);
+    } finally {
+        showLoader(false);
+    }
+}
+
+function calculateTotal() {
+    let total = cart.reduce((sum, item) => {
+        const product = allProducts.find(p => p.id === item.id);
+        return sum + (product ? product.price * item.quantity : 0);
+    }, 0);
+
+    if (appliedCoupon) {
+        total *= (1 - appliedCoupon.discount);
+    }
+    return total;
+}
+
 
 // =================================================================
 // CART FUNCTIONS (WITH FIRESTORE INTEGRATION)
@@ -122,17 +192,15 @@ function renderCart() {
         discountInfoEl.innerHTML = '';
         return;
     }
-    let total = 0;
-    cart.forEach(item => {
-        const product = allProducts.find(p => p.id === item.id);
-        if(product) {
-            total += product.price * item.quantity;
-        }
-    });
+    
+    const total = calculateTotal();
 
     if (appliedCoupon) {
-        const discountAmount = total * appliedCoupon.discount;
-        total -= discountAmount;
+        const originalTotal = cart.reduce((sum, item) => {
+            const product = allProducts.find(p => p.id === item.id);
+            return sum + (product ? product.price * item.quantity : 0);
+        }, 0);
+        const discountAmount = originalTotal - total;
         discountInfoEl.innerHTML = `Cupom "${appliedCoupon.code}" aplicado! (-R$ ${discountAmount.toFixed(2).replace('.',',')}) <button id="remove-coupon-btn" class="text-red-500 ml-2 font-semibold">Remover</button>`;
         document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
     } else {
@@ -256,6 +324,38 @@ function applyFilters() {
     }
 
     renderProducts(filteredProducts, 'product-list-fragrances');
+}
+
+async function fetchAndRenderReels() {
+    const reelsContainer = document.getElementById('reels-container');
+    if (!reelsContainer) return;
+
+    try {
+        const reelsSnapshot = await getDocs(collection(db, "reels"));
+        if (reelsSnapshot.empty) {
+            reelsContainer.innerHTML = '<p class="text-gray-400 col-span-full text-center">Nenhum reel encontrado.</p>';
+            return;
+        }
+        reelsContainer.innerHTML = ''; // Clear existing
+        reelsSnapshot.forEach(doc => {
+            const reel = doc.data();
+            const reelElement = document.createElement('a');
+            reelElement.href = reel.url;
+            reelElement.target = '_blank';
+            reelElement.className = 'block relative group';
+            reelElement.innerHTML = `
+                <img src="${reel.thumbnail}" alt="Reel" class="w-full h-full object-cover rounded-lg aspect-square">
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all-ease flex items-center justify-center">
+                    <i data-feather="play-circle" class="text-white opacity-0 group-hover:opacity-100 w-10 h-10"></i>
+                </div>
+            `;
+            reelsContainer.appendChild(reelElement);
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching reels for homepage:", error);
+        reelsContainer.innerHTML = '<p class="text-red-500 col-span-full text-center">Não foi possível carregar os reels.</p>';
+    }
 }
 
 // =================================================================
@@ -551,6 +651,7 @@ function showPage(pageId) {
         }
         document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
         renderWishlist();
+        renderOrders();
     }
     
     window.scrollTo(0, 0);
@@ -567,6 +668,40 @@ async function renderWishlist() {
         return;
     }
     renderProducts(wishlistProducts, 'wishlist-items');
+}
+
+async function renderOrders() {
+    const ordersListContainer = document.getElementById('orders-list');
+    if (!currentUserData || !ordersListContainer) return;
+
+    const q = query(collection(db, "orders"), where("userId", "==", currentUserData.uid));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+        ordersListContainer.innerHTML = '<p class="text-gray-500 text-center">Você ainda não fez nenhuma encomenda.</p>';
+        return;
+    }
+
+    ordersListContainer.innerHTML = '';
+    querySnapshot.forEach(doc => {
+        const order = {id: doc.id, ...doc.data()};
+        const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
+        const orderElement = document.createElement('div');
+        orderElement.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
+        orderElement.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="font-bold">Encomenda #${order.id.substring(0, 7)}</p>
+                    <p class="text-sm text-gray-500">Data: ${orderDate}</p>
+                </div>
+                <div>
+                    <p class="font-bold">Total: R$ ${order.total.toFixed(2).replace('.',',')}</p>
+                    <p class="text-sm text-right font-semibold ${order.status === 'Pendente' ? 'text-yellow-500' : 'text-green-500'}">${order.status}</p>
+                </div>
+            </div>
+        `;
+        ordersListContainer.appendChild(orderElement);
+    });
 }
 
 function refreshAllProductViews() {
@@ -589,8 +724,6 @@ function refreshAllProductViews() {
 async function fetchProducts() {
     showLoader(true);
     try {
-        // Ensure you have Firestore security rules allowing this read
-        // e.g., allow read: if true; for the 'products' collection
         const querySnapshot = await getDocs(collection(db, "products"));
         allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
@@ -611,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateCartIcon();
     feather.replace();
     AOS.init({ duration: 800, once: true });
+    fetchAndRenderReels(); // Fetch reels on page load
 
     // Static Listeners
     document.getElementById('logo-link').addEventListener('click', (e) => { e.preventDefault(); showPage('inicio'); });
@@ -623,6 +757,8 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
     document.getElementById('close-cart-button').addEventListener('click', () => toggleCart(false));
     document.getElementById('cart-modal-overlay').addEventListener('click', () => toggleCart(false));
+    
+    document.getElementById('checkout-button').addEventListener('click', handleCheckout);
     
     document.getElementById('close-product-details-modal').addEventListener('click', () => toggleProductDetailsModal(false));
     document.getElementById('product-details-modal-overlay').addEventListener('click', () => toggleProductDetailsModal(false));
