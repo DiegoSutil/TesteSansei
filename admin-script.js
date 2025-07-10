@@ -40,7 +40,7 @@ const DOMElements = {
     addReelForm: document.getElementById('add-reel-form'),
     reelListBody: document.getElementById('reel-list-body'),
     orderListBody: document.getElementById('order-list-body'),
-    reviewListBody: document.getElementById('review-list-body'), // **NOVO**
+    reviewListBody: document.getElementById('review-list-body'),
     adminEmail: document.getElementById('admin-email'),
     productIdField: document.getElementById('product-id'),
     submitProductBtn: document.getElementById('submit-product-btn'),
@@ -94,6 +94,60 @@ function renderStars(rating) {
     return `<div class="flex items-center">${stars}</div>`;
 }
 
+/**
+ * Exibe um modal de confirmação personalizado para o painel de administração.
+ * @param {string} message A mensagem a ser exibida no modal.
+ * @param {string} [title='Confirmação'] O título do modal.
+ * @returns {Promise<boolean>} Uma promessa que resolve para `true` se o usuário confirmar, `false` caso contrário.
+ */
+function showAdminConfirmationModal(message, title = 'Confirmação') {
+    return new Promise(resolve => {
+        const modalOverlay = document.getElementById('admin-confirmation-modal-overlay');
+        const modal = document.getElementById('admin-confirmation-modal');
+        const modalTitle = document.getElementById('admin-confirmation-modal-title');
+        const modalMessage = document.getElementById('admin-confirmation-modal-message');
+        const confirmBtn = document.getElementById('admin-confirmation-confirm-btn');
+        const cancelBtn = document.getElementById('admin-confirmation-cancel-btn');
+
+        if (!modalOverlay || !modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
+            console.error("Elementos do modal de confirmação do admin não encontrados.");
+            resolve(false); // Fallback to false if elements are missing
+            return;
+        }
+
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+
+        // Reset event listeners to prevent multiple bindings
+        confirmBtn.onclick = null;
+        cancelBtn.onclick = null;
+
+        confirmBtn.onclick = () => {
+            hideAdminConfirmationModal();
+            resolve(true);
+        };
+
+        cancelBtn.onclick = () => {
+            hideAdminConfirmationModal();
+            resolve(false);
+        };
+
+        modalOverlay.classList.remove('hidden');
+        modal.classList.remove('hidden', 'opacity-0', 'scale-95');
+    });
+}
+
+function hideAdminConfirmationModal() {
+    const modalOverlay = document.getElementById('admin-confirmation-modal-overlay');
+    const modal = document.getElementById('admin-confirmation-modal');
+    if (modalOverlay) modalOverlay.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+}
+
+
 // =================================================================
 // DATA FETCHING & RENDERING
 // =================================================================
@@ -113,7 +167,7 @@ async function fetchStats() {
         document.getElementById('stats-orders').textContent = ordersSnapshot.size;
         document.getElementById('stats-products').textContent = productsSnapshot.size;
         document.getElementById('stats-users').textContent = usersSnapshot.size;
-        document.getElementById('stats-reviews').textContent = totalReviews; // **NOVO**
+        document.getElementById('stats-reviews').textContent = totalReviews;
     } catch (e) {
         console.error("Error fetching stats:", e);
         showToast("Erro ao carregar estatísticas.", true);
@@ -148,7 +202,6 @@ async function fetchAndRenderProducts() {
     }
 }
 
-// **NOVO**: Função para buscar e renderizar avaliações
 async function fetchAndRenderReviews() {
     try {
         const productsSnapshot = await getDocs(collection(db, "products"));
@@ -366,7 +419,8 @@ async function handleProductFormSubmit(e) {
 }
 
 async function deleteProduct(productId) {
-    if (confirm('Tem a certeza que quer eliminar este produto?')) {
+    const confirmed = await showAdminConfirmationModal('Tem certeza que quer eliminar este produto?', 'Eliminar Produto');
+    if (confirmed) {
         try {
             await deleteDoc(doc(db, "products", productId));
             showToast('Produto eliminado com sucesso.');
@@ -379,9 +433,9 @@ async function deleteProduct(productId) {
     }
 }
 
-// **NOVO**: Função para apagar uma avaliação
 async function deleteReview(productId, reviewIndex) {
-    if (confirm('Tem a certeza que quer eliminar esta avaliação?')) {
+    const confirmed = await showAdminConfirmationModal('Tem certeza que quer eliminar esta avaliação?', 'Eliminar Avaliação');
+    if (confirmed) {
         const productRef = doc(db, "products", productId);
         try {
             const productDoc = await getDoc(productRef);
@@ -421,7 +475,7 @@ async function handleCouponFormSubmit(e) {
     e.preventDefault();
     const newCoupon = {
         code: document.getElementById('coupon-code').value.toUpperCase(),
-        discount: parseFloat(document.getElementById('coupon-discount').value)
+        discount: parseFloat(document.getElementById('coupon-discount').value) / 100
     };
     try {
         await addDoc(collection(db, "coupons"), newCoupon);
@@ -435,7 +489,8 @@ async function handleCouponFormSubmit(e) {
 }
 
 async function deleteCoupon(couponId) {
-    if (confirm('Tem a certeza que quer eliminar este cupom?')) {
+    const confirmed = await showAdminConfirmationModal('Tem certeza que quer eliminar este cupom?', 'Eliminar Cupom');
+    if (confirmed) {
         try {
             await deleteDoc(doc(db, "coupons", couponId));
             showToast('Cupom eliminado com sucesso.');
@@ -464,7 +519,8 @@ async function handleAddReelFormSubmit(e) {
 }
 
 async function deleteReel(reelId) {
-    if (confirm('Tem a certeza que quer eliminar este reel?')) {
+    const confirmed = await showAdminConfirmationModal('Tem certeza que quer eliminar este reel?', 'Eliminar Reel');
+    if (confirmed) {
         try {
             await deleteDoc(doc(db, "reels", reelId));
             showToast('Reel eliminado com sucesso.');
@@ -523,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchAndRenderCoupons();
             await fetchAndRenderReels();
             await fetchAndRenderOrders();
-            await fetchAndRenderReviews(); // **NOVO**
+            await fetchAndRenderReviews();
         } else {
             DOMElements.authScreen.classList.remove('hidden');
             DOMElements.adminPanel.classList.add('hidden');
@@ -555,7 +611,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deleteBtn) deleteProduct(deleteBtn.dataset.id);
     });
     
-    // **NOVO**: Event listener para apagar avaliações
     DOMElements.reviewListBody.addEventListener('click', (e) => {
         const deleteBtn = e.target.closest('.delete-review-btn');
         if (deleteBtn) {
@@ -580,6 +635,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const orderId = e.target.dataset.id;
             const newStatus = e.target.value;
             updateOrderStatus(orderId, newStatus);
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            hideAdminConfirmationModal(); // Close admin confirmation modal on escape
         }
     });
 });
