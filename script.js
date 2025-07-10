@@ -1,14 +1,22 @@
-/**
- * @fileoverview Main client-side script for the SANSEI DECANTS e-commerce store.
- * Handles page navigation, product rendering, cart functionality, user authentication,
- * and interactive elements like the fragrance quiz.
- */
+// Import Firebase modules from the latest SDK
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// **NOVO**: Importa o db e auth do módulo de configuração central
-import { db, auth } from './firebase-config.js'; 
-// Importa as funções do Firebase que serão usadas neste ficheiro
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+// IMPORTANT: Replace with your actual Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyC4-kp4wBq6fz-pG1Rm3VQcq6pO17OEeOI",
+  authDomain: "sansei-d3cf6.firebaseapp.com",
+  projectId: "sansei-d3cf6",
+  storageBucket: "sansei-d3cf6.appspot.com",
+  messagingSenderId: "774111823223",
+  appId: "1:774111823223:web:c03c73c4b89d96244b8d72"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 // =================================================================
 // GLOBAL STATE & VARIABLES
@@ -71,10 +79,13 @@ async function handleCheckout() {
         return;
     }
 
+    // **NOVO**: Simulação de Gateway de Pagamento
     showLoader(true);
     setTimeout(() => {
+        // Esta parte simula a resposta de um gateway de pagamento.
+        // Numa implementação real, aqui viria o código para redirecionar para o Stripe, Mercado Pago, etc.
         createOrder();
-    }, 2000);
+    }, 2000); // Simula um tempo de processamento de 2 segundos
 }
 
 async function createOrder() {
@@ -95,7 +106,7 @@ async function createOrder() {
         items: orderItems,
         total: total,
         shipping: selectedShipping,
-        status: "Pendente",
+        status: "Pendente", // Numa implementação real, o status seria "Pago" após confirmação do gateway
         createdAt: Timestamp.now(),
         coupon: appliedCoupon ? appliedCoupon.code : null
     };
@@ -147,7 +158,7 @@ function calculateTotal() {
 // =================================================================
 async function handleCalculateShipping() {
     const cepInput = document.getElementById('cep-input');
-    const cep = cepInput.value.replace(/\D/g, '');
+    const cep = cepInput.value.replace(/\D/g, ''); // Remove non-digits
     const btn = document.getElementById('calculate-shipping-btn');
     const btnText = btn.querySelector('.btn-text');
     const loader = btn.querySelector('.loader-sm');
@@ -431,9 +442,10 @@ function removeCoupon() {
 // =================================================================
 function renderStars(rating, isInteractive = false, size = 'w-5 h-5') {
     let stars = '';
-    const ratingValue = Math.round(rating);
+    const ratingValue = Math.round(rating); // Arredonda para a estrela mais próxima
 
     if (isInteractive) {
+        // Para formulário de avaliação
         stars = `
             <div class="rating-input-group">
                 <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i data-feather="star" class="${size}"></i></label>
@@ -444,6 +456,7 @@ function renderStars(rating, isInteractive = false, size = 'w-5 h-5') {
             </div>
         `;
     } else {
+        // Para exibição
         let starIcons = '';
         for (let i = 1; i <= 5; i++) {
             starIcons += `<i data-feather="star" class="feather-star ${size} ${i <= ratingValue ? 'filled' : ''}"></i>`;
@@ -470,7 +483,7 @@ function createProductCard(product, isSmall = false) {
                 <h3 class="font-heading font-semibold ${titleClass} cursor-pointer" data-id="${product.id}">${product.name}</h3>
                 <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
                 <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                <button class="view-details-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Ver Detalhes</button>
+                <button class="add-to-cart-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Adicionar</button>
             </div>
         </div>
     `;
@@ -483,8 +496,8 @@ function renderProducts(productsToRender, containerId) {
     if (productsToRender.length === 0) {
         productListEl.innerHTML = `
             <div class="col-span-full text-center text-gray-600">
-                <p class="text-xl mb-2">Nenhum perfume encontrado.</p>
-                <p>Que tal tentar uma nova combinação ou ver a nossa coleção completa?</p>
+                <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
+                <p>Que tal tentar uma nova combinação ou ver os nossos mais vendidos?</p>
             </div>
         `;
     } else {
@@ -517,7 +530,7 @@ async function handleReviewSubmit(e) {
 
     const newReview = {
         userId: currentUserData.uid,
-        userName: currentUserData.email.split('@')[0],
+        userName: currentUserData.email.split('@')[0], // Simple name extraction
         rating: parseInt(rating),
         text: text,
         createdAt: Timestamp.now()
@@ -525,10 +538,12 @@ async function handleReviewSubmit(e) {
 
     try {
         const productRef = doc(db, "products", productId);
+        // Use arrayUnion to add the new review
         await updateDoc(productRef, {
             reviews: arrayUnion(newReview)
         });
 
+        // Recalculate average rating
         const updatedDoc = await getDoc(productRef);
         const productData = updatedDoc.data();
         const reviews = productData.reviews || [];
@@ -539,6 +554,7 @@ async function handleReviewSubmit(e) {
             rating: avgRating
         });
         
+        // Update local product data
         const productIndex = allProducts.findIndex(p => p.id === productId);
         if (productIndex !== -1) {
             allProducts[productIndex].reviews = reviews;
@@ -546,7 +562,7 @@ async function handleReviewSubmit(e) {
         }
 
         showToast("Avaliação enviada com sucesso!");
-        showProductDetails(productId);
+        showProductDetails(productId); // Refresh modal content
 
     } catch (error) {
         console.error("Error submitting review:", error);
@@ -554,6 +570,36 @@ async function handleReviewSubmit(e) {
         button.disabled = false;
         button.textContent = "Enviar Avaliação";
     }
+}
+
+
+function applyFilters() {
+    let filteredProducts = [...allProducts];
+    const selectedCategories = Array.from(document.querySelectorAll('#filter-cat-perfume, #filter-cat-decant'))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+
+    if (selectedCategories.length > 0) {
+        filteredProducts = filteredProducts.filter(p => selectedCategories.includes(p.category));
+    }
+
+    const priceFilter = document.querySelector('input[name="price"]:checked').value;
+    if (priceFilter !== 'all') {
+        if (priceFilter === '150') { filteredProducts = filteredProducts.filter(p => p.price <= 150); }
+        else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); }
+        else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
+    }
+    
+    const sortBy = document.getElementById('sort-by').value;
+    if (sortBy === 'price-asc') {
+        filteredProducts.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'price-desc') {
+        filteredProducts.sort((a, b) => b.price - a.price);
+    } else if (sortBy === 'popularity') {
+        filteredProducts.sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0));
+    }
+
+    renderProducts(filteredProducts, 'product-list-fragrances');
 }
 
 async function fetchAndRenderReels() {
@@ -704,12 +750,12 @@ function updateAuthUI(user) {
     const mobileUserLink = document.getElementById('mobile-user-link');
     if (user) {
         userButton.onclick = () => showPage('profile');
-        if(mobileUserLink) mobileUserLink.onclick = (e) => { e.preventDefault(); showPage('profile'); };
-        if(mobileUserLink) mobileUserLink.textContent = 'Minha Conta';
+        mobileUserLink.onclick = (e) => { e.preventDefault(); showPage('profile'); };
+        mobileUserLink.textContent = 'Minha Conta';
     } else {
         userButton.onclick = () => toggleAuthModal(true);
-        if(mobileUserLink) mobileUserLink.onclick = (e) => { e.preventDefault(); toggleAuthModal(true); };
-        if(mobileUserLink) mobileUserLink.textContent = 'Login / Registar';
+        mobileUserLink.onclick = (e) => { e.preventDefault(); toggleAuthModal(true); };
+        mobileUserLink.textContent = 'Login / Registar';
     }
 }
 
@@ -784,6 +830,7 @@ function showProductDetails(productId) {
     const mainContentEl = document.getElementById('product-details-main-content');
     const extraContentEl = document.getElementById('product-details-extra-content');
     
+    // Renderiza o conteúdo principal do produto
     mainContentEl.innerHTML = `
         <div class="flex flex-col md:flex-row">
             <div class="w-full md:w-1/2 p-8">
@@ -804,6 +851,7 @@ function showProductDetails(productId) {
         </div>
     `;
 
+    // Renderiza o conteúdo extra (reviews e produtos relacionados)
     const reviews = product.reviews || [];
     const hasUserReviewed = currentUserData && reviews.some(r => r.userId === currentUserData.uid);
 
@@ -848,6 +896,7 @@ function showProductDetails(productId) {
     
     feather.replace();
     
+    // Adiciona event listeners para os novos elementos
     const reviewForm = document.getElementById('review-form');
     if (reviewForm) {
         reviewForm.addEventListener('submit', handleReviewSubmit);
@@ -913,118 +962,39 @@ function handleNewsletterSubmit(e) {
 // PAGE INITIALIZATION & NAVIGATION
 // =================================================================
 const pages = document.querySelectorAll('.page-content');
-const mobileMenuEl = document.getElementById('mobile-menu');
+const navLinks = document.querySelectorAll('.nav-link');
+const mobileMenu = document.getElementById('mobile-menu');
 
 function showPage(pageId) {
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
-
-    if (targetPage) {
-        targetPage.classList.remove('hidden');
-        // Lógica de renderização específica da página
-        if (pageId === 'fragrancias') {
-            renderProducts(allProducts, 'product-list-fragrancias');
-        } else if (pageId === 'feminino') {
-            const products = allProducts.filter(p => p.description.toLowerCase().includes('feminino'));
-            renderProducts(products, 'product-list-feminino');
-        } else if (pageId === 'masculino') {
-            const products = allProducts.filter(p => p.description.toLowerCase().includes('masculino'));
-            renderProducts(products, 'product-list-masculino');
-        } else if (pageId === 'decants') {
-            const products = allProducts.filter(p => p.category === 'decant');
-            renderProducts(products, 'product-list-decants');
-        } else if (pageId === 'kits') {
-            const products = allProducts.filter(p => p.category === 'kit');
-            renderProducts(products, 'product-list-kits');
-        } else if (pageId === 'mais-vendidos') {
-            const products = [...allProducts].sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0)).slice(0, 12);
-            renderProducts(products, 'product-list-mais-vendidos');
-        } else if (pageId === 'descontos') {
-            const products = allProducts.filter(p => p.price < 50);
-            renderProducts(products, 'product-list-descontos');
-        } else if (pageId === 'quiz') {
-            startQuiz();
-        } else if (pageId === 'profile') {
-             if (!currentUserData) {
-                showPage('inicio');
-                toggleAuthModal(true);
-                return;
-            }
-            document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
-            renderWishlist();
-            renderOrders();
-        }
-    }
+    if(targetPage) { targetPage.classList.remove('hidden'); }
     
-    document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => link.classList.remove('active'));
-    const activeLink = document.querySelector(`[data-page="${pageId}"]`);
-    if(activeLink) {
-        activeLink.classList.add('active');
-        const parentDropdown = activeLink.closest('.dropdown');
-        if (parentDropdown) {
-            parentDropdown.querySelector('.nav-link').classList.add('active');
-        }
-    }
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    const activeLink = document.getElementById('nav-' + pageId);
+    if(activeLink) { activeLink.classList.add('active'); }
     
-    if (!mobileMenuEl.classList.contains('hidden')) { mobileMenuEl.classList.add('hidden'); }
+    if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+    
+    if (pageId === 'fragrancias') {
+        applyFilters();
+    } else if (pageId === 'decants') {
+        const decantProducts = allProducts.filter(p => p.category === 'decant');
+        renderProducts(decantProducts, 'product-list-decants');
+    } else if (pageId === 'profile') {
+        if (!currentUserData) {
+            showPage('inicio');
+            toggleAuthModal(true);
+            return;
+        }
+        document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
+        renderWishlist();
+        renderOrders();
+    }
     
     window.scrollTo(0, 0);
     AOS.refresh();
 }
-
-function initializePromoCarousel() {
-    const track = document.getElementById('promo-carousel-track');
-    const slides = document.querySelectorAll('.promo-carousel-slide');
-    const nextBtn = document.getElementById('promo-next');
-    const prevBtn = document.getElementById('promo-prev');
-    
-    if (!track || slides.length === 0) return;
-
-    let currentIndex = 0;
-    const slideCount = slides.length;
-    let autoPlayInterval;
-
-    function goToSlide(index) {
-        if (index < 0) {
-            currentIndex = slideCount - 1;
-        } else if (index >= slideCount) {
-            currentIndex = 0;
-        } else {
-            currentIndex = index;
-        }
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-    }
-
-    function startAutoPlay() {
-        stopAutoPlay();
-        autoPlayInterval = setInterval(() => {
-            goToSlide(currentIndex + 1);
-        }, 5000);
-    }
-
-    function stopAutoPlay() {
-        clearInterval(autoPlayInterval);
-    }
-
-    nextBtn.addEventListener('click', () => {
-        goToSlide(currentIndex + 1);
-        stopAutoPlay();
-        startAutoPlay();
-    });
-
-    prevBtn.addEventListener('click', () => {
-        goToSlide(currentIndex - 1);
-        stopAutoPlay();
-        startAutoPlay();
-    });
-    
-    const carousel = document.getElementById('promo-carousel');
-    carousel.addEventListener('mouseenter', stopAutoPlay);
-    carousel.addEventListener('mouseleave', startAutoPlay);
-
-    startAutoPlay();
-}
-
 
 async function renderWishlist() {
     const wishlistContainer = document.getElementById('wishlist-items');
@@ -1079,144 +1049,15 @@ function refreshAllProductViews() {
 
     if (pageId === 'inicio') {
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
+    } else if (pageId === 'fragrancias') {
+        applyFilters();
+    } else if (pageId === 'decants') {
+         const decantProducts = allProducts.filter(p => p.category === 'decant');
+        renderProducts(decantProducts, 'product-list-decants');
     } else if (pageId === 'profile') {
         renderWishlist();
-    } else {
-        showPage(pageId);
     }
 }
-
-// Lógica do Quiz de Fragrâncias
-const quizData = [
-    {
-        question: "Qual ocasião inspira a sua busca por uma nova fragrância?",
-        options: [
-            { text: "Um evento de gala, sofisticado e noturno.", tags: ['noite', 'sofisticado'] },
-            { text: "Um dia de trabalho, preciso de algo profissional e discreto.", tags: ['dia', 'discreto'] },
-            { text: "Um encontro romântico, busco algo sedutor.", tags: ['sedutor', 'noite'] },
-            { text: "Momentos de lazer, algo leve e revigorante.", tags: ['dia', 'leve'] }
-        ]
-    },
-    {
-        question: "Que tipo de aroma mais lhe agrada?",
-        options: [
-            { text: "Cítricos e frescos, como limão e bergamota.", tags: ['fresco', 'leve'] },
-            { text: "Florais, como jasmim e rosas.", tags: ['sedutor', 'dia'] },
-            { text: "Amadeirados e terrosos, como sândalo e cedro.", tags: ['sofisticado', 'noite'] },
-            { text: "Doces e quentes, como baunilha e âmbar.", tags: ['sedutor', 'discreto'] }
-        ]
-    },
-    {
-        question: "Como descreveria a sua personalidade?",
-        options: [
-            { text: "Elegante e misterioso(a).", tags: ['sofisticado', 'noite'] },
-            { text: "Energético(a) e otimista.", tags: ['dia', 'fresco'] },
-            { text: "Confiante e ousado(a).", tags: ['sedutor', 'discreto'] },
-            { text: "Calmo(a) e sonhador(a).", tags: ['leve', 'dia'] }
-        ]
-    }
-];
-
-let currentQuestionIndex = 0;
-let userAnswers = [];
-
-function startQuiz() {
-    const quizContainer = document.getElementById('quiz-container');
-    quizContainer.classList.remove('hidden');
-    currentQuestionIndex = 0;
-    userAnswers = [];
-    displayQuestion();
-}
-
-function displayQuestion() {
-    const quizContainer = document.getElementById('quiz-container');
-    const questionData = quizData[currentQuestionIndex];
-    const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
-
-    quizContainer.innerHTML = `
-        <div class="quiz-question-container">
-            <div class="mb-4">
-                <div class="bg-gray-200 rounded-full h-2">
-                    <div class="bg-gold-500 h-2 rounded-full quiz-progress-bar" style="width: ${progress}%"></div>
-                </div>
-                <p class="text-sm text-right mt-1 text-gray-500">Pergunta ${currentQuestionIndex + 1} de ${quizData.length}</p>
-            </div>
-            <h3 class="font-heading text-3xl font-bold mb-6">${questionData.question}</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                ${questionData.options.map((opt, index) => `
-                    <button class="quiz-option text-left p-4 border-2 border-gray-200 rounded-lg" data-tags="${opt.tags.join(',')}" data-index="${index}">
-                        ${opt.text}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
-
-    setTimeout(() => {
-        quizContainer.querySelector('.quiz-question-container').classList.add('active');
-    }, 10);
-
-    quizContainer.querySelectorAll('.quiz-option').forEach(btn => {
-        btn.addEventListener('click', handleQuizAnswer);
-    });
-}
-
-function handleQuizAnswer(event) {
-    const selectedOption = event.currentTarget;
-    userAnswers.push(...selectedOption.dataset.tags.split(','));
-    
-    document.querySelectorAll('.quiz-option').forEach(btn => btn.classList.remove('selected'));
-    selectedOption.classList.add('selected');
-
-    setTimeout(() => {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < quizData.length) {
-            displayQuestion();
-        } else {
-            showQuizResults();
-        }
-    }, 500);
-}
-
-function showQuizResults() {
-    const quizContainer = document.getElementById('quiz-container');
-    quizContainer.innerHTML = `
-        <div class="text-center">
-            <h3 class="font-heading text-3xl font-bold mb-4">A sua assinatura olfativa...</h3>
-            <p class="text-gray-600 mb-8">Com base nas suas respostas, selecionámos estas fragrâncias que combinam com a sua história.</p>
-            <div id="quiz-results-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="loader-container col-span-full flex justify-center p-8"><div class="loader"></div></div>
-            </div>
-            <button id="restart-quiz-btn" class="mt-8 bg-gray-800 text-white font-bold py-3 px-10 rounded-full hover:bg-black transition-all-ease">Refazer o Quiz</button>
-        </div>
-    `;
-    
-    document.getElementById('restart-quiz-btn').addEventListener('click', () => showPage('quiz'));
-
-    const tagCounts = userAnswers.reduce((acc, tag) => {
-        acc[tag] = (acc[tag] || 0) + 1;
-        return acc;
-    }, {});
-
-    const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
-    
-    const recommendedProducts = allProducts.filter(product => {
-        const productText = (product.name + ' ' + product.description).toLowerCase();
-        if (productText.includes(sortedTags[0]) || productText.includes(sortedTags[1])) {
-            return true;
-        }
-        return false;
-    }).slice(0, 3);
-
-    const resultsContainer = document.getElementById('quiz-results-products');
-    if (recommendedProducts.length > 0) {
-        resultsContainer.innerHTML = recommendedProducts.map(p => createProductCard(p)).join('');
-    } else {
-        resultsContainer.innerHTML = `<p class="col-span-full text-gray-500">Não encontrámos uma correspondência exata, mas aqui estão os nossos mais populares:</p>` + allProducts.slice(0, 3).map(p => createProductCard(p)).join('');
-    }
-    feather.replace();
-}
-
 
 async function fetchInitialData() {
     try {
@@ -1227,6 +1068,7 @@ async function fetchInitialData() {
         allCoupons = couponsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
+        document.getElementById('nav-inicio').classList.add('active');
         
     } catch (error) {
         console.error("Error fetching initial data: ", error);
@@ -1242,14 +1084,13 @@ function initializeEventListeners() {
         }
     };
 
-    document.querySelectorAll('.nav-link, .dropdown-item, .nav-link-footer, .nav-link-button').forEach(link => {
+    safeAddEventListener('logo-link', 'click', (e) => { e.preventDefault(); showPage('inicio'); });
+    document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = link.dataset.page;
-            if (page) showPage(page);
+            showPage(link.dataset.page);
         });
     });
-    
     safeAddEventListener('cart-button', 'click', () => toggleCart(true));
     safeAddEventListener('close-cart-button', 'click', () => toggleCart(false));
     safeAddEventListener('cart-modal-overlay', 'click', () => toggleCart(false));
@@ -1257,7 +1098,7 @@ function initializeEventListeners() {
     safeAddEventListener('calculate-shipping-btn', 'click', handleCalculateShipping);
     safeAddEventListener('close-product-details-modal', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
-    safeAddEventListener('mobile-menu-button', 'click', () => { mobileMenuEl.classList.toggle('hidden'); });
+    safeAddEventListener('mobile-menu-button', 'click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
     safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false));
@@ -1271,7 +1112,20 @@ function initializeEventListeners() {
         document.getElementById('search-results').innerHTML = '';
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
-    
+    document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
+    document.querySelectorAll('.faq-question').forEach(question => {
+        question.addEventListener('click', () => {
+            const answer = question.nextElementSibling;
+            const icon = question.querySelector('i');
+            if (answer.style.maxHeight) {
+                answer.style.maxHeight = null;
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                answer.style.maxHeight = answer.scrollHeight + "px";
+                icon.style.transform = 'rotate(180deg)';
+            }
+        });
+    });
     document.body.addEventListener('click', (e) => {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
@@ -1279,10 +1133,8 @@ function initializeEventListeners() {
         const searchResult = e.target.closest('.search-result-item');
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
-        const viewDetailsBtn = e.target.closest('.view-details-btn');
 
         if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
-        else if (viewDetailsBtn) { e.stopPropagation(); showProductDetails(viewDetailsBtn.dataset.id); }
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
@@ -1299,40 +1151,6 @@ function initializeEventListeners() {
     });
 }
 
-function generateMobileMenu() {
-    const desktopNav = document.getElementById('desktop-nav-links');
-    if (!desktopNav) return;
-    
-    mobileMenuEl.innerHTML = '';
-    desktopNav.childNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-            const clone = node.cloneNode(true);
-            if (clone.classList.contains('dropdown')) {
-                const mainLink = clone.querySelector('a');
-                mobileMenuEl.innerHTML += `<a href="#" data-page="${mainLink.dataset.page}" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">${mainLink.textContent.replace(' expand_more', '')}</a>`;
-                const subLinks = clone.querySelectorAll('.dropdown-item');
-                subLinks.forEach(sublink => {
-                    mobileMenuEl.innerHTML += `<a href="#" data-page="${sublink.dataset.page}" class="mobile-nav-link block py-2 pl-8 pr-4 text-sm text-gray-700 hover:bg-gray-100 rounded">${sublink.textContent}</a>`;
-                });
-            } else {
-                 clone.classList.remove('nav-link');
-                 clone.classList.add('mobile-nav-link', 'block', 'py-2', 'px-4', 'text-sm', 'text-gray-700', 'hover:bg-gray-100', 'rounded');
-                 mobileMenuEl.appendChild(clone);
-            }
-        }
-    });
-     mobileMenuEl.innerHTML += `<a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>`;
-     
-     document.querySelectorAll('#mobile-menu .nav-link, #mobile-menu .mobile-nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = link.dataset.page;
-            if (page) showPage(page);
-        });
-    });
-}
-
-
 // =================================================================
 // MAIN APP LOGIC
 // =================================================================
@@ -1340,16 +1158,12 @@ async function main() {
     try {
         showLoader(true);
         initializeEventListeners();
-        generateMobileMenu();
         
         feather.replace();
         AOS.init({ duration: 800, once: true });
         updateCartIcon();
 
         await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
-        
-        initializePromoCarousel();
-        showPage('inicio');
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
