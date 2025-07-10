@@ -926,9 +926,15 @@ const mobileBottomNavLinks = document.querySelectorAll('#mobile-bottom-nav .mobi
 
 
 function showPage(pageId) {
+    console.log("Attempting to show page:", pageId); // Log para depuração
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
-    if(targetPage) { targetPage.classList.remove('hidden'); }
+    if(targetPage) { 
+        targetPage.classList.remove('hidden'); 
+        console.log("Page shown successfully:", pageId); // Log para depuração
+    } else {
+        console.warn("Page element not found for ID:", pageId); // Log para depuração
+    }
     
     // Update top navigation active state
     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
@@ -1097,7 +1103,7 @@ function initializeEventListeners() {
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
-    safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false));
+    safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false);
     safeAddEventListener('logout-button', 'click', logout);
     safeAddEventListener('contact-form', 'submit', handleContactFormSubmit);
     safeAddEventListener('newsletter-form', 'submit', handleNewsletterSubmit);
