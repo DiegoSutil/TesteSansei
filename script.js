@@ -885,6 +885,20 @@ function toggleAuthModal(show) {
     }
 }
 
+// NEW: Function to toggle mobile menu
+function toggleMobileMenu(show) {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+    if (show) {
+        mobileMenu.classList.remove('-translate-x-full');
+        mobileMenuOverlay.classList.remove('hidden');
+    } else {
+        mobileMenu.classList.add('-translate-x-full');
+        mobileMenuOverlay.classList.add('hidden');
+    }
+}
+
+
 function handleContactFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
@@ -908,7 +922,6 @@ function handleNewsletterSubmit(e) {
 // =================================================================
 const pages = document.querySelectorAll('.page-content');
 const navLinks = document.querySelectorAll('.nav-link');
-const mobileMenu = document.getElementById('mobile-menu');
 const mobileBottomNavLinks = document.querySelectorAll('#mobile-bottom-nav .mobile-bottom-nav-link');
 
 
@@ -933,8 +946,8 @@ function showPage(pageId) {
         document.getElementById('mobile-bottom-cart-btn').classList.add('active');
     }
 
-
-    if (mobileMenu && !mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+    // Close mobile menu if open after navigation
+    toggleMobileMenu(false);
     
     // Page-specific logic
     if (pageId === 'fragrancias') {
@@ -1052,13 +1065,29 @@ function initializeEventListeners() {
     };
 
     safeAddEventListener('logo-link', 'click', (e) => { e.preventDefault(); showPage('inicio'); });
-    document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
+    document.querySelectorAll('.nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const page = link.dataset.page;
             if (page) showPage(page);
         });
     });
+    // NEW: Event listeners for mobile menu toggle
+    safeAddEventListener('mobile-menu-button', 'click', () => toggleMobileMenu(true));
+    safeAddEventListener('close-mobile-menu', 'click', () => toggleMobileMenu(false));
+    safeAddEventListener('mobile-menu-overlay', 'click', () => toggleMobileMenu(false));
+
+    // NEW: Event listeners for mobile nav links inside the sliding menu
+    document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.dataset.page;
+            if (page) showPage(page);
+            toggleMobileMenu(false); // Close menu after navigating
+        });
+    });
+
+
     safeAddEventListener('cart-button', 'click', () => toggleCart(true));
     safeAddEventListener('close-cart-button', 'click', () => toggleCart(false));
     safeAddEventListener('cart-modal-overlay', 'click', () => toggleCart(false));
@@ -1066,7 +1095,6 @@ function initializeEventListeners() {
     safeAddEventListener('calculate-shipping-btn', 'click', handleCalculateShipping);
     safeAddEventListener('close-product-details-modal', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
-    safeAddEventListener('mobile-menu-button', 'click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
     safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false));
@@ -1148,6 +1176,7 @@ function initializeEventListeners() {
             toggleCart(false);
             toggleProductDetailsModal(false);
             toggleAuthModal(false);
+            toggleMobileMenu(false); // Close mobile menu on escape
             hideConfirmationModal(); // Close confirmation modal on escape
         }
     });
