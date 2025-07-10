@@ -48,6 +48,7 @@
                     <a href="#" data-view="dashboard" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Dashboard</a>
                     <a href="#" data-view="orders" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Encomendas</a>
                     <a href="#" data-view="products" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Produtos</a>
+                    <a href="#" data-view="reviews" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Avaliações</a>
                     <a href="#" data-view="coupons" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Cupons</a>
                     <a href="#" data-view="reels" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Reels</a>
                 </nav>
@@ -69,8 +70,8 @@
                         <p id="stats-users" class="text-3xl font-bold mt-2">0</p>
                     </div>
                     <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500">Cupons Ativos</h3>
-                        <p id="stats-coupons" class="text-3xl font-bold mt-2">0</p>
+                        <h3 class="text-lg font-semibold text-gray-500">Total de Avaliações</h3>
+                        <p id="stats-reviews" class="text-3xl font-bold mt-2">0</p>
                     </div>
                 </div>
             </div>
@@ -153,6 +154,27 @@
                                 </tr>
                             </thead>
                             <tbody id="product-list-body"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+            
+            <!-- **NOVO**: Reviews View -->
+            <div id="view-reviews" class="admin-view hidden">
+                <section id="review-list-section" class="bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-6">Gerir Avaliações</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead>
+                                <tr class="border-b">
+                                    <th class="py-2 px-2">Produto</th>
+                                    <th class="py-2 px-2">Utilizador</th>
+                                    <th class="py-2 px-2">Avaliação</th>
+                                    <th class="py-2 px-2">Comentário</th>
+                                    <th class="py-2 px-2">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="review-list-body"></tbody>
                         </table>
                     </div>
                 </section>
