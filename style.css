@@ -1,121 +1,96 @@
-/* Custom Styles for SANSEI DECANTS */
+/* =================================================================
+   ESTILOS GLOBAIS E TIPOGRAFIA
+================================================================= */
 body {
-    font-family: 'Lato', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, .font-heading {
-    font-family: 'Cormorant Garamond', serif;
+.font-heading {
+    font-family: 'Playfair Display', serif;
 }
 
-.transition-all-ease {
-    transition: all 0.3s ease-in-out;
+/* =================================================================
+   HEADER E NAVEGAÇÃO
+================================================================= */
+.nav-link {
+    @apply font-semibold text-slate-600 hover:text-indigo-600 transition-colors duration-300 relative py-1;
 }
 
-/* Gold Color Palette */
-.text-gold-500 { color: #D4AF37; }
-.bg-gold-500 { background-color: #D4AF37; }
-.hover\:bg-gold-600:hover { background-color: #c09a58; }
-.focus\:ring-gold-500:focus { --tw-ring-color: #D4AF37; }
-.shadow-gold-500\/50 { --tw-shadow-color: #D4AF37; --tw-shadow: var(--tw-shadow-colored); }
-.form-radio:checked { border-color: #D4AF37; }
-.form-radio:checked:focus { --tw-ring-color: #D4AF37; }
-.form-checkbox:checked { background-color: #D4AF37; border-color: #D4AF37; }
-.form-checkbox:checked:focus { --tw-ring-color: #D4AF37; }
-
-.text-gold-gradient {
-    background: linear-gradient(to right, #F7F0A8, #D4AF37);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-/* Navigation Link Active State */
-.nav-link.active {
-    color: #D4AF37;
-    position: relative;
-}
-.nav-link.active::after {
+.nav-link::after {
     content: '';
     position: absolute;
-    bottom: -4px;
+    bottom: 0;
     left: 0;
-    width: 100%;
+    width: 0;
     height: 2px;
-    background-color: #D4AF37;
+    @apply bg-indigo-600 transition-all duration-300;
 }
 
-/* Parallax Background Effect */
-.parallax-bg {
-    background-attachment: fixed;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
+.nav-link:hover::after,
+.nav-link.active::after {
+    width: 100%;
 }
 
-/* Star Rating Styles */
-.feather-star.filled {
-    fill: #f59e0b; /* amber-500 */
-    stroke: #f59e0b;
+.nav-icon {
+    @apply text-slate-500 hover:text-indigo-600 transition-colors duration-300 p-2 rounded-full hover:bg-slate-100;
 }
 
-/* Wishlist Heart Active State */
-.wishlist-heart.active i {
-    fill: #ef4444; /* red-500 */
-    stroke: #ef4444;
+.cart-count-badge {
+    @apply absolute -top-1 -right-1 bg-indigo-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-sans;
 }
 
-/* Custom Loader for main page */
-.loader {
-    border: 5px solid #f3f3f3; /* Light grey */
-    border-top: 5px solid #D4AF37; /* Gold */
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    animation: spin 1s linear infinite;
+.mobile-nav-link {
+    @apply block py-2 px-4 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md;
 }
 
-/* Custom Loader for buttons */
-.loader-sm {
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #D4AF37;
-    border-radius: 50%;
-    width: 18px;
-    height: 18px;
-    animation: spin 1s linear infinite;
-    display: inline-block;
+/* =================================================================
+   BOTÕES
+================================================================= */
+.btn {
+    @apply py-3 px-8 rounded-full font-bold text-sm tracking-wider uppercase transition-all duration-300 shadow-lg hover:shadow-xl;
 }
 
-/* FAQ Accordion Styling */
-.faq-answer {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
+.btn-primary {
+    @apply bg-indigo-600 text-white hover:bg-indigo-700;
 }
 
-/* Cart Modal Transition */
-#cart-modal {
-    transition: transform 0.3s ease-in-out;
+.btn-secondary {
+    @apply bg-white text-slate-800 border-2 border-slate-300 hover:bg-slate-100 hover:border-slate-400;
 }
 
-/* Product Details Modal Transition */
-#product-details-modal, #auth-modal {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+
+/* =================================================================
+   CARDS (Produto e Categoria)
+================================================================= */
+.product-card {
+    @apply bg-white rounded-lg overflow-hidden group transition-all duration-300;
 }
 
-/* Toast Notification Transition */
-#toast-notification {
-    transition: opacity 0.3s ease, transform 0.3s ease;
+.product-card-image-wrapper {
+    @apply bg-slate-100 overflow-hidden;
 }
 
-/* Fly to cart animation */
-.fly-to-cart {
-    position: fixed;
-    z-index: 9999;
-    border-radius: 50%;
-    transition: all 1s ease-in-out;
-    object-fit: cover;
+.product-card-image {
+    @apply w-full h-full object-cover group-hover:scale-105 transition-transform duration-500;
 }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+.category-card {
+    @apply relative h-80 rounded-lg overflow-hidden block bg-cover bg-center group;
+}
+
+.category-card-overlay {
+    @apply absolute inset-0 bg-black/40 group-hover:bg-black/60 transition-all duration-300 flex items-center justify-center;
+}
+
+.category-card-title {
+    @apply text-white font-heading text-3xl font-bold transform group-hover:scale-105 transition-transform duration-300;
+}
+
+
+/* =================================================================
+   FOOTER
+================================================================= */
+.footer-link {
+    @apply text-slate-400 hover:text-white transition-colors duration-300;
 }
