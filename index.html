@@ -13,7 +13,7 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Google Fonts: Inter -->
+    <!-- Google Fonts: Inter & Playfair Display -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
     <!-- Feather Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
 
-    <!-- **CORREÇÃO**: AOS (Animate on Scroll) Library CSS -->
+    <!-- AOS (Animate on Scroll) Library CSS -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
     <!-- Custom Stylesheet -->
@@ -143,6 +143,19 @@
                 </div>
             </section>
 
+            <!-- **CORREÇÃO**: Secção de Reels Restaurada -->
+            <section class="bg-slate-50 py-20">
+                <div class="container mx-auto px-6 text-center">
+                    <h2 class="font-heading text-4xl font-bold text-slate-800 mb-4" data-aos="fade-up">Siga-nos no Instagram</h2>
+                    <p class="text-slate-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
+                    <div id="reels-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
+                        <!-- Reels serão carregados aqui pelo JS -->
+                    </div>
+                    <div class="mt-12" data-aos="fade-up">
+                        <a href="https://www.instagram.com/sanseidecants/reels/" target="_blank" class="btn btn-primary">Ver mais no Instagram</a>
+                    </div>
+                </div>
+            </section>
         </div>
 
         <!-- =========== Página: FRAGRANCIAS =========== -->
@@ -166,7 +179,6 @@
                                             <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 filter-control" value="decant"> <span class="ml-2 text-sm text-slate-700">Decants</span></label>
                                         </div>
                                     </div>
-                                    <!-- **CORREÇÃO**: Filtros de preço restaurados -->
                                     <div>
                                         <h4 class="font-semibold mb-3">Faixa de Preço</h4>
                                         <div class="space-y-2">
@@ -196,12 +208,47 @@
             </div>
         </div>
 
-        <!-- Outras páginas (decants, sobre, etc.) podem seguir a mesma estrutura limpa -->
+        <!-- **CORREÇÃO**: Conteúdo das outras páginas restaurado -->
         <div id="page-decants" class="page-content hidden"></div>
-        <div id="page-sobre" class="page-content hidden"></div>
+        <div id="page-sobre" class="page-content hidden">
+             <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-slate-800" data-aos="fade-up">Nossa História</h1>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
+                    <div class="md:w-1/2"><img src="https://placehold.co/800x600/e2e8f0/334155?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl"></div>
+                    <div class="md:w-1/2">
+                        <p class="text-slate-600 mb-4 leading-relaxed">A SANSEI DECANTS nasceu da paixão por fragrâncias que transcendem o comum. Acreditamos que um perfume é mais do que um aroma; é uma forma de expressão, uma assinatura pessoal que conta uma história. Nossa missão é democratizar o acesso à alta perfumaria, permitindo que você explore um universo de aromas de nicho e de luxo sem o compromisso de um frasco completo.</p>
+                        <p class="text-slate-600 leading-relaxed">Cada decant é cuidadosamente preparado, extraído diretamente do frasco original para garantir 100% de autenticidade e qualidade. Nosso processo de curadoria é rigoroso, selecionando apenas as fragrâncias mais cativantes e memoráveis para fazer parte da nossa coleção. Bem-vindo ao nosso mundo, onde cada gota é uma nova descoberta.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="page-faq" class="page-content hidden"></div>
         <div id="page-contato" class="page-content hidden"></div>
-        <div id="page-profile" class="page-content hidden"></div>
+        <div id="page-profile" class="page-content hidden">
+            <div class="bg-slate-50">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-slate-800" data-aos="fade-up">Minha Conta</h1>
+                        <p id="profile-email" class="text-lg text-slate-600" data-aos="fade-up" data-aos-delay="100"></p>
+                    </div>
+                    <div class="max-w-4xl mx-auto" data-aos="fade-up">
+                        <h2 class="font-heading text-3xl font-semibold mb-6 text-slate-800">Minhas Encomendas</h2>
+                        <div id="orders-list" class="space-y-4">
+                            <!-- Orders will be rendered here -->
+                        </div>
+                        <h2 class="font-heading text-3xl font-semibold mb-6 mt-12 text-slate-800">Minha Lista de Desejos</h2>
+                        <div id="wishlist-items" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <!-- Wishlist items will be rendered here -->
+                        </div>
+                        <div class="text-center mt-12">
+                            <button id="logout-button" class="btn btn-secondary">Terminar Sessão</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- =========== Footer =========== -->
