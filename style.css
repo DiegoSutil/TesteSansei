@@ -73,7 +73,7 @@ body {
 }
 
 .mega-menu-column {
-    @apply flex flex-col gap-2;
+    @apply flex flex-col gap-2 flex-1; /* Adicionado flex-1 para alinhar colunas horizontalmente */
 }
 
 .mega-menu-heading {
