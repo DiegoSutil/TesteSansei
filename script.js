@@ -300,7 +300,6 @@ function renderCart() {
     const shippingCostEl = document.getElementById('shipping-cost');
     
     if (!cartItemsEl || !cartSubtotalEl || !cartTotalEl) {
-        console.error("Cart elements not found in DOM");
         return;
     }
     
