@@ -138,6 +138,35 @@ h1, h2, h3, h4, .font-heading {
     object-fit: cover;
 }
 
+/* **NOVO**: Quiz Styles */
+.quiz-option {
+    transition: all 0.2s ease-in-out;
+    transform: scale(1);
+}
+.quiz-option:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+.quiz-option.selected {
+    border-color: #D4AF37;
+    background-color: #fefce8; /* yellow-50 */
+    transform: scale(1.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+.quiz-progress-bar {
+    transition: width 0.5s ease-in-out;
+}
+.quiz-question-container {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.quiz-question-container.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
