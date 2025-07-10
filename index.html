@@ -4,40 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- SEO Básico: Título da Página -->
     <title>SANSEI DECANTS - Perfumes Importados e Decants de Luxo</title>
-
-    <!-- SEO Básico: Descrição do Site -->
     <meta name="description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Oferecemos uma curadoria exclusiva de perfumes importados e decants de luxo. Compre online com segurança.">
-
-    <!-- SEO Básico: Palavras-chave -->
     <meta name="keywords" content="decants, perfumes importados, sansei decants, perfumes de nicho, comprar perfume online, fragrâncias">
-
-    <!-- SEO Básico: Open Graph Tags para Redes Sociais -->
     <meta property="og:title" content="SANSEI DECANTS - Perfumes Importados e Decants de Luxo">
     <meta property="og:description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Curadoria exclusiva de perfumes importados e decants.">
     <meta property="og:image" content="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG">
-    <meta property="og:url" content="https://www.sanseidecants.com.br"> <!-- Substitua pelo seu domínio real -->
+    <meta property="og:url" content="https://www.sanseidecants.com.br">
     <meta property="og:type" content="website">
-
-    <!-- SEO Básico: Favicon (Ícone do site no separador do navegador) -->
     <link rel="icon" href="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" type="image/x-icon">
 
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts: Cormorant Garamond (for headings) & Lato (for body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    
-    <!-- Feather Icons for Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
-
-    <!-- AOS (Animate on Scroll) Library -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
-    <!-- Custom Stylesheet -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-white text-gray-800">
@@ -48,13 +30,23 @@
             <a href="#" id="logo-link" class="block h-24">
                 <img src="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" alt="SANSEI DECANTS Logo" class="h-full w-auto">
             </a>
-            <div class="hidden md:flex items-center space-x-8">
+            <!-- **NOVO**: Menu de Navegação Atualizado -->
+            <div class="hidden md:flex items-center space-x-6">
                 <a href="#" data-page="inicio" id="nav-inicio" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Início</a>
-                <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Fragrâncias</a>
+                <a href="#" data-page="quiz" id="nav-quiz" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Quiz</a>
+                <div class="relative dropdown">
+                    <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold flex items-center">
+                        Perfumes <i data-feather="chevron-down" class="w-4 h-4 ml-1"></i>
+                    </a>
+                    <div class="dropdown-menu absolute hidden bg-white shadow-lg rounded-md mt-2 py-2 w-48">
+                        <a href="#" data-page="feminino" class="dropdown-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Feminino</a>
+                        <a href="#" data-page="masculino" class="dropdown-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Masculino</a>
+                    </div>
+                </div>
                 <a href="#" data-page="decants" id="nav-decants" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Decants</a>
-                <a href="#" data-page="sobre" id="nav-sobre" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Sobre</a>
-                <a href="#" data-page="faq" id="nav-faq" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">FAQ</a>
-                <a href="#" data-page="contato" id="nav-contato" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Contato</a>
+                <a href="#" data-page="kits" id="nav-kits" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Kits</a>
+                <a href="#" data-page="mais-vendidos" id="nav-mais-vendidos" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Mais Vendidos</a>
+                <a href="#" data-page="descontos" id="nav-descontos" class="nav-link text-red-500 hover:text-red-700 transition-all-ease font-bold">Descontos</a>
             </div>
             <div class="flex items-center space-x-5">
                 <button id="search-button" class="text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="search" class="w-6 h-6"></i></button>
@@ -67,13 +59,7 @@
             </div>
         </nav>
         <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2 bg-white">
-             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="inicio">Início</a>
-             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="fragrancias">Fragrâncias</a>
-             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="decants">Decants</a>
-             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="sobre">Sobre</a>
-             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="faq">FAQ</a>
-             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="contato">Contato</a>
-             <a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>
+             <!-- Mobile menu content will be generated by JS -->
         </div>
         <!-- Search Bar -->
         <div id="search-bar" class="hidden bg-white border-t border-gray-200">
@@ -151,16 +137,13 @@
                 </div>
             </section>
 
-            <!-- **NOVO**: Fragrance Quiz Section -->
+            <!-- Fragrance Quiz Section -->
             <section id="fragrance-quiz-section" class="py-20 bg-gray-50">
                 <div class="container mx-auto px-6 text-center">
                     <div id="quiz-intro" data-aos="fade-up">
                         <h2 class="font-heading text-4xl font-bold text-black mb-4">Não sabe por onde começar?</h2>
                         <p class="text-gray-600 mb-8 max-w-2xl mx-auto">Responda a algumas perguntas e descubra a fragrância que conta a sua história. Uma jornada sensorial espera por si.</p>
-                        <button id="start-quiz-btn" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Começar o Quiz</button>
-                    </div>
-                    <div id="quiz-container" class="hidden max-w-3xl mx-auto text-left">
-                        <!-- Quiz content will be injected here by JS -->
+                        <a href="#" data-page="quiz" class="nav-link-button bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Começar o Quiz</a>
                     </div>
                 </div>
             </section>
@@ -180,62 +163,23 @@
             </section>
         </div>
 
-        <!-- =========== FRAGRANCIAS Page Content =========== -->
-        <div id="page-fragrancias" class="page-content hidden">
-            <div class="bg-white">
-                <div class="container mx-auto px-6 py-20">
-                    <div class="text-center mb-16">
-                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa Coleção</h1>
-                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Explore e encontre a sua fragrância perfeita.</p>
-                    </div>
-                    <div class="flex flex-col md:flex-row gap-12">
-                        <!-- Filter Sidebar -->
-                        <aside class="w-full md:w-1/4" data-aos="fade-right">
-                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm sticky top-32">
-                                <h3 class="font-heading text-2xl font-semibold mb-6 text-black">Filtros</h3>
-                                <div class="mb-6">
-                                    <h4 class="font-semibold mb-3 text-gray-800">Categoria</h4>
-                                    <div class="space-y-2">
-                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" class="form-checkbox filter-control" value="perfume"> <span class="ml-2 text-gray-700">Perfumes</span></label></div>
-                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" class="form-checkbox filter-control" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
-                                    </div>
-                                </div>
-                                <div class="mb-6">
-                                    <h4 class="font-semibold mb-3 text-gray-800">Faixa de Preço</h4>
-                                    <div class="space-y-2">
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="150"> <span class="ml-2 text-gray-700">Até R$ 150</span></label></div>
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
-                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold mb-3 text-gray-800">Ordenar Por</h4>
-                                    <select id="sort-by" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500 filter-control">
-                                        <option value="popularity">Popularidade</option>
-                                        <option value="price-asc">Preço: Menor para Maior</option>
-                                        <option value="price-desc">Preço: Maior para Menor</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </aside>
-                        <!-- Product Grid -->
-                        <div id="product-list-fragrances" class="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-                    </div>
+        <!-- =========== QUIZ Page Content =========== -->
+        <div id="page-quiz" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div id="quiz-container" class="max-w-3xl mx-auto text-left">
+                    <!-- Quiz content will be injected here by JS -->
                 </div>
             </div>
         </div>
 
-        <!-- =========== DECANTS Page Content =========== -->
-        <div id="page-decants" class="page-content hidden">
-            <div class="bg-white">
-                <div class="container mx-auto px-6 py-20">
-                    <div class="text-center mb-16">
-                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossos Decants</h1>
-                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">A forma perfeita de experimentar antes de se comprometer.</p>
-                    </div>
-                    <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+        <!-- Generic Page Content (for new pages) -->
+        <div id="page-generic" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 id="generic-page-title" class="font-heading text-5xl font-bold mb-4 text-black"></h1>
+                    <p id="generic-page-description" class="text-lg text-gray-600"></p>
                 </div>
+                <div id="generic-product-list" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
             </div>
         </div>
 
@@ -382,7 +326,7 @@
     <!-- =========== Footer =========== -->
     <footer class="bg-black text-white border-t border-gray-800">
         <div class="container mx-auto px-6 py-10">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     <h4 class="font-heading text-xl font-semibold mb-4 text-gold-500">SANSEI DECANTS</h4>
                     <p class="text-gray-400">Sua boutique de fragrâncias e decants exclusivos.</p>
@@ -408,6 +352,26 @@
                     <h4 class="font-heading text-lg font-semibold mb-4">Contato</h4>
                     <p class="text-gray-400">Email: contato@sanseidecants.com</p>
                     <p class="text-gray-400">Telefone: (11) 99999-8888</p>
+                </div>
+            </div>
+            <!-- **NOVO**: Trust Signals -->
+            <div class="border-t border-gray-700 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div class="text-center md:text-left">
+                        <h4 class="font-heading text-lg font-semibold mb-2">Pagamento Seguro</h4>
+                        <div class="flex justify-center md:justify-start items-center space-x-2">
+                            <img src="https://placehold.co/40x25/ffffff/000000?text=VISA" alt="Visa" class="h-6">
+                            <img src="https://placehold.co/40x25/ffffff/000000?text=MASTER" alt="Mastercard" class="h-6">
+                            <img src="https://placehold.co/40x25/ffffff/000000?text=PIX" alt="Pix" class="h-6">
+                        </div>
+                    </div>
+                    <div class="text-center md:text-left">
+                        <h4 class="font-heading text-lg font-semibold mb-2">Loja Confiável</h4>
+                        <div class="flex items-center justify-center gap-2">
+                            <i data-feather="shield" class="text-green-400"></i>
+                            <span class="text-gray-400">Ambiente 100% Seguro</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500">
