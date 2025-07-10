@@ -79,16 +79,8 @@ async function handleCheckout() {
         return;
     }
 
-    // **NOVO**: Simulação de Gateway de Pagamento
     showLoader(true);
-    setTimeout(() => {
-        // Esta parte simula a resposta de um gateway de pagamento.
-        // Numa implementação real, aqui viria o código para redirecionar para o Stripe, Mercado Pago, etc.
-        createOrder();
-    }, 2000); // Simula um tempo de processamento de 2 segundos
-}
 
-async function createOrder() {
     const total = calculateTotal();
     const orderItems = cart.map(item => {
         const product = allProducts.find(p => p.id === item.id);
@@ -106,7 +98,7 @@ async function createOrder() {
         items: orderItems,
         total: total,
         shipping: selectedShipping,
-        status: "Pendente", // Numa implementação real, o status seria "Pago" após confirmação do gateway
+        status: "Pendente",
         createdAt: Timestamp.now(),
         coupon: appliedCoupon ? appliedCoupon.code : null
     };
@@ -114,6 +106,7 @@ async function createOrder() {
     try {
         await addDoc(collection(db, "orders"), newOrder);
         
+        // Clear cart after successful order
         cart = [];
         selectedShipping = null;
         localStorage.removeItem('sanseiCart');
@@ -122,7 +115,7 @@ async function createOrder() {
         showToast("Encomenda realizada com sucesso!");
         updateCartIcon();
         toggleCart(false);
-        showPage('profile');
+        showPage('profile'); // Redirect to profile to see the new order
     } catch (error) {
         console.error("Error creating order: ", error);
         showToast("Ocorreu um erro ao processar a sua encomenda.", true);
@@ -130,7 +123,6 @@ async function createOrder() {
         showLoader(false);
     }
 }
-
 
 function calculateSubtotal() {
     return cart.reduce((sum, item) => {
@@ -178,6 +170,7 @@ async function handleCalculateShipping() {
             throw new Error('CEP não encontrado ou API indisponível.');
         }
         
+        // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
         const shippingOptions = [
             { Codigo: '04510', nome: 'PAC', PrazoEntrega: 10, Valor: '25,50' },
             { Codigo: '04014', nome: 'SEDEX', PrazoEntrega: 5, Valor: '45,80' }
@@ -189,6 +182,7 @@ async function handleCalculateShipping() {
         console.error("Shipping calculation error:", error);
         showToast("Cálculo indisponível. Usando valores padrão.", true);
         
+        // Fallback logic: If the API fails, provide default shipping options.
         const defaultShippingOptions = [
             { Codigo: '04510', nome: 'PAC (Estimado)', PrazoEntrega: 12, Valor: '28,00' },
             { Codigo: '04014', nome: 'SEDEX (Estimado)', PrazoEntrega: 7, Valor: '52,00' }
@@ -206,7 +200,7 @@ function renderShippingOptions(options) {
     const container = document.getElementById('shipping-options');
     container.innerHTML = '';
     selectedShipping = null;
-    renderCart();
+    renderCart(); // Recalculate total without shipping
 
     if (!options || options.length === 0 || options.every(opt => opt.erro)) {
          container.innerHTML = `<p class="text-red-500 text-sm">Nenhuma opção de frete encontrada para o CEP informado.</p>`;
@@ -254,6 +248,7 @@ async function syncCartWithFirestore() {
     await updateDoc(userRef, { cart: cart });
 }
 
+// **NOVO**: Função de animação "Fly to Cart"
 function flyToCart(targetElement) {
     const cartIcon = document.getElementById('cart-button');
     if (!targetElement || !cartIcon) return;
@@ -271,8 +266,10 @@ function flyToCart(targetElement) {
 
     document.body.appendChild(flyingImage);
 
+    // Forçar reflow para aplicar o estado inicial antes da transição
     flyingImage.offsetHeight; 
 
+    // Mover para o carrinho
     flyingImage.style.left = `${cartRect.left + cartRect.width / 2}px`;
     flyingImage.style.top = `${cartRect.top + cartRect.height / 2}px`;
     flyingImage.style.width = '20px';
@@ -281,11 +278,12 @@ function flyToCart(targetElement) {
 
     setTimeout(() => {
         flyingImage.remove();
-    }, 1000);
+    }, 1000); // Duração da animação
 }
 
 
 async function addToCart(productId, quantity = 1, event) {
+    // **NOVO**: Adicionado spinner e desativação do botão
     const button = event.target.closest('.add-to-cart-btn');
     const originalText = button.innerHTML;
     button.disabled = true;
@@ -299,7 +297,8 @@ async function addToCart(productId, quantity = 1, event) {
         return;
     }
     
-    const productImage = button.closest('.group, #product-details-main-content').querySelector('img');
+    // **NOVO**: Animação "Fly to Cart"
+    const productImage = button.closest('.group').querySelector('img');
     flyToCart(productImage);
 
     const cartItem = cart.find(item => item.id === productId);
@@ -312,6 +311,7 @@ async function addToCart(productId, quantity = 1, event) {
     await syncCartWithFirestore();
     updateCartIcon();
     
+    // Restaurar o botão após um pequeno atraso para a animação ser visível
     setTimeout(() => {
         showToast(`${product.name} foi adicionado ao carrinho!`);
         button.disabled = false;
@@ -395,7 +395,7 @@ function renderCart() {
     
     cartItemsEl.innerHTML = cart.map(item => {
         const product = allProducts.find(p => p.id === item.id);
-        if (!product) return '';
+        if (!product) return ''; // Skip if product not found
         return `
         <div class="flex items-center gap-4 mb-4">
             <img src="${product.image}" alt="${product.name}" class="w-16 h-20 object-cover rounded-md">
@@ -438,52 +438,31 @@ function removeCoupon() {
 }
 
 // =================================================================
-// PRODUCT, REVIEWS & RELATED PRODUCTS FUNCTIONS
+// PRODUCT & RENDERING FUNCTIONS
 // =================================================================
-function renderStars(rating, isInteractive = false, size = 'w-5 h-5') {
+function renderStars(rating) {
     let stars = '';
-    const ratingValue = Math.round(rating); // Arredonda para a estrela mais próxima
-
-    if (isInteractive) {
-        // Para formulário de avaliação
-        stars = `
-            <div class="rating-input-group">
-                <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star4" name="rating" value="4" /><label for="star4"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star3" name="rating" value="3" /><label for="star3"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star2" name="rating" value="2" /><label for="star2"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star1" name="rating" value="1" /><label for="star1"><i data-feather="star" class="${size}"></i></label>
-            </div>
-        `;
-    } else {
-        // Para exibição
-        let starIcons = '';
-        for (let i = 1; i <= 5; i++) {
-            starIcons += `<i data-feather="star" class="feather-star ${size} ${i <= ratingValue ? 'filled' : ''}"></i>`;
-        }
-        stars = `<div class="flex items-center star-rating">${starIcons}</div>`;
+    for (let i = 1; i <= 5; i++) {
+        stars += `<i data-feather="star" class="feather-star ${i <= rating ? 'filled' : ''}"></i>`;
     }
-    return stars;
+    return `<div class="flex items-center star-rating">${stars}</div>`;
 }
 
-function createProductCard(product, isSmall = false) {
+function createProductCard(product) {
     const isInWishlist = currentUserData && currentUserData.wishlist.includes(product.id);
-    const imageClass = isSmall ? 'h-48' : 'h-64';
-    const titleClass = isSmall ? 'text-lg' : 'text-xl';
-
     return `
         <div class="bg-white group text-center rounded-lg shadow-sm flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl" data-aos="fade-up">
             <div class="relative overflow-hidden rounded-t-lg">
-                <img src="${product.image}" alt="${product.name}" class="w-full ${imageClass} object-cover group-hover:scale-105 transition-all-ease cursor-pointer" data-id="${product.id}">
+                <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover group-hover:scale-105 transition-all-ease cursor-pointer" data-id="${product.id}">
                 <button class="wishlist-heart absolute top-4 right-4 p-2 bg-white/70 rounded-full ${isInWishlist ? 'active' : ''}" data-id="${product.id}">
                     <i data-feather="heart" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="p-4 flex flex-col flex-grow">
-                <h3 class="font-heading font-semibold ${titleClass} cursor-pointer" data-id="${product.id}">${product.name}</h3>
+            <div class="p-6 flex flex-col flex-grow">
+                <h3 class="font-heading font-semibold text-xl cursor-pointer" data-id="${product.id}">${product.name}</h3>
                 <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
                 <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                <button class="add-to-cart-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Adicionar</button>
+                <button class="add-to-cart-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
             </div>
         </div>
     `;
@@ -494,6 +473,7 @@ function renderProducts(productsToRender, containerId) {
     if (!productListEl) return;
     
     if (productsToRender.length === 0) {
+        // **NOVO**: Mensagem mais amigável para páginas vazias
         productListEl.innerHTML = `
             <div class="col-span-full text-center text-gray-600">
                 <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
@@ -501,77 +481,11 @@ function renderProducts(productsToRender, containerId) {
             </div>
         `;
     } else {
-        productListEl.innerHTML = productsToRender.map(p => createProductCard(p)).join('');
+        productListEl.innerHTML = productsToRender.map(createProductCard).join('');
     }
     AOS.refresh();
     feather.replace();
 }
-
-async function handleReviewSubmit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const productId = form.dataset.id;
-    const rating = form.rating.value;
-    const text = form.reviewText.value;
-
-    if (!rating) {
-        showToast("Por favor, selecione uma avaliação de estrelas.", true);
-        return;
-    }
-    if (!currentUserData) {
-        showToast("Faça login para enviar uma avaliação.", true);
-        toggleAuthModal(true);
-        return;
-    }
-
-    const button = form.querySelector('button');
-    button.disabled = true;
-    button.innerHTML = '<span class="loader-sm"></span>';
-
-    const newReview = {
-        userId: currentUserData.uid,
-        userName: currentUserData.email.split('@')[0], // Simple name extraction
-        rating: parseInt(rating),
-        text: text,
-        createdAt: Timestamp.now()
-    };
-
-    try {
-        const productRef = doc(db, "products", productId);
-        // Use arrayUnion to add the new review
-        await updateDoc(productRef, {
-            reviews: arrayUnion(newReview)
-        });
-
-        // Recalculate average rating
-        const updatedDoc = await getDoc(productRef);
-        const productData = updatedDoc.data();
-        const reviews = productData.reviews || [];
-        const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-        const avgRating = reviews.length > 0 ? totalRating / reviews.length : 0;
-
-        await updateDoc(productRef, {
-            rating: avgRating
-        });
-        
-        // Update local product data
-        const productIndex = allProducts.findIndex(p => p.id === productId);
-        if (productIndex !== -1) {
-            allProducts[productIndex].reviews = reviews;
-            allProducts[productIndex].rating = avgRating;
-        }
-
-        showToast("Avaliação enviada com sucesso!");
-        showProductDetails(productId); // Refresh modal content
-
-    } catch (error) {
-        console.error("Error submitting review:", error);
-        showToast("Erro ao enviar avaliação.", true);
-        button.disabled = false;
-        button.textContent = "Enviar Avaliação";
-    }
-}
-
 
 function applyFilters() {
     let filteredProducts = [...allProducts];
@@ -596,7 +510,7 @@ function applyFilters() {
     } else if (sortBy === 'price-desc') {
         filteredProducts.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'popularity') {
-        filteredProducts.sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0));
+        filteredProducts.sort((a, b) => b.rating - a.rating);
     }
 
     renderProducts(filteredProducts, 'product-list-fragrances');
@@ -612,7 +526,7 @@ async function fetchAndRenderReels() {
             reelsContainer.innerHTML = '<p class="text-gray-400 col-span-full text-center">Nenhum reel encontrado.</p>';
             return;
         }
-        reelsContainer.innerHTML = '';
+        reelsContainer.innerHTML = ''; // Clear existing
         reelsSnapshot.forEach(doc => {
             const reel = doc.data();
             const reelElement = document.createElement('a');
@@ -719,7 +633,7 @@ async function handleRegister(e) {
         await setDoc(doc(db, "users", user.uid), {
             email: user.email,
             wishlist: [],
-            cart: []
+            cart: [] // Initialize cart in Firestore
         });
         showToast('Conta criada com sucesso! Faça login para continuar.');
         renderAuthForm(true);
@@ -738,7 +652,7 @@ async function handleRegister(e) {
 async function logout() {
     await signOut(auth);
     currentUserData = null;
-    cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+    cart = JSON.parse(localStorage.getItem('sanseiCart')) || []; // Revert to local cart
     updateAuthUI();
     updateCartIcon();
     showPage('inicio');
@@ -777,6 +691,7 @@ async function toggleWishlist(productId) {
             currentUserData.wishlist.push(productId);
             showToast('Adicionado à lista de desejos!');
         }
+        // Re-render all visible products to update heart icons
         refreshAllProductViews();
     } catch (error) {
         console.error("Error updating wishlist:", error);
@@ -827,91 +742,27 @@ function showProductDetails(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
-    const mainContentEl = document.getElementById('product-details-main-content');
-    const extraContentEl = document.getElementById('product-details-extra-content');
-    
-    // Renderiza o conteúdo principal do produto
-    mainContentEl.innerHTML = `
-        <div class="flex flex-col md:flex-row">
-            <div class="w-full md:w-1/2 p-8">
-                <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+    const contentEl = document.getElementById('product-details-content');
+    contentEl.innerHTML = `
+        <div class="w-full md:w-1/2 p-8">
+            <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+        </div>
+        <div class="w-full md:w-1/2 p-8 flex flex-col">
+            <h2 class="font-heading text-4xl font-bold mb-2">${product.name}</h2>
+            <div class="flex items-center gap-2 mb-4">
+                ${renderStars(product.rating)}
+                <span class="text-gray-500 text-sm">(${product.reviews ? product.reviews.length : 0} avaliações)</span>
             </div>
-            <div class="w-full md:w-1/2 p-8 flex flex-col">
-                <h2 class="font-heading text-4xl font-bold mb-2">${product.name}</h2>
-                <div class="flex items-center gap-2 mb-4">
-                    ${renderStars(product.rating)}
-                    <span class="text-gray-500 text-sm">(${product.reviews ? product.reviews.length : 0} avaliações)</span>
-                </div>
-                <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
-                <div class="mt-auto">
-                    <p class="text-gold-500 font-bold text-3xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                    <button class="add-to-cart-btn w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
-                </div>
+            <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
+            <div class="mt-auto">
+                <p class="text-gold-500 font-bold text-3xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                <button class="add-to-cart-btn w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
             </div>
         </div>
     `;
-
-    // Renderiza o conteúdo extra (reviews e produtos relacionados)
-    const reviews = product.reviews || [];
-    const hasUserReviewed = currentUserData && reviews.some(r => r.userId === currentUserData.uid);
-
-    let reviewsHtml = `
-        <div class="mb-12">
-            <h3 class="font-heading text-2xl font-bold mb-6">Avaliações de Clientes</h3>
-            <div id="review-list" class="space-y-6 mb-8">
-                ${reviews.length > 0 ? reviews.map(review => `
-                    <div class="border-b pb-4">
-                        <div class="flex items-center mb-2">
-                            ${renderStars(review.rating, false, 'w-4 h-4')}
-                            <p class="ml-3 font-semibold">${review.userName}</p>
-                        </div>
-                        <p class="text-gray-600">${review.text}</p>
-                    </div>
-                `).join('') : '<p class="text-gray-500">Este produto ainda não tem avaliações. Seja o primeiro a avaliar!</p>'}
-            </div>
-            ${currentUserData && !hasUserReviewed ? `
-                <form id="review-form" data-id="${product.id}">
-                    <h4 class="font-semibold text-lg mb-2">Deixe a sua avaliação</h4>
-                    <div class="mb-2">${renderStars(0, true)}</div>
-                    <textarea name="reviewText" required class="w-full p-2 border rounded-md mb-2" placeholder="Escreva a sua opinião..."></textarea>
-                    <button type="submit" class="bg-black text-white font-bold py-2 px-4 rounded-md hover:bg-gray-800">Enviar Avaliação</button>
-                </form>
-            ` : ''}
-            ${currentUserData && hasUserReviewed ? '<p class="text-green-600 font-semibold">Obrigado pela sua avaliação!</p>' : ''}
-            ${!currentUserData ? '<p class="text-gray-600">Faça <a href="#" class="text-gold-500 font-bold auth-link">login</a> para deixar uma avaliação.</p>' : ''}
-        </div>
-    `;
-
-    const relatedProducts = allProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
-    let relatedHtml = `
-        <div>
-            <h3 class="font-heading text-2xl font-bold mb-6">Também pode gostar de...</h3>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                ${relatedProducts.length > 0 ? relatedProducts.map(p => createProductCard(p, true)).join('') : '<p>Nenhum produto relacionado encontrado.</p>'}
-            </div>
-        </div>
-    `;
-
-    extraContentEl.innerHTML = reviewsHtml + relatedHtml;
-    
     feather.replace();
-    
-    // Adiciona event listeners para os novos elementos
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', handleReviewSubmit);
-    }
-    document.querySelectorAll('.auth-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleProductDetailsModal(false);
-            toggleAuthModal(true);
-        });
-    });
-
     toggleProductDetailsModal(true);
 }
-
 
 function toggleProductDetailsModal(show) {
     const overlay = document.getElementById('product-details-modal-overlay');
@@ -976,6 +827,7 @@ function showPage(pageId) {
     
     if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
     
+    // Page-specific logic
     if (pageId === 'fragrancias') {
         applyFilters();
     } else if (pageId === 'decants') {
@@ -1134,7 +986,7 @@ function initializeEventListeners() {
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
 
-        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
+        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); } // **NOVO**: Passar o evento
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
@@ -1142,6 +994,7 @@ function initializeEventListeners() {
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
     });
     
+    // **NOVO**: Event listener para fechar modais com a tecla 'Esc'
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             toggleCart(false);
@@ -1159,12 +1012,15 @@ async function main() {
         showLoader(true);
         initializeEventListeners();
         
+        // Initial UI setup that doesn't depend on data
         feather.replace();
         AOS.init({ duration: 800, once: true });
         updateCartIcon();
 
+        // Fetch all site data first
         await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
 
+        // Now set up the auth listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userDocRef = doc(db, "users", user.uid);
@@ -1204,4 +1060,5 @@ async function main() {
     }
 }
 
+// Start the application
 document.addEventListener('DOMContentLoaded', main);
