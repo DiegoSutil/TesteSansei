@@ -43,6 +43,22 @@ h1, h2, h3, h4, .font-heading {
     background-color: #D4AF37;
 }
 
+/* **NOVO**: Dropdown Menu Styles */
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+
 /* Parallax Background Effect */
 .parallax-bg {
     background-attachment: fixed;
@@ -138,7 +154,7 @@ h1, h2, h3, h4, .font-heading {
     object-fit: cover;
 }
 
-/* **NOVO**: Quiz Styles */
+/* Quiz Styles */
 .quiz-option {
     transition: all 0.2s ease-in-out;
     transform: scale(1);
