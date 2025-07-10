@@ -925,8 +925,8 @@ const navLinks = document.querySelectorAll('.nav-link');
 const mobileBottomNavLinks = document.querySelectorAll('#mobile-bottom-nav .mobile-bottom-nav-link');
 
 
-function showPage(pageId) {
-    console.log("Attempting to show page:", pageId); // Log para depuração
+function showPage(pageId, categoryFilter = null) { // Adicionado categoryFilter
+    console.log("Attempting to show page:", pageId, "with filter:", categoryFilter); // Log para depuração
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
     if(targetPage) { 
@@ -957,7 +957,17 @@ function showPage(pageId) {
     
     // Page-specific logic
     if (pageId === 'fragrancias') {
-        applyFilters();
+        // Se houver um filtro de categoria, aplique-o
+        if (categoryFilter) {
+            // Desmarcar todos os checkboxes de categoria primeiro
+            document.querySelectorAll('#filter-cat-perfume, #filter-cat-decant').forEach(cb => cb.checked = false);
+            // Marcar o checkbox correspondente ao filtro
+            const filterCheckbox = document.querySelector(`#filter-cat-${categoryFilter}`);
+            if (filterCheckbox) {
+                filterCheckbox.checked = true;
+            }
+        }
+        applyFilters(); // Reaplicar filtros para refletir a nova seleção
     } else if (pageId === 'decants') {
         const decantProducts = allProducts.filter(p => p.category === 'decant');
         renderProducts(decantProducts, 'product-list-decants');
@@ -973,6 +983,15 @@ function showPage(pageId) {
         }
         renderWishlist();
         renderOrders();
+    }
+    // Lógica para as novas páginas do menu mobile
+    else if (pageId === 'homespray' || pageId === 'difusores' || pageId === 'kits' || pageId === 'mais-vendidos' || pageId === 'descontos' || pageId === 'cupom') {
+        // Para estas páginas, você pode adicionar lógica específica de renderização ou conteúdo
+        // Por enquanto, apenas para demonstração, vamos mostrar um toast
+        showToast(`Navegando para a página: ${pageId.replace('-', ' ').toUpperCase()}`);
+        // Se você tiver um elemento div para cada uma dessas páginas (ex: <div id="page-homespray" class="page-content hidden">),
+        // elas já serão mostradas pela lógica inicial de showPage.
+        // Caso contrário, você precisará adicionar o HTML para essas páginas no index.html.
     }
     
     window.scrollTo(0, 0);
@@ -1083,12 +1102,13 @@ function initializeEventListeners() {
     safeAddEventListener('close-mobile-menu', 'click', () => toggleMobileMenu(false));
     safeAddEventListener('mobile-menu-overlay', 'click', () => toggleMobileMenu(false));
 
-    // NEW: Event listeners for mobile nav links inside the sliding menu
-    document.querySelectorAll('.mobile-nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
+    // NEW: Event listeners for mobile nav items inside the sliding menu
+    document.querySelectorAll('.mobile-nav-item').forEach(item => { // Alterado de .mobile-nav-link para .mobile-nav-item
+        item.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = link.dataset.page;
-            if (page) showPage(page);
+            const page = item.dataset.page;
+            const categoryFilter = item.dataset.categoryFilter; // Obter o filtro de categoria
+            if (page) showPage(page, categoryFilter); // Passar o filtro de categoria
             toggleMobileMenu(false); // Close menu after navigating
         });
     });
