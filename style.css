@@ -87,6 +87,15 @@ body {
     @apply text-white font-heading text-3xl font-bold transform group-hover:scale-105 transition-transform duration-300;
 }
 
+/* =================================================================
+   COMPONENTES (FAQ, etc.)
+================================================================= */
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
 
 /* =================================================================
    FOOTER
