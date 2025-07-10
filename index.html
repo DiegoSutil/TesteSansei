@@ -147,7 +147,7 @@
                 </div>
             </section>
 
-            <!-- Secção de Reels Restaurada -->
+            <!-- Secção de Reels -->
             <section class="bg-slate-50 py-20">
                 <div class="container mx-auto px-6 text-center">
                     <h2 class="font-heading text-4xl font-bold text-slate-800 mb-4" data-aos="fade-up">Siga-nos no Instagram</h2>
@@ -179,8 +179,8 @@
                                     <div>
                                         <h4 class="font-semibold mb-3">Categoria</h4>
                                         <div class="space-y-2">
-                                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 filter-control" value="perfume"> <span class="ml-2 text-sm text-slate-700">Perfumes</span></label>
-                                            <label class="flex items-center"><input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 filter-control" value="decant"> <span class="ml-2 text-sm text-slate-700">Decants</span></label>
+                                            <label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 filter-control" value="perfume"> <span class="ml-2 text-sm text-slate-700">Perfumes</span></label>
+                                            <label class="flex items-center"><input type="checkbox" id="filter-cat-decant" class="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 filter-control" value="decant"> <span class="ml-2 text-sm text-slate-700">Decants</span></label>
                                         </div>
                                     </div>
                                     <div>
@@ -317,6 +317,17 @@
 
     <!-- =========== Footer =========== -->
     <footer class="bg-slate-800 text-white">
+        <!-- **CORREÇÃO**: Secção de Newsletter restaurada -->
+        <section class="bg-slate-700">
+            <div class="container mx-auto px-6 py-12 text-center" data-aos="fade-up">
+                <h3 class="font-heading text-3xl font-bold text-white">Junte-se ao Círculo SANSEI</h3>
+                <p class="mt-3 text-slate-300 max-w-xl mx-auto">Seja o primeiro a saber sobre lançamentos, coleções limitadas e eventos exclusivos.</p>
+                <form id="newsletter-form" class="mt-8 flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
+                    <input type="email" id="newsletter-email" placeholder="Seu melhor e-mail" required class="w-full flex-grow px-4 py-3 rounded-lg text-slate-800 bg-white border border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <button type="submit" class="btn btn-primary flex-shrink-0">Inscrever</button>
+                </form>
+            </div>
+        </section>
         <div class="container mx-auto px-6 py-16">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
                 <div class="col-span-2 md:col-span-1">
