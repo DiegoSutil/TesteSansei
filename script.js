@@ -1,7 +1,7 @@
 // Import Firebase modules from the latest SDK
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { initializeApp } = "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } = "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove, addDoc, query, where, Timestamp, orderBy } = "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // IMPORTANT: Replace with your actual Firebase configuration
 const firebaseConfig = {
@@ -1103,7 +1103,7 @@ function initializeEventListeners() {
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
-    safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false);
+    safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false)); // Corrected: Added missing ')'
     safeAddEventListener('logout-button', 'click', logout);
     safeAddEventListener('contact-form', 'submit', handleContactFormSubmit);
     safeAddEventListener('newsletter-form', 'submit', handleNewsletterSubmit);
