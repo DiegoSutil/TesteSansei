@@ -27,15 +27,15 @@
     <!-- =========== Header / Navigation Bar =========== -->
     <header class="bg-white shadow-sm sticky top-0 z-50">
         <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="#" id="logo-link" class="block h-24">
+            <a href="#" data-page="inicio" class="block h-24 nav-link-button">
                 <img src="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" alt="SANSEI DECANTS Logo" class="h-full w-auto">
             </a>
-            <!-- **NOVO**: Menu de Navegação Atualizado -->
-            <div class="hidden md:flex items-center space-x-6">
-                <a href="#" data-page="inicio" id="nav-inicio" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Início</a>
-                <a href="#" data-page="quiz" id="nav-quiz" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Quiz</a>
+            <!-- Menu de Navegação Atualizado -->
+            <div id="desktop-nav-links" class="hidden md:flex items-center space-x-6">
+                <a href="#" data-page="inicio" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Início</a>
+                <a href="#" data-page="quiz" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Quiz</a>
                 <div class="relative dropdown">
-                    <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold flex items-center">
+                    <a href="#" data-page="fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold flex items-center">
                         Perfumes <i data-feather="chevron-down" class="w-4 h-4 ml-1"></i>
                     </a>
                     <div class="dropdown-menu absolute hidden bg-white shadow-lg rounded-md mt-2 py-2 w-48">
@@ -43,10 +43,10 @@
                         <a href="#" data-page="masculino" class="dropdown-item block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Masculino</a>
                     </div>
                 </div>
-                <a href="#" data-page="decants" id="nav-decants" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Decants</a>
-                <a href="#" data-page="kits" id="nav-kits" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Kits</a>
-                <a href="#" data-page="mais-vendidos" id="nav-mais-vendidos" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Mais Vendidos</a>
-                <a href="#" data-page="descontos" id="nav-descontos" class="nav-link text-red-500 hover:text-red-700 transition-all-ease font-bold">Descontos</a>
+                <a href="#" data-page="decants" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Decants</a>
+                <a href="#" data-page="kits" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Kits</a>
+                <a href="#" data-page="mais-vendidos" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Mais Vendidos</a>
+                <a href="#" data-page="descontos" class="nav-link text-red-500 hover:text-red-700 transition-all-ease font-bold">Descontos</a>
             </div>
             <div class="flex items-center space-x-5">
                 <button id="search-button" class="text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="search" class="w-6 h-6"></i></button>
@@ -171,15 +171,75 @@
                 </div>
             </div>
         </div>
-
-        <!-- Generic Page Content (for new pages) -->
-        <div id="page-generic" class="page-content hidden">
+        
+        <!-- **NOVO**: Containers de Página Explícitos -->
+        <div id="page-fragrancias" class="page-content hidden">
             <div class="container mx-auto px-6 py-20">
                 <div class="text-center mb-16">
-                    <h1 id="generic-page-title" class="font-heading text-5xl font-bold mb-4 text-black"></h1>
-                    <p id="generic-page-description" class="text-lg text-gray-600"></p>
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Todas as Fragrâncias</h1>
+                    <p class="text-lg text-gray-600">Explore a nossa coleção completa.</p>
                 </div>
-                <div id="generic-product-list" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+                <div id="product-list-fragrancias" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <div id="page-feminino" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Perfumes Femininos</h1>
+                    <p class="text-lg text-gray-600">Fragrâncias elegantes e marcantes para ela.</p>
+                </div>
+                <div id="product-list-feminino" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <div id="page-masculino" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Perfumes Masculinos</h1>
+                    <p class="text-lg text-gray-600">Aromas sofisticados e potentes para ele.</p>
+                </div>
+                <div id="product-list-masculino" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <div id="page-decants" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Todos os Decants</h1>
+                    <p class="text-lg text-gray-600">A forma perfeita de experimentar antes de se comprometer.</p>
+                </div>
+                <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <div id="page-kits" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Kits Especiais</h1>
+                    <p class="text-lg text-gray-600">Combinações perfeitas para presentear ou se presentear.</p>
+                </div>
+                <div id="product-list-kits" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <div id="page-mais-vendidos" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Mais Vendidos</h1>
+                    <p class="text-lg text-gray-600">Descubra os favoritos dos nossos clientes.</p>
+                </div>
+                <div id="product-list-mais-vendidos" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <div id="page-descontos" class="page-content hidden">
+            <div class="container mx-auto px-6 py-20">
+                <div class="text-center mb-16">
+                    <h1 class="font-heading text-5xl font-bold mb-4 text-black">Descontos Imperdíveis</h1>
+                    <p class="text-lg text-gray-600">Aproveite as nossas melhores ofertas.</p>
+                </div>
+                <div id="product-list-descontos" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
             </div>
         </div>
 
@@ -211,7 +271,6 @@
                     </div>
                     <div class="max-w-3xl mx-auto" data-aos="fade-up">
                         <div class="space-y-4">
-                            <!-- FAQ Item 1 -->
                             <div class="border-b border-gray-200 pb-4">
                                 <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
                                     <span>O que é um decant?</span>
@@ -221,7 +280,6 @@
                                     <p>Um decant é uma pequena quantidade de perfume original, transferida do frasco de fábrica para um frasco menor. É a forma ideal de experimentar diferentes fragrâncias de luxo antes de investir num frasco grande, ou para ter os seus perfumes favoritos em tamanho de viagem.</p>
                                 </div>
                             </div>
-                            <!-- FAQ Item 2 -->
                             <div class="border-b border-gray-200 pb-4">
                                 <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
                                     <span>Os produtos são originais?</span>
@@ -231,7 +289,6 @@
                                     <p>Sim, garantimos 100% de autenticidade. Todos os nossos decants são retirados diretamente dos frascos originais dos perfumes, adquiridos de fornecedores e marcas certificadas. A nossa reputação baseia-se na confiança e na qualidade.</p>
                                 </div>
                             </div>
-                            <!-- FAQ Item 3 -->
                             <div class="border-b border-gray-200 pb-4">
                                 <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
                                     <span>Como funciona o envio?</span>
@@ -354,7 +411,7 @@
                     <p class="text-gray-400">Telefone: (11) 99999-8888</p>
                 </div>
             </div>
-            <!-- **NOVO**: Trust Signals -->
+            <!-- Trust Signals -->
             <div class="border-t border-gray-700 pt-8">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                     <div class="text-center md:text-left">
