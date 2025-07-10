@@ -98,25 +98,60 @@
                     <a href="#" data-page="fragrancias" class="nav-link-button bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider shadow-lg hover:shadow-gold-500/50">VER COLEÇÃO</a>
                 </div>
             </section>
-            <!-- Benefits Bar -->
-            <section class="bg-white py-12">
+            
+            <!-- **NOVO**: Promotional Carousel Section -->
+            <section class="bg-gray-50 py-6">
                 <div class="container mx-auto px-6">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" data-aos="fade-up">
-                        <div class="flex flex-col items-center"><i data-feather="award" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Fragrâncias Raras</h3><p class="text-gray-600 text-sm">Curadoria de perfumes de nicho e exclusivos.</p></div>
-                        <div class="flex flex-col items-center"><i data-feather="box" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Embalagem de Luxo</h3><p class="text-gray-600 text-sm">Uma experiência premium do início ao fim.</p></div>
-                        <div class="flex flex-col items-center"><i data-feather="truck" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Envio para Todo o Brasil</h3><p class="text-gray-600 text-sm">Receba seus decants com segurança e rapidez.</p></div>
+                    <div id="promo-carousel" class="relative overflow-hidden">
+                        <div id="promo-carousel-track" class="flex transition-transform duration-500 ease-in-out">
+                            <!-- Slide 1 -->
+                            <div class="promo-carousel-slide flex-shrink-0 w-full flex items-center justify-center gap-4 text-center md:text-left">
+                                <i data-feather="truck" class="w-10 h-10 text-gold-500 flex-shrink-0"></i>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Frete Grátis</h3>
+                                    <p class="text-gray-600 text-sm">Acima de R$ 299 para todo o Brasil.</p>
+                                </div>
+                            </div>
+                            <!-- Slide 2 -->
+                            <div class="promo-carousel-slide flex-shrink-0 w-full flex items-center justify-center gap-4 text-center md:text-left">
+                                <i data-feather="shield" class="w-10 h-10 text-gold-500 flex-shrink-0"></i>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Compra Segura</h3>
+                                    <p class="text-gray-600 text-sm">Ambiente protegido com criptografia.</p>
+                                </div>
+                            </div>
+                            <!-- Slide 3 -->
+                            <div class="promo-carousel-slide flex-shrink-0 w-full flex items-center justify-center gap-4 text-center md:text-left">
+                                <i data-feather="dollar-sign" class="w-10 h-10 text-gold-500 flex-shrink-0"></i>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Desconto no PIX</h3>
+                                    <p class="text-gray-600 text-sm">Pague com PIX e ganhe 5% de desconto.</p>
+                                </div>
+                            </div>
+                            <!-- Slide 4 -->
+                            <div class="promo-carousel-slide flex-shrink-0 w-full flex items-center justify-center gap-4 text-center md:text-left">
+                                <i data-feather="award" class="w-10 h-10 text-gold-500 flex-shrink-0"></i>
+                                <div>
+                                    <h3 class="font-semibold text-lg">Garantia de Qualidade</h3>
+                                    <p class="text-gray-600 text-sm">Produtos 100% originais e autênticos.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <button id="promo-prev" class="absolute top-1/2 left-2 -translate-y-1/2 bg-white/50 p-2 rounded-full hover:bg-white transition-all-ease hidden md:block"><i data-feather="chevron-left"></i></button>
+                        <button id="promo-next" class="absolute top-1/2 right-2 -translate-y-1/2 bg-white/50 p-2 rounded-full hover:bg-white transition-all-ease hidden md:block"><i data-feather="chevron-right"></i></button>
                     </div>
                 </div>
             </section>
+
             <!-- Featured Products Section -->
-            <section class="py-20 bg-gray-50">
+            <section class="py-20 bg-white">
                 <div class="container mx-auto px-6">
                     <h2 class="font-heading text-4xl font-bold text-center mb-12 text-black" data-aos="fade-up">Mais Desejados</h2>
                     <div id="product-list-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"></div>
                 </div>
             </section>
             <!-- Instagram Reels Section -->
-            <section class="bg-white py-20">
+            <section class="bg-gray-50 py-20">
                 <div class="container mx-auto px-6 text-center">
                     <h2 class="font-heading text-4xl font-bold text-black mb-4" data-aos="fade-up">Veja os nossos Reels</h2>
                     <p class="text-gray-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
@@ -411,9 +446,7 @@
     <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-[70] hidden opacity-0 transform scale-95 transition-all duration-300">
         <div id="product-details-content-wrapper" class="relative max-h-[90vh] overflow-y-auto">
              <button id="close-product-details-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black z-10 bg-white rounded-full p-1"><i data-feather="x"></i></button>
-            <!-- **NOVO**: Container para o conteúdo principal do modal -->
             <div id="product-details-main-content"></div>
-            <!-- **NOVO**: Container para reviews e produtos relacionados -->
             <div id="product-details-extra-content" class="p-8 border-t"></div>
         </div>
     </div>
