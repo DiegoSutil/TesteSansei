@@ -986,4 +986,4 @@ async function main() {
 }
 
 // Start the application
-document.addEventListener('DOMContentLoaded', main);
+document.addEventListener('DOMContentLoaded', main);  .
