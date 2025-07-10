@@ -10,6 +10,18 @@ body {
     font-family: 'Playfair Display', serif;
 }
 
+/* Custom Loader for global loader */
+.loader {
+    border-top-color: #4f46e5; /* Indigo color */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* =================================================================
    HEADER E NAVEGAÇÃO
 ================================================================= */
@@ -126,10 +138,58 @@ body {
     transition: max-height 0.3s ease-in-out;
 }
 
+/* Styles for the "fly-to-cart" animation */
+.fly-to-cart {
+    position: fixed;
+    z-index: 100;
+    transition: all 1s cubic-bezier(0.5, -0.5, 0.5, 1.5); /* Adjust cubic-bezier for desired effect */
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Custom styles for price range slider */
+input[type="range"].range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #4f46e5; /* Indigo color */
+    border-radius: 50%;
+    cursor: pointer;
+    margin-top: -7px; /* Adjust to align with track */
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); /* Ring effect */
+}
+
+input[type="range"].range-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #4f46e5; /* Indigo color */
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.2); /* Ring effect */
+}
+
+/* Hide scrollbar for horizontal product list */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
 
 /* =================================================================
    FOOTER
 ================================================================= */
 .footer-link {
     @apply text-slate-400 hover:text-white transition-colors duration-300;
+}
+
+/* Mobile Fixed Bottom Navigation */
+#mobile-bottom-nav .mobile-bottom-nav-link.active {
+    @apply text-indigo-600;
+}
+#mobile-bottom-nav .mobile-bottom-nav-link.active i {
+    @apply fill-current; /* Fills the icon when active */
 }
