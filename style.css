@@ -50,17 +50,12 @@ body {
     @apply relative py-3;
 }
 
-/* FIX: Bring the hovered item's container to the front */
-.nav-item.group:hover {
-    @apply z-10;
-}
-
 .mega-menu {
-    /* FIX: Changed positioning from centered to left-aligned to prevent overlap */
+    /* FIX: Added z-50 to ensure the dropdown appears above other nav items */
     @apply absolute top-full left-0 mt-1 bg-white shadow-xl rounded-b-lg p-6
            opacity-0 invisible group-hover:opacity-100 group-hover:visible
            transition-all duration-300 ease-in-out transform translate-y-2 group-hover:translate-y-0
-           flex gap-8;
+           flex gap-8 z-50;
     min-width: 300px;
     border-top: 2px solid #4f46e5; /* Indigo color */
 }
