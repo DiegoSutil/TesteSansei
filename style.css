@@ -14,14 +14,15 @@ body {
    HEADER E NAVEGAÇÃO
 ================================================================= */
 .nav-link {
-    @apply font-semibold text-slate-600 hover:text-indigo-600 transition-colors duration-300 relative py-1;
+    @apply font-semibold text-slate-600 hover:text-indigo-600 transition-colors duration-300 relative py-2 px-3 block;
 }
 
 .nav-link::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 0;
+    bottom: -1px; /* Position it on the border */
+    left: 50%;
+    transform: translateX(-50%);
     width: 0;
     height: 2px;
     @apply bg-indigo-600 transition-all duration-300;
@@ -43,6 +44,33 @@ body {
 .mobile-nav-link {
     @apply block py-2 px-4 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-md;
 }
+
+/* Mega Menu Styles */
+.nav-item {
+    @apply py-3; /* Padding for the entire nav bar height */
+}
+
+.mega-menu {
+    @apply absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white shadow-xl rounded-b-lg p-6
+           opacity-0 invisible group-hover:opacity-100 group-hover:visible
+           transition-all duration-300 ease-in-out transform translate-y-2 group-hover:translate-y-0 z-50
+           flex gap-8;
+    min-width: 300px;
+    border-top: 2px solid #4f46e5; /* Indigo color */
+}
+
+.mega-menu-column {
+    @apply flex flex-col gap-2;
+}
+
+.mega-menu-heading {
+    @apply font-bold text-sm uppercase tracking-wider text-slate-500 mb-2;
+}
+
+.mega-menu-link {
+    @apply block text-slate-600 hover:text-indigo-600 transition-colors duration-200 py-1;
+}
+
 
 /* =================================================================
    BOTÕES
