@@ -27,6 +27,7 @@ let appliedCoupon = null;
 let currentUserData = null;
 let allCoupons = [];
 let selectedShipping = null;
+let quizAnswers = {};
 
 
 // =================================================================
@@ -770,14 +771,16 @@ function toggleCart(show) {
     }
 }
 
-function showProductDetails(productId) {
+// FIX: Updated function to show reviews and review form
+async function showProductDetails(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
-    const contentWrapper = document.getElementById('product-details-main-content');
-    if (!contentWrapper) return;
+    const mainContentWrapper = document.getElementById('product-details-main-content');
+    const extraContentWrapper = document.getElementById('product-details-extra-content');
+    if (!mainContentWrapper || !extraContentWrapper) return;
     
-    contentWrapper.innerHTML = `
+    mainContentWrapper.innerHTML = `
       <div class="flex flex-col md:flex-row">
         <div class="w-full md:w-1/2 p-8">
             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
@@ -796,9 +799,154 @@ function showProductDetails(productId) {
         </div>
       </div>
     `;
+
+    renderProductReviews(product, extraContentWrapper);
+    
     feather.replace();
     toggleProductDetailsModal(true);
 }
+
+// NEW: Function to render reviews and the review form
+function renderProductReviews(product, container) {
+    container.innerHTML = ''; // Clear previous content
+
+    // Section Title
+    const reviewsTitle = document.createElement('h3');
+    reviewsTitle.className = 'font-heading text-3xl font-bold mb-6 text-center';
+    reviewsTitle.textContent = 'Avaliações de Clientes';
+    container.appendChild(reviewsTitle);
+
+    // Reviews List
+    const reviewsList = document.createElement('div');
+    reviewsList.className = 'space-y-6 mb-8';
+    if (product.reviews && product.reviews.length > 0) {
+        product.reviews.forEach(review => {
+            const reviewEl = document.createElement('div');
+            reviewEl.className = 'border-b border-gray-200 pb-4';
+            reviewEl.innerHTML = `
+                <div class="flex items-center mb-2">
+                    ${renderStars(review.rating)}
+                    <p class="ml-4 font-semibold">${review.userName || 'Anónimo'}</p>
+                </div>
+                <p class="text-gray-600">${review.text}</p>
+            `;
+            reviewsList.appendChild(reviewEl);
+        });
+    } else {
+        reviewsList.innerHTML = '<p class="text-center text-gray-500">Este produto ainda não tem avaliações. Seja o primeiro a avaliar!</p>';
+    }
+    container.appendChild(reviewsList);
+
+    // Review Form (only for logged-in users)
+    if (currentUserData) {
+        const formTitle = document.createElement('h3');
+        formTitle.className = 'font-heading text-2xl font-bold mb-4 pt-6 border-t mt-8';
+        formTitle.textContent = 'Deixe a sua avaliação';
+        container.appendChild(formTitle);
+
+        const reviewForm = document.createElement('form');
+        reviewForm.id = 'review-form';
+        reviewForm.innerHTML = `
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">Sua nota:</label>
+                <div class="flex items-center star-rating-input">
+                    ${[1, 2, 3, 4, 5].map(i => `<i data-feather="star" class="w-6 h-6 cursor-pointer text-gray-400" data-value="${i}"></i>`).join('')}
+                </div>
+                <input type="hidden" id="review-rating" name="rating" value="0">
+            </div>
+            <div class="mb-4">
+                <label for="review-text" class="block text-sm font-semibold text-gray-700 mb-2">Sua opinião:</label>
+                <textarea id="review-text" name="text" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500" rows="4" placeholder="O que você achou do produto?"></textarea>
+            </div>
+            <button type="submit" class="bg-gold-500 text-black font-bold py-2 px-6 rounded-md hover:bg-gold-600 transition-all-ease">Enviar Avaliação</button>
+        `;
+        container.appendChild(reviewForm);
+        
+        // Add event listeners for star rating input
+        const stars = reviewForm.querySelectorAll('.star-rating-input i');
+        stars.forEach(star => {
+            star.addEventListener('click', () => {
+                const rating = star.dataset.value;
+                reviewForm.querySelector('#review-rating').value = rating;
+                stars.forEach(s => {
+                    s.classList.toggle('filled', s.dataset.value <= rating);
+                    s.classList.toggle('text-gray-400', s.dataset.value > rating);
+                });
+                feather.replace();
+            });
+        });
+
+        reviewForm.addEventListener('submit', (e) => handleReviewSubmit(e, product.id));
+    }
+}
+
+// NEW: Function to handle review submission
+async function handleReviewSubmit(e, productId) {
+    e.preventDefault();
+    if (!currentUserData) {
+        showToast("Você precisa estar logado para avaliar.", true);
+        return;
+    }
+
+    const form = e.target;
+    const rating = parseInt(form.querySelector('#review-rating').value, 10);
+    const text = form.querySelector('#review-text').value;
+
+    if (rating === 0) {
+        showToast("Por favor, selecione uma nota (de 1 a 5 estrelas).", true);
+        return;
+    }
+    if (!text.trim()) {
+        showToast("Por favor, escreva sua opinião.", true);
+        return;
+    }
+
+    showLoader(true);
+
+    const productRef = doc(db, "products", productId);
+
+    try {
+        const newReview = {
+            userId: currentUserData.uid,
+            userName: currentUserData.email.split('@')[0], // Use part of email as name
+            rating: rating,
+            text: text,
+            createdAt: Timestamp.now()
+        };
+
+        // Add the new review to the product's reviews array
+        await updateDoc(productRef, {
+            reviews: arrayUnion(newReview)
+        });
+
+        // Recalculate the average rating
+        const productDoc = await getDoc(productRef);
+        const updatedReviews = productDoc.data().reviews || [];
+        const newAvgRating = updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length;
+        
+        await updateDoc(productRef, {
+            rating: newAvgRating
+        });
+
+        // Update local product data
+        const productIndex = allProducts.findIndex(p => p.id === productId);
+        if (productIndex > -1) {
+            allProducts[productIndex].reviews.push(newReview);
+            allProducts[productIndex].rating = newAvgRating;
+        }
+
+        showToast("Sua avaliação foi enviada com sucesso!");
+        // Refresh the modal to show the new review
+        showProductDetails(productId);
+
+    } catch (error) {
+        console.error("Error submitting review:", error);
+        showToast("Ocorreu um erro ao enviar sua avaliação.", true);
+    } finally {
+        showLoader(false);
+    }
+}
+
 
 function toggleProductDetailsModal(show) {
     const overlay = document.getElementById('product-details-modal-overlay');
@@ -862,7 +1010,6 @@ function showPage(pageId) {
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
     
-    // FIX: Add a robust check for the target page's existence.
     if (targetPage) {
         targetPage.classList.remove('hidden');
     } else {
@@ -883,13 +1030,15 @@ function showPage(pageId) {
         mobileMenu.classList.add('hidden');
     }
 
-    if (pageId === 'profile') {
+    // FIX: Add page-specific logic for the quiz
+    if (pageId === 'quiz') {
+        startQuiz();
+    } else if (pageId === 'profile') {
         if (!currentUserData) {
             showPage('inicio');
             toggleAuthModal(true);
             return;
         }
-        // FIX: Add a robust check for the profile email element.
         const profileEmailEl = document.getElementById('profile-email');
         if (profileEmailEl) {
             profileEmailEl.textContent = `Bem-vindo(a), ${currentUserData.email}`;
@@ -979,7 +1128,6 @@ async function fetchInitialData() {
 
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
         
-        // FIX: Add a check for the initial link before adding a class.
         const initialLink = document.querySelector('.nav-link[data-page="inicio"]');
         if (initialLink) {
             initialLink.classList.add('active');
@@ -1024,6 +1172,92 @@ function generateMobileMenu() {
     });
 }
 
+// =================================================================
+// QUIZ LOGIC
+// =================================================================
+const quizData = [
+    {
+        id: 'family',
+        question: "Qual família olfativa mais lhe agrada?",
+        options: [
+            { text: "Cítrico & Fresco", value: "citrus" },
+            { text: "Floral & Delicado", value: "floral" },
+            { text: "Amadeirado & Intenso", value: "woody" },
+            { text: "Oriental & Adocicado", value: "oriental" },
+        ],
+    },
+    {
+        id: 'occasion',
+        question: "Para qual ocasião você usaria o perfume?",
+        options: [
+            { text: "Dia a dia, trabalho", value: "daily" },
+            { text: "Eventos noturnos, festas", value: "night" },
+            { text: "Encontros românticos", value: "romantic" },
+            { text: "Momentos de lazer", value: "leisure" },
+        ],
+    },
+];
+
+function startQuiz() {
+    quizAnswers = {};
+    renderQuestion(0);
+}
+
+function renderQuestion(index) {
+    const quizContainer = document.getElementById('quiz-container');
+    if (!quizContainer) return;
+
+    if (index >= quizData.length) {
+        showQuizResults();
+        return;
+    }
+
+    const currentQuestion = quizData[index];
+    quizContainer.innerHTML = `
+        <div class="bg-white p-8 rounded-lg shadow-lg text-center" data-aos="fade-up">
+            <p class="text-lg text-gray-500 mb-2">Pergunta ${index + 1} de ${quizData.length}</p>
+            <h2 class="font-heading text-3xl font-bold mb-8">${currentQuestion.question}</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${currentQuestion.options.map(opt => `
+                    <button class="quiz-option-btn bg-gray-100 hover:bg-gold-500 hover:text-black transition-all-ease p-6 rounded-lg font-semibold text-lg" data-question-id="${currentQuestion.id}" data-value="${opt.value}">
+                        ${opt.text}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    quizContainer.querySelectorAll('.quiz-option-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            quizAnswers[btn.dataset.questionId] = btn.dataset.value;
+            renderQuestion(index + 1);
+        });
+    });
+}
+
+function showQuizResults() {
+    const quizContainer = document.getElementById('quiz-container');
+    if (!quizContainer) return;
+
+    // Simple recommendation logic (can be improved)
+    // This is a placeholder. A real implementation would have tags on products.
+    let recommendedProducts = [...allProducts].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+    quizContainer.innerHTML = `
+        <div class="text-center" data-aos="fade-up">
+            <h2 class="font-heading text-4xl font-bold text-black mb-4">Suas Recomendações!</h2>
+            <p class="text-gray-600 mb-12 max-w-2xl mx-auto">Com base nas suas respostas, aqui estão algumas fragrâncias que você pode amar.</p>
+            <div id="quiz-results-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                ${recommendedProducts.map(createProductCard).join('')}
+            </div>
+            <button id="restart-quiz-btn" class="mt-12 bg-black text-white font-bold py-3 px-10 rounded-full hover:bg-gray-800 transition-all-ease">Refazer o Quiz</button>
+        </div>
+    `;
+    feather.replace();
+    AOS.refresh();
+
+    document.getElementById('restart-quiz-btn').addEventListener('click', startQuiz);
+}
 
 function initializeEventListeners() {
     const safeAddEventListener = (id, event, handler) => {
