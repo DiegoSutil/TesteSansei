@@ -36,7 +36,22 @@ function showToast(message, isError = false) {
     const toast = document.getElementById('toast-notification');
     const toastMessage = document.getElementById('toast-message');
     const iconContainer = document.getElementById('toast-icon-container');
-    if (!toast || !toastMessage || !iconContainer) return;
+    if (!toast || !toastMessage || !iconContainer) {
+        // Fallback for missing toast elements
+        const fallbackToast = document.createElement('div');
+        fallbackToast.style.position = 'fixed';
+        fallbackToast.style.top = '20px';
+        fallbackToast.style.right = '20px';
+        fallbackToast.style.padding = '16px';
+        fallbackToast.style.background = isError ? '#fecaca' : '#dcfce7';
+        fallbackToast.style.color = isError ? '#b91c1c' : '#166534';
+        fallbackToast.style.borderRadius = '8px';
+        fallbackToast.style.zIndex = '100';
+        fallbackToast.textContent = message;
+        document.body.appendChild(fallbackToast);
+        setTimeout(() => fallbackToast.remove(), 3000);
+        return;
+    }
 
     const iconName = isError ? 'x-circle' : 'check-circle';
     const iconColorClass = isError ? 'text-red-400' : 'text-green-400';
@@ -56,7 +71,10 @@ function showToast(message, isError = false) {
 }
 
 const showLoader = (show) => {
-    document.getElementById('loader').classList.toggle('hidden', !show);
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.classList.toggle('hidden', !show);
+    }
 }
 
 // =================================================================
@@ -554,6 +572,7 @@ async function fetchAndRenderReels() {
 
 function renderAuthForm(isLogin = true) {
     const authContent = document.getElementById('auth-content');
+    if (!authContent) return;
     let formHtml = `
         <h2 class="font-heading text-3xl font-bold text-center mb-6">${isLogin ? 'Login' : 'Criar Conta'}</h2>
         <div id="auth-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden" role="alert"></div>
@@ -595,8 +614,10 @@ function renderAuthForm(isLogin = true) {
 
 function showAuthError(message) {
     const errorDiv = document.getElementById('auth-error');
-    errorDiv.textContent = message;
-    errorDiv.classList.remove('hidden');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
 }
 
 async function handleLogin(e) {
@@ -742,7 +763,12 @@ function showProductDetails(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
-    const contentEl = document.getElementById('product-details-content');
+    // FIX: Changed ID from 'product-details-content' to 'product-details-main-content'
+    const contentEl = document.getElementById('product-details-main-content');
+    if (!contentEl) {
+        console.error('Product details content element not found!');
+        return;
+    }
     contentEl.innerHTML = `
         <div class="w-full md:w-1/2 p-8">
             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
@@ -825,7 +851,7 @@ function showPage(pageId) {
     const activeLink = document.getElementById('nav-' + pageId);
     if(activeLink) { activeLink.classList.add('active'); }
     
-    if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+    if (mobileMenu && !mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
     
     // Page-specific logic
     if (pageId === 'fragrancias') {
@@ -839,7 +865,10 @@ function showPage(pageId) {
             toggleAuthModal(true);
             return;
         }
-        document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
+        const profileEmailEl = document.getElementById('profile-email');
+        if (profileEmailEl) {
+            profileEmailEl.textContent = `Bem-vindo(a), ${currentUserData.email}`;
+        }
         renderWishlist();
         renderOrders();
     }
@@ -920,7 +949,10 @@ async function fetchInitialData() {
         allCoupons = couponsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
-        document.getElementById('nav-inicio').classList.add('active');
+        const navInicio = document.getElementById('nav-inicio');
+        if (navInicio) {
+            navInicio.classList.add('active');
+        }
         
     } catch (error) {
         console.error("Error fetching initial data: ", error);
@@ -969,12 +1001,15 @@ function initializeEventListeners() {
         question.addEventListener('click', () => {
             const answer = question.nextElementSibling;
             const icon = question.querySelector('i');
-            if (answer.style.maxHeight) {
-                answer.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                answer.style.maxHeight = answer.scrollHeight + "px";
-                icon.style.transform = 'rotate(180deg)';
+            // Check if elements exist before using them
+            if (answer && icon) {
+                if (answer.style.maxHeight) {
+                    answer.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
             }
         });
     });
@@ -986,7 +1021,7 @@ function initializeEventListeners() {
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
 
-        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); } // **NOVO**: Passar o evento
+        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
@@ -994,7 +1029,6 @@ function initializeEventListeners() {
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
     });
     
-    // **NOVO**: Event listener para fechar modais com a tecla 'Esc'
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             toggleCart(false);
