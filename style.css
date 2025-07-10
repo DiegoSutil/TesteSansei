@@ -90,10 +90,11 @@ body {
 /* =================================================================
    COMPONENTES (FAQ, etc.)
 ================================================================= */
+/* FIX: Added styles to control the FAQ accordion animation */
 .faq-answer {
     max-height: 0;
     overflow: hidden;
-    transition: max-height 0.3s ease-out;
+    transition: max-height 0.3s ease-in-out;
 }
 
 
