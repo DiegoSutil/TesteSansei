@@ -393,7 +393,7 @@ async function removeFromCart(productId) {
 }
 
 async function updateQuantity(productId, newQuantity) {
-    const cartItem = cart.find(item => item.id === productId);
+    const cartItem = cart.find(item => item.id !== productId);
     if (!cartItem) return;
     if (newQuantity <= 0) {
         await removeFromCart(productId);
@@ -1073,18 +1073,21 @@ function initializeEventListeners() {
     safeAddEventListener('logout-button', 'click', logout);
     safeAddEventListener('contact-form', 'submit', handleContactFormSubmit);
     safeAddEventListener('newsletter-form', 'submit', handleNewsletterSubmit);
-    safeAddEventListener('search-button', 'click', () => document.getElementById('search-bar').classList.toggle('hidden'));
+    safeAddEventListener('search-button-mobile', 'click', () => document.getElementById('search-bar').classList.toggle('hidden'));
     safeAddEventListener('close-search-bar', 'click', () => {
         document.getElementById('search-bar').classList.add('hidden');
         document.getElementById('search-input').value = '';
         document.getElementById('search-results').innerHTML = '';
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
+    safeAddEventListener('search-input-header', 'keyup', handleSearch); // Add listener for header search input
+    safeAddEventListener('header-search-form', 'submit', (e) => e.preventDefault()); // Prevent form submission
+
     
     // New: Mobile Bottom Nav Listeners
     safeAddEventListener('mobile-bottom-search-btn', 'click', () => {
         document.getElementById('search-bar').classList.toggle('hidden');
-        showPage('search'); // You might want a dedicated search page or just toggle the bar
+        // You might want a dedicated search page or just toggle the bar
     });
     safeAddEventListener('mobile-bottom-cart-btn', 'click', () => toggleCart(true));
     document.querySelectorAll('#mobile-bottom-nav a[data-page]').forEach(link => {
