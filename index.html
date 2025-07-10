@@ -411,7 +411,10 @@
     <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-[70] hidden opacity-0 transform scale-95 transition-all duration-300">
         <div id="product-details-content-wrapper" class="relative max-h-[90vh] overflow-y-auto">
              <button id="close-product-details-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black z-10 bg-white rounded-full p-1"><i data-feather="x"></i></button>
-            <div id="product-details-content" class="flex flex-col md:flex-row"></div>
+            <!-- **NOVO**: Container para o conteúdo principal do modal -->
+            <div id="product-details-main-content"></div>
+            <!-- **NOVO**: Container para reviews e produtos relacionados -->
+            <div id="product-details-extra-content" class="p-8 border-t"></div>
         </div>
     </div>
 
