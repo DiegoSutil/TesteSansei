@@ -80,12 +80,7 @@ async function handleCheckout() {
     }
 
     showLoader(true);
-    setTimeout(() => {
-        createOrder();
-    }, 2000);
-}
 
-async function createOrder() {
     const total = calculateTotal();
     const orderItems = cart.map(item => {
         const product = allProducts.find(p => p.id === item.id);
@@ -111,6 +106,7 @@ async function createOrder() {
     try {
         await addDoc(collection(db, "orders"), newOrder);
         
+        // Clear cart after successful order
         cart = [];
         selectedShipping = null;
         localStorage.removeItem('sanseiCart');
@@ -119,7 +115,7 @@ async function createOrder() {
         showToast("Encomenda realizada com sucesso!");
         updateCartIcon();
         toggleCart(false);
-        showPage('profile');
+        showPage('profile'); // Redirect to profile to see the new order
     } catch (error) {
         console.error("Error creating order: ", error);
         showToast("Ocorreu um erro ao processar a sua encomenda.", true);
@@ -127,7 +123,6 @@ async function createOrder() {
         showLoader(false);
     }
 }
-
 
 function calculateSubtotal() {
     return cart.reduce((sum, item) => {
@@ -155,7 +150,7 @@ function calculateTotal() {
 // =================================================================
 async function handleCalculateShipping() {
     const cepInput = document.getElementById('cep-input');
-    const cep = cepInput.value.replace(/\D/g, '');
+    const cep = cepInput.value.replace(/\D/g, ''); // Remove non-digits
     const btn = document.getElementById('calculate-shipping-btn');
     const btnText = btn.querySelector('.btn-text');
     const loader = btn.querySelector('.loader-sm');
@@ -175,6 +170,7 @@ async function handleCalculateShipping() {
             throw new Error('CEP não encontrado ou API indisponível.');
         }
         
+        // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
         const shippingOptions = [
             { Codigo: '04510', nome: 'PAC', PrazoEntrega: 10, Valor: '25,50' },
             { Codigo: '04014', nome: 'SEDEX', PrazoEntrega: 5, Valor: '45,80' }
@@ -186,6 +182,7 @@ async function handleCalculateShipping() {
         console.error("Shipping calculation error:", error);
         showToast("Cálculo indisponível. Usando valores padrão.", true);
         
+        // Fallback logic: If the API fails, provide default shipping options.
         const defaultShippingOptions = [
             { Codigo: '04510', nome: 'PAC (Estimado)', PrazoEntrega: 12, Valor: '28,00' },
             { Codigo: '04014', nome: 'SEDEX (Estimado)', PrazoEntrega: 7, Valor: '52,00' }
@@ -203,7 +200,7 @@ function renderShippingOptions(options) {
     const container = document.getElementById('shipping-options');
     container.innerHTML = '';
     selectedShipping = null;
-    renderCart();
+    renderCart(); // Recalculate total without shipping
 
     if (!options || options.length === 0 || options.every(opt => opt.erro)) {
          container.innerHTML = `<p class="text-red-500 text-sm">Nenhuma opção de frete encontrada para o CEP informado.</p>`;
@@ -251,6 +248,7 @@ async function syncCartWithFirestore() {
     await updateDoc(userRef, { cart: cart });
 }
 
+// **NOVO**: Função de animação "Fly to Cart"
 function flyToCart(targetElement) {
     const cartIcon = document.getElementById('cart-button');
     if (!targetElement || !cartIcon) return;
@@ -268,8 +266,10 @@ function flyToCart(targetElement) {
 
     document.body.appendChild(flyingImage);
 
+    // Forçar reflow para aplicar o estado inicial antes da transição
     flyingImage.offsetHeight; 
 
+    // Mover para o carrinho
     flyingImage.style.left = `${cartRect.left + cartRect.width / 2}px`;
     flyingImage.style.top = `${cartRect.top + cartRect.height / 2}px`;
     flyingImage.style.width = '20px';
@@ -278,11 +278,12 @@ function flyToCart(targetElement) {
 
     setTimeout(() => {
         flyingImage.remove();
-    }, 1000);
+    }, 1000); // Duração da animação
 }
 
 
 async function addToCart(productId, quantity = 1, event) {
+    // **NOVO**: Adicionado spinner e desativação do botão
     const button = event.target.closest('.add-to-cart-btn');
     const originalText = button.innerHTML;
     button.disabled = true;
@@ -296,7 +297,8 @@ async function addToCart(productId, quantity = 1, event) {
         return;
     }
     
-    const productImage = button.closest('.group, #product-details-main-content').querySelector('img');
+    // **NOVO**: Animação "Fly to Cart"
+    const productImage = button.closest('.group').querySelector('img');
     flyToCart(productImage);
 
     const cartItem = cart.find(item => item.id === productId);
@@ -309,6 +311,7 @@ async function addToCart(productId, quantity = 1, event) {
     await syncCartWithFirestore();
     updateCartIcon();
     
+    // Restaurar o botão após um pequeno atraso para a animação ser visível
     setTimeout(() => {
         showToast(`${product.name} foi adicionado ao carrinho!`);
         button.disabled = false;
@@ -392,7 +395,7 @@ function renderCart() {
     
     cartItemsEl.innerHTML = cart.map(item => {
         const product = allProducts.find(p => p.id === item.id);
-        if (!product) return '';
+        if (!product) return ''; // Skip if product not found
         return `
         <div class="flex items-center gap-4 mb-4">
             <img src="${product.image}" alt="${product.name}" class="w-16 h-20 object-cover rounded-md">
@@ -435,50 +438,31 @@ function removeCoupon() {
 }
 
 // =================================================================
-// PRODUCT, REVIEWS & RELATED PRODUCTS FUNCTIONS
+// PRODUCT & RENDERING FUNCTIONS
 // =================================================================
-function renderStars(rating, isInteractive = false, size = 'w-5 h-5') {
+function renderStars(rating) {
     let stars = '';
-    const ratingValue = Math.round(rating);
-
-    if (isInteractive) {
-        stars = `
-            <div class="rating-input-group">
-                <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star4" name="rating" value="4" /><label for="star4"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star3" name="rating" value="3" /><label for="star3"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star2" name="rating" value="2" /><label for="star2"><i data-feather="star" class="${size}"></i></label>
-                <input type="radio" id="star1" name="rating" value="1" /><label for="star1"><i data-feather="star" class="${size}"></i></label>
-            </div>
-        `;
-    } else {
-        let starIcons = '';
-        for (let i = 1; i <= 5; i++) {
-            starIcons += `<i data-feather="star" class="feather-star ${size} ${i <= ratingValue ? 'filled' : ''}"></i>`;
-        }
-        stars = `<div class="flex items-center star-rating">${starIcons}</div>`;
+    for (let i = 1; i <= 5; i++) {
+        stars += `<i data-feather="star" class="feather-star ${i <= rating ? 'filled' : ''}"></i>`;
     }
-    return stars;
+    return `<div class="flex items-center star-rating">${stars}</div>`;
 }
 
-function createProductCard(product, isSmall = false) {
+function createProductCard(product) {
     const isInWishlist = currentUserData && currentUserData.wishlist.includes(product.id);
-    const imageClass = isSmall ? 'h-48' : 'h-64';
-    const titleClass = isSmall ? 'text-lg' : 'text-xl';
-
     return `
         <div class="bg-white group text-center rounded-lg shadow-sm flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl" data-aos="fade-up">
             <div class="relative overflow-hidden rounded-t-lg">
-                <img src="${product.image}" alt="${product.name}" class="w-full ${imageClass} object-cover group-hover:scale-105 transition-all-ease cursor-pointer" data-id="${product.id}">
+                <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover group-hover:scale-105 transition-all-ease cursor-pointer" data-id="${product.id}">
                 <button class="wishlist-heart absolute top-4 right-4 p-2 bg-white/70 rounded-full ${isInWishlist ? 'active' : ''}" data-id="${product.id}">
                     <i data-feather="heart" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="p-4 flex flex-col flex-grow">
-                <h3 class="font-heading font-semibold ${titleClass} cursor-pointer" data-id="${product.id}">${product.name}</h3>
+            <div class="p-6 flex flex-col flex-grow">
+                <h3 class="font-heading font-semibold text-xl cursor-pointer" data-id="${product.id}">${product.name}</h3>
                 <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
                 <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                <button class="view-details-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Ver Detalhes</button>
+                <button class="add-to-cart-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
             </div>
         </div>
     `;
@@ -489,6 +473,7 @@ function renderProducts(productsToRender, containerId) {
     if (!productListEl) return;
     
     if (productsToRender.length === 0) {
+        // **NOVO**: Mensagem mais amigável para páginas vazias
         productListEl.innerHTML = `
             <div class="col-span-full text-center text-gray-600">
                 <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
@@ -496,83 +481,14 @@ function renderProducts(productsToRender, containerId) {
             </div>
         `;
     } else {
-        productListEl.innerHTML = productsToRender.map(p => createProductCard(p)).join('');
+        productListEl.innerHTML = productsToRender.map(createProductCard).join('');
     }
     AOS.refresh();
     feather.replace();
 }
 
-async function handleReviewSubmit(e) {
-    e.preventDefault();
-    const form = e.target;
-    const productId = form.dataset.id;
-    const rating = form.rating.value;
-    const text = form.reviewText.value;
-
-    if (!rating) {
-        showToast("Por favor, selecione uma avaliação de estrelas.", true);
-        return;
-    }
-    if (!currentUserData) {
-        showToast("Faça login para enviar uma avaliação.", true);
-        toggleAuthModal(true);
-        return;
-    }
-
-    const button = form.querySelector('button');
-    button.disabled = true;
-    button.innerHTML = '<span class="loader-sm"></span>';
-
-    const newReview = {
-        userId: currentUserData.uid,
-        userName: currentUserData.email.split('@')[0],
-        rating: parseInt(rating),
-        text: text,
-        createdAt: Timestamp.now()
-    };
-
-    try {
-        const productRef = doc(db, "products", productId);
-        await updateDoc(productRef, {
-            reviews: arrayUnion(newReview)
-        });
-
-        const updatedDoc = await getDoc(productRef);
-        const productData = updatedDoc.data();
-        const reviews = productData.reviews || [];
-        const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-        const avgRating = reviews.length > 0 ? totalRating / reviews.length : 0;
-
-        await updateDoc(productRef, {
-            rating: avgRating
-        });
-        
-        const productIndex = allProducts.findIndex(p => p.id === productId);
-        if (productIndex !== -1) {
-            allProducts[productIndex].reviews = reviews;
-            allProducts[productIndex].rating = avgRating;
-        }
-
-        showToast("Avaliação enviada com sucesso!");
-        showProductDetails(productId);
-
-    } catch (error) {
-        console.error("Error submitting review:", error);
-        showToast("Erro ao enviar avaliação.", true);
-        button.disabled = false;
-        button.textContent = "Enviar Avaliação";
-    }
-}
-
-
-function applyFilters(gender = null) {
+function applyFilters() {
     let filteredProducts = [...allProducts];
-
-    if (gender) {
-        // Simple gender filter based on keywords in description
-        filteredProducts = filteredProducts.filter(p => p.description.toLowerCase().includes(gender));
-    }
-
     const selectedCategories = Array.from(document.querySelectorAll('#filter-cat-perfume, #filter-cat-decant'))
         .filter(cb => cb.checked)
         .map(cb => cb.value);
@@ -594,10 +510,10 @@ function applyFilters(gender = null) {
     } else if (sortBy === 'price-desc') {
         filteredProducts.sort((a, b) => b.price - a.price);
     } else if (sortBy === 'popularity') {
-        filteredProducts.sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0));
+        filteredProducts.sort((a, b) => b.rating - a.rating);
     }
 
-    renderProducts(filteredProducts, 'generic-product-list');
+    renderProducts(filteredProducts, 'product-list-fragrances');
 }
 
 async function fetchAndRenderReels() {
@@ -610,7 +526,7 @@ async function fetchAndRenderReels() {
             reelsContainer.innerHTML = '<p class="text-gray-400 col-span-full text-center">Nenhum reel encontrado.</p>';
             return;
         }
-        reelsContainer.innerHTML = '';
+        reelsContainer.innerHTML = ''; // Clear existing
         reelsSnapshot.forEach(doc => {
             const reel = doc.data();
             const reelElement = document.createElement('a');
@@ -717,7 +633,7 @@ async function handleRegister(e) {
         await setDoc(doc(db, "users", user.uid), {
             email: user.email,
             wishlist: [],
-            cart: []
+            cart: [] // Initialize cart in Firestore
         });
         showToast('Conta criada com sucesso! Faça login para continuar.');
         renderAuthForm(true);
@@ -736,7 +652,7 @@ async function handleRegister(e) {
 async function logout() {
     await signOut(auth);
     currentUserData = null;
-    cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+    cart = JSON.parse(localStorage.getItem('sanseiCart')) || []; // Revert to local cart
     updateAuthUI();
     updateCartIcon();
     showPage('inicio');
@@ -775,6 +691,7 @@ async function toggleWishlist(productId) {
             currentUserData.wishlist.push(productId);
             showToast('Adicionado à lista de desejos!');
         }
+        // Re-render all visible products to update heart icons
         refreshAllProductViews();
     } catch (error) {
         console.error("Error updating wishlist:", error);
@@ -825,88 +742,27 @@ function showProductDetails(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
-    const mainContentEl = document.getElementById('product-details-main-content');
-    const extraContentEl = document.getElementById('product-details-extra-content');
-    
-    mainContentEl.innerHTML = `
-        <div class="flex flex-col md:flex-row">
-            <div class="w-full md:w-1/2 p-8">
-                <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+    const contentEl = document.getElementById('product-details-content');
+    contentEl.innerHTML = `
+        <div class="w-full md:w-1/2 p-8">
+            <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
+        </div>
+        <div class="w-full md:w-1/2 p-8 flex flex-col">
+            <h2 class="font-heading text-4xl font-bold mb-2">${product.name}</h2>
+            <div class="flex items-center gap-2 mb-4">
+                ${renderStars(product.rating)}
+                <span class="text-gray-500 text-sm">(${product.reviews ? product.reviews.length : 0} avaliações)</span>
             </div>
-            <div class="w-full md:w-1/2 p-8 flex flex-col">
-                <h2 class="font-heading text-4xl font-bold mb-2">${product.name}</h2>
-                <div class="flex items-center gap-2 mb-4">
-                    ${renderStars(product.rating)}
-                    <span class="text-gray-500 text-sm">(${product.reviews ? product.reviews.length : 0} avaliações)</span>
-                </div>
-                <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
-                <div class="mt-auto">
-                    <p class="text-gold-500 font-bold text-3xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                    <button class="add-to-cart-btn w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
-                </div>
+            <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
+            <div class="mt-auto">
+                <p class="text-gold-500 font-bold text-3xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
+                <button class="add-to-cart-btn w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
             </div>
         </div>
     `;
-
-    const reviews = product.reviews || [];
-    const hasUserReviewed = currentUserData && reviews.some(r => r.userId === currentUserData.uid);
-
-    let reviewsHtml = `
-        <div class="mb-12">
-            <h3 class="font-heading text-2xl font-bold mb-6">Avaliações de Clientes</h3>
-            <div id="review-list" class="space-y-6 mb-8">
-                ${reviews.length > 0 ? reviews.map(review => `
-                    <div class="border-b pb-4">
-                        <div class="flex items-center mb-2">
-                            ${renderStars(review.rating, false, 'w-4 h-4')}
-                            <p class="ml-3 font-semibold">${review.userName}</p>
-                        </div>
-                        <p class="text-gray-600">${review.text}</p>
-                    </div>
-                `).join('') : '<p class="text-gray-500">Este produto ainda não tem avaliações. Seja o primeiro a avaliar!</p>'}
-            </div>
-            ${currentUserData && !hasUserReviewed ? `
-                <form id="review-form" data-id="${product.id}">
-                    <h4 class="font-semibold text-lg mb-2">Deixe a sua avaliação</h4>
-                    <div class="mb-2">${renderStars(0, true)}</div>
-                    <textarea name="reviewText" required class="w-full p-2 border rounded-md mb-2" placeholder="Escreva a sua opinião..."></textarea>
-                    <button type="submit" class="bg-black text-white font-bold py-2 px-4 rounded-md hover:bg-gray-800">Enviar Avaliação</button>
-                </form>
-            ` : ''}
-            ${currentUserData && hasUserReviewed ? '<p class="text-green-600 font-semibold">Obrigado pela sua avaliação!</p>' : ''}
-            ${!currentUserData ? '<p class="text-gray-600">Faça <a href="#" class="text-gold-500 font-bold auth-link">login</a> para deixar uma avaliação.</p>' : ''}
-        </div>
-    `;
-
-    const relatedProducts = allProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
-    let relatedHtml = `
-        <div>
-            <h3 class="font-heading text-2xl font-bold mb-6">Também pode gostar de...</h3>
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                ${relatedProducts.length > 0 ? relatedProducts.map(p => createProductCard(p, true)).join('') : '<p>Nenhum produto relacionado encontrado.</p>'}
-            </div>
-        </div>
-    `;
-
-    extraContentEl.innerHTML = reviewsHtml + relatedHtml;
-    
     feather.replace();
-    
-    const reviewForm = document.getElementById('review-form');
-    if (reviewForm) {
-        reviewForm.addEventListener('submit', handleReviewSubmit);
-    }
-    document.querySelectorAll('.auth-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleProductDetailsModal(false);
-            toggleAuthModal(true);
-        });
-    });
-
     toggleProductDetailsModal(true);
 }
-
 
 function toggleProductDetailsModal(show) {
     const overlay = document.getElementById('product-details-modal-overlay');
@@ -957,113 +813,40 @@ function handleNewsletterSubmit(e) {
 // PAGE INITIALIZATION & NAVIGATION
 // =================================================================
 const pages = document.querySelectorAll('.page-content');
-const mobileMenuEl = document.getElementById('mobile-menu');
+const navLinks = document.querySelectorAll('.nav-link');
+const mobileMenu = document.getElementById('mobile-menu');
 
 function showPage(pageId) {
     pages.forEach(page => page.classList.add('hidden'));
+    const targetPage = document.getElementById('page-' + pageId);
+    if(targetPage) { targetPage.classList.remove('hidden'); }
     
-    // **NOVO**: Lógica para páginas genéricas
-    const genericPageIds = ['fragrancias', 'feminino', 'masculino', 'decants', 'kits', 'mais-vendidos', 'descontos'];
-    if (genericPageIds.includes(pageId)) {
-        const pageConfig = {
-            'fragrancias': { title: 'Todas as Fragrâncias', description: 'Explore a nossa coleção completa.', filter: null },
-            'feminino': { title: 'Perfumes Femininos', description: 'Fragrâncias elegantes e marcantes para ela.', filter: 'feminino' },
-            'masculino': { title: 'Perfumes Masculinos', description: 'Aromas sofisticados e potentes para ele.', filter: 'masculino' },
-            'decants': { title: 'Todos os Decants', description: 'A forma perfeita de experimentar antes de se comprometer.', filter: 'decant' },
-            'kits': { title: 'Kits Especiais', description: 'Combinações perfeitas para presentear ou se presentear.', filter: 'kit' },
-            'mais-vendidos': { title: 'Mais Vendidos', description: 'Descubra os favoritos dos nossos clientes.', filter: 'mais-vendidos' },
-            'descontos': { title: 'Descontos Imperdíveis', description: 'Aproveite as nossas melhores ofertas.', filter: 'desconto' }
-        };
-        const config = pageConfig[pageId];
-        document.getElementById('generic-page-title').textContent = config.title;
-        document.getElementById('generic-page-description').textContent = config.description;
-        
-        // Lógica de filtragem
-        let productsToShow;
-        if (config.filter === 'mais-vendidos') {
-            productsToShow = [...allProducts].sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0)).slice(0, 12);
-        } else if (config.filter === 'desconto') {
-            productsToShow = allProducts.filter(p => p.category === 'decant').slice(0, 8); // Simulação
-        } else if (config.filter) {
-            productsToShow = allProducts.filter(p => p.description.toLowerCase().includes(config.filter) || p.category === config.filter);
-        } else {
-            productsToShow = allProducts;
-        }
-        renderProducts(productsToShow, 'generic-product-list');
-        
-        document.getElementById('page-generic').classList.remove('hidden');
-
-    } else if (pageId === 'quiz') {
-        startQuiz();
-        document.getElementById('page-quiz').classList.remove('hidden');
-    } else {
-        const targetPage = document.getElementById('page-' + pageId);
-        if(targetPage) { targetPage.classList.remove('hidden'); }
-    }
-    
-    document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => link.classList.remove('active'));
-    const activeLink = document.querySelector(`[data-page="${pageId}"]`);
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    const activeLink = document.getElementById('nav-' + pageId);
     if(activeLink) { activeLink.classList.add('active'); }
     
-    if (!mobileMenuEl.classList.contains('hidden')) { mobileMenuEl.classList.add('hidden'); }
+    if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
+    
+    // Page-specific logic
+    if (pageId === 'fragrancias') {
+        applyFilters();
+    } else if (pageId === 'decants') {
+        const decantProducts = allProducts.filter(p => p.category === 'decant');
+        renderProducts(decantProducts, 'product-list-decants');
+    } else if (pageId === 'profile') {
+        if (!currentUserData) {
+            showPage('inicio');
+            toggleAuthModal(true);
+            return;
+        }
+        document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
+        renderWishlist();
+        renderOrders();
+    }
     
     window.scrollTo(0, 0);
     AOS.refresh();
 }
-
-function initializePromoCarousel() {
-    const track = document.getElementById('promo-carousel-track');
-    const slides = document.querySelectorAll('.promo-carousel-slide');
-    const nextBtn = document.getElementById('promo-next');
-    const prevBtn = document.getElementById('promo-prev');
-    
-    if (!track || slides.length === 0) return;
-
-    let currentIndex = 0;
-    const slideCount = slides.length;
-    let autoPlayInterval;
-
-    function goToSlide(index) {
-        if (index < 0) {
-            currentIndex = slideCount - 1;
-        } else if (index >= slideCount) {
-            currentIndex = 0;
-        } else {
-            currentIndex = index;
-        }
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-    }
-
-    function startAutoPlay() {
-        stopAutoPlay();
-        autoPlayInterval = setInterval(() => {
-            goToSlide(currentIndex + 1);
-        }, 5000);
-    }
-
-    function stopAutoPlay() {
-        clearInterval(autoPlayInterval);
-    }
-
-    nextBtn.addEventListener('click', () => {
-        goToSlide(currentIndex + 1);
-        stopAutoPlay();
-        startAutoPlay();
-    });
-
-    prevBtn.addEventListener('click', () => {
-        goToSlide(currentIndex - 1);
-        stopAutoPlay();
-        startAutoPlay();
-    });
-    
-    const carousel = document.getElementById('promo-carousel');
-    carousel.addEventListener('mouseenter', stopAutoPlay);
-    carousel.addEventListener('mouseleave', startAutoPlay);
-
-    startAutoPlay();
-}
-
 
 async function renderWishlist() {
     const wishlistContainer = document.getElementById('wishlist-items');
@@ -1118,142 +901,15 @@ function refreshAllProductViews() {
 
     if (pageId === 'inicio') {
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
+    } else if (pageId === 'fragrancias') {
+        applyFilters();
+    } else if (pageId === 'decants') {
+         const decantProducts = allProducts.filter(p => p.category === 'decant');
+        renderProducts(decantProducts, 'product-list-decants');
     } else if (pageId === 'profile') {
         renderWishlist();
     }
 }
-
-// **NOVO**: Lógica do Quiz de Fragrâncias
-const quizData = [
-    {
-        question: "Qual ocasião inspira a sua busca por uma nova fragrância?",
-        options: [
-            { text: "Um evento de gala, sofisticado e noturno.", tags: ['noite', 'sofisticado'] },
-            { text: "Um dia de trabalho, preciso de algo profissional e discreto.", tags: ['dia', 'discreto'] },
-            { text: "Um encontro romântico, busco algo sedutor.", tags: ['sedutor', 'noite'] },
-            { text: "Momentos de lazer, algo leve e revigorante.", tags: ['dia', 'leve'] }
-        ]
-    },
-    {
-        question: "Que tipo de aroma mais lhe agrada?",
-        options: [
-            { text: "Cítricos e frescos, como limão e bergamota.", tags: ['fresco', 'leve'] },
-            { text: "Florais, como jasmim e rosas.", tags: ['sedutor', 'dia'] },
-            { text: "Amadeirados e terrosos, como sândalo e cedro.", tags: ['sofisticado', 'noite'] },
-            { text: "Doces e quentes, como baunilha e âmbar.", tags: ['sedutor', 'discreto'] }
-        ]
-    },
-    {
-        question: "Como descreveria a sua personalidade?",
-        options: [
-            { text: "Elegante e misterioso(a).", tags: ['sofisticado', 'noite'] },
-            { text: "Energético(a) e otimista.", tags: ['dia', 'fresco'] },
-            { text: "Confiante e ousado(a).", tags: ['sedutor', 'discreto'] },
-            { text: "Calmo(a) e sonhador(a).", tags: ['leve', 'dia'] }
-        ]
-    }
-];
-
-let currentQuestionIndex = 0;
-let userAnswers = [];
-
-function startQuiz() {
-    const quizContainer = document.getElementById('quiz-container');
-    quizContainer.classList.remove('hidden');
-    currentQuestionIndex = 0;
-    userAnswers = [];
-    displayQuestion();
-}
-
-function displayQuestion() {
-    const quizContainer = document.getElementById('quiz-container');
-    const questionData = quizData[currentQuestionIndex];
-    const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
-
-    quizContainer.innerHTML = `
-        <div class="quiz-question-container">
-            <div class="mb-4">
-                <div class="bg-gray-200 rounded-full h-2">
-                    <div class="bg-gold-500 h-2 rounded-full quiz-progress-bar" style="width: ${progress}%"></div>
-                </div>
-                <p class="text-sm text-right mt-1 text-gray-500">Pergunta ${currentQuestionIndex + 1} de ${quizData.length}</p>
-            </div>
-            <h3 class="font-heading text-3xl font-bold mb-6">${questionData.question}</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                ${questionData.options.map((opt, index) => `
-                    <button class="quiz-option text-left p-4 border-2 border-gray-200 rounded-lg" data-tags="${opt.tags.join(',')}" data-index="${index}">
-                        ${opt.text}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
-
-    setTimeout(() => {
-        quizContainer.querySelector('.quiz-question-container').classList.add('active');
-    }, 10);
-
-    quizContainer.querySelectorAll('.quiz-option').forEach(btn => {
-        btn.addEventListener('click', handleQuizAnswer);
-    });
-}
-
-function handleQuizAnswer(event) {
-    const selectedOption = event.currentTarget;
-    userAnswers.push(...selectedOption.dataset.tags.split(','));
-    
-    document.querySelectorAll('.quiz-option').forEach(btn => btn.classList.remove('selected'));
-    selectedOption.classList.add('selected');
-
-    setTimeout(() => {
-        currentQuestionIndex++;
-        if (currentQuestionIndex < quizData.length) {
-            displayQuestion();
-        } else {
-            showQuizResults();
-        }
-    }, 500);
-}
-
-function showQuizResults() {
-    const quizContainer = document.getElementById('quiz-container');
-    quizContainer.innerHTML = `
-        <div class="text-center">
-            <h3 class="font-heading text-3xl font-bold mb-4">A sua assinatura olfativa...</h3>
-            <p class="text-gray-600 mb-8">Com base nas suas respostas, selecionámos estas fragrâncias que combinam com a sua história.</p>
-            <div id="quiz-results-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="loader-container col-span-full flex justify-center p-8"><div class="loader"></div></div>
-            </div>
-            <button id="restart-quiz-btn" class="mt-8 bg-gray-800 text-white font-bold py-3 px-10 rounded-full hover:bg-black transition-all-ease">Refazer o Quiz</button>
-        </div>
-    `;
-    
-    document.getElementById('restart-quiz-btn').addEventListener('click', () => showPage('quiz'));
-
-    const tagCounts = userAnswers.reduce((acc, tag) => {
-        acc[tag] = (acc[tag] || 0) + 1;
-        return acc;
-    }, {});
-
-    const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
-    
-    const recommendedProducts = allProducts.filter(product => {
-        const productText = (product.name + ' ' + product.description).toLowerCase();
-        if (productText.includes(sortedTags[0]) || productText.includes(sortedTags[1])) {
-            return true;
-        }
-        return false;
-    }).slice(0, 3);
-
-    const resultsContainer = document.getElementById('quiz-results-products');
-    if (recommendedProducts.length > 0) {
-        resultsContainer.innerHTML = recommendedProducts.map(p => createProductCard(p)).join('');
-    } else {
-        resultsContainer.innerHTML = `<p class="col-span-full text-gray-500">Não encontrámos uma correspondência exata, mas aqui estão os nossos mais populares:</p>` + allProducts.slice(0, 3).map(p => createProductCard(p)).join('');
-    }
-    feather.replace();
-}
-
 
 async function fetchInitialData() {
     try {
@@ -1280,14 +936,13 @@ function initializeEventListeners() {
         }
     };
 
-    document.querySelectorAll('.nav-link, .dropdown-item, .nav-link-footer, .nav-link-button').forEach(link => {
+    safeAddEventListener('logo-link', 'click', (e) => { e.preventDefault(); showPage('inicio'); });
+    document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            const page = link.dataset.page;
-            if (page) showPage(page);
+            showPage(link.dataset.page);
         });
     });
-    
     safeAddEventListener('cart-button', 'click', () => toggleCart(true));
     safeAddEventListener('close-cart-button', 'click', () => toggleCart(false));
     safeAddEventListener('cart-modal-overlay', 'click', () => toggleCart(false));
@@ -1295,7 +950,7 @@ function initializeEventListeners() {
     safeAddEventListener('calculate-shipping-btn', 'click', handleCalculateShipping);
     safeAddEventListener('close-product-details-modal', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
-    safeAddEventListener('mobile-menu-button', 'click', () => { mobileMenuEl.classList.toggle('hidden'); });
+    safeAddEventListener('mobile-menu-button', 'click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
     safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false));
@@ -1309,7 +964,20 @@ function initializeEventListeners() {
         document.getElementById('search-results').innerHTML = '';
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
-    
+    document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
+    document.querySelectorAll('.faq-question').forEach(question => {
+        question.addEventListener('click', () => {
+            const answer = question.nextElementSibling;
+            const icon = question.querySelector('i');
+            if (answer.style.maxHeight) {
+                answer.style.maxHeight = null;
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                answer.style.maxHeight = answer.scrollHeight + "px";
+                icon.style.transform = 'rotate(180deg)';
+            }
+        });
+    });
     document.body.addEventListener('click', (e) => {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
@@ -1317,10 +985,8 @@ function initializeEventListeners() {
         const searchResult = e.target.closest('.search-result-item');
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
-        const viewDetailsBtn = e.target.closest('.view-details-btn');
 
-        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
-        else if (viewDetailsBtn) { e.stopPropagation(); showProductDetails(viewDetailsBtn.dataset.id); }
+        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); } // **NOVO**: Passar o evento
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
@@ -1328,6 +994,7 @@ function initializeEventListeners() {
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
     });
     
+    // **NOVO**: Event listener para fechar modais com a tecla 'Esc'
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             toggleCart(false);
@@ -1337,55 +1004,23 @@ function initializeEventListeners() {
     });
 }
 
-function generateMobileMenu() {
-    const desktopNav = document.querySelector('.hidden.md\\:flex.items-center.space-x-6');
-    mobileMenuEl.innerHTML = ''; // Limpa o menu existente
-    desktopNav.childNodes.forEach(node => {
-        if (node.nodeType === Node.ELEMENT_NODE) {
-            const clone = node.cloneNode(true);
-            if (clone.classList.contains('dropdown')) {
-                const mainLink = clone.querySelector('a');
-                mobileMenuEl.innerHTML += `<a href="#" data-page="${mainLink.dataset.page}" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">${mainLink.textContent.replace(' expand_more', '')}</a>`;
-                const subLinks = clone.querySelectorAll('.dropdown-item');
-                subLinks.forEach(sublink => {
-                    mobileMenuEl.innerHTML += `<a href="#" data-page="${sublink.dataset.page}" class="mobile-nav-link block py-2 pl-8 pr-4 text-sm text-gray-700 hover:bg-gray-100 rounded">${sublink.textContent}</a>`;
-                });
-            } else {
-                 clone.classList.remove('nav-link');
-                 clone.classList.add('mobile-nav-link', 'block', 'py-2', 'px-4', 'text-sm', 'text-gray-700', 'hover:bg-gray-100', 'rounded');
-                 mobileMenuEl.appendChild(clone);
-            }
-        }
-    });
-     mobileMenuEl.innerHTML += `<a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>`;
-     // Re-atribui os event listeners para os novos links móveis
-     document.querySelectorAll('.mobile-nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const page = link.dataset.page;
-            if (page) showPage(page);
-        });
-    });
-}
-
-
 // =================================================================
 // MAIN APP LOGIC
 // =================================================================
 async function main() {
     try {
         showLoader(true);
-        generateMobileMenu();
         initializeEventListeners();
         
+        // Initial UI setup that doesn't depend on data
         feather.replace();
         AOS.init({ duration: 800, once: true });
         updateCartIcon();
 
+        // Fetch all site data first
         await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
-        
-        initializePromoCarousel();
 
+        // Now set up the auth listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userDocRef = doc(db, "users", user.uid);
@@ -1425,4 +1060,5 @@ async function main() {
     }
 }
 
+// Start the application
 document.addEventListener('DOMContentLoaded', main);
