@@ -57,10 +57,9 @@ h1, h2, h3, h4, .font-heading {
     stroke: #f59e0b;
 }
 
-/* **NOVO**: Estilos para o formulário de avaliação */
 .rating-input-group {
     display: flex;
-    flex-direction: row-reverse; /* Inverte a ordem para o truque do CSS funcionar */
+    flex-direction: row-reverse;
     justify-content: flex-end;
 }
 .rating-input-group input[type="radio"] {
