@@ -1009,7 +1009,7 @@ function initializePromoCarousel() {
     }
 
     function startAutoPlay() {
-        stopAutoPlay(); // Evita múltiplos intervalos
+        stopAutoPlay();
         autoPlayInterval = setInterval(() => {
             goToSlide(currentIndex + 1);
         }, 5000);
@@ -1102,6 +1102,144 @@ function refreshAllProductViews() {
     }
 }
 
+// **NOVO**: Lógica do Quiz de Fragrâncias
+const quizData = [
+    {
+        question: "Qual ocasião inspira a sua busca por uma nova fragrância?",
+        options: [
+            { text: "Um evento de gala, sofisticado e noturno.", tags: ['noite', 'sofisticado'] },
+            { text: "Um dia de trabalho, preciso de algo profissional e discreto.", tags: ['dia', 'discreto'] },
+            { text: "Um encontro romântico, busco algo sedutor.", tags: ['sedutor', 'noite'] },
+            { text: "Momentos de lazer, algo leve e revigorante.", tags: ['dia', 'leve'] }
+        ]
+    },
+    {
+        question: "Que tipo de aroma mais lhe agrada?",
+        options: [
+            { text: "Cítricos e frescos, como limão e bergamota.", tags: ['fresco', 'leve'] },
+            { text: "Florais, como jasmim e rosas.", tags: ['sedutor', 'dia'] },
+            { text: "Amadeirados e terrosos, como sândalo e cedro.", tags: ['sofisticado', 'noite'] },
+            { text: "Doces e quentes, como baunilha e âmbar.", tags: ['sedutor', 'discreto'] }
+        ]
+    },
+    {
+        question: "Como descreveria a sua personalidade?",
+        options: [
+            { text: "Elegante e misterioso(a).", tags: ['sofisticado', 'noite'] },
+            { text: "Energético(a) e otimista.", tags: ['dia', 'fresco'] },
+            { text: "Confiante e ousado(a).", tags: ['sedutor', 'discreto'] },
+            { text: "Calmo(a) e sonhador(a).", tags: ['leve', 'dia'] }
+        ]
+    }
+];
+
+let currentQuestionIndex = 0;
+let userAnswers = [];
+
+function startQuiz() {
+    document.getElementById('quiz-intro').classList.add('hidden');
+    const quizContainer = document.getElementById('quiz-container');
+    quizContainer.classList.remove('hidden');
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    displayQuestion();
+}
+
+function displayQuestion() {
+    const quizContainer = document.getElementById('quiz-container');
+    const questionData = quizData[currentQuestionIndex];
+    const progress = ((currentQuestionIndex + 1) / quizData.length) * 100;
+
+    quizContainer.innerHTML = `
+        <div class="quiz-question-container">
+            <div class="mb-4">
+                <div class="bg-gray-200 rounded-full h-2">
+                    <div class="bg-gold-500 h-2 rounded-full quiz-progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <p class="text-sm text-right mt-1 text-gray-500">Pergunta ${currentQuestionIndex + 1} de ${quizData.length}</p>
+            </div>
+            <h3 class="font-heading text-3xl font-bold mb-6">${questionData.question}</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${questionData.options.map((opt, index) => `
+                    <button class="quiz-option text-left p-4 border-2 border-gray-200 rounded-lg" data-tags="${opt.tags.join(',')}" data-index="${index}">
+                        ${opt.text}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    setTimeout(() => {
+        quizContainer.querySelector('.quiz-question-container').classList.add('active');
+    }, 10);
+
+    quizContainer.querySelectorAll('.quiz-option').forEach(btn => {
+        btn.addEventListener('click', handleQuizAnswer);
+    });
+}
+
+function handleQuizAnswer(event) {
+    const selectedOption = event.currentTarget;
+    userAnswers.push(...selectedOption.dataset.tags.split(','));
+    
+    // Animação de seleção
+    document.querySelectorAll('.quiz-option').forEach(btn => btn.classList.remove('selected'));
+    selectedOption.classList.add('selected');
+
+    setTimeout(() => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            displayQuestion();
+        } else {
+            showQuizResults();
+        }
+    }, 500);
+}
+
+function showQuizResults() {
+    const quizContainer = document.getElementById('quiz-container');
+    quizContainer.innerHTML = `
+        <div class="text-center">
+            <h3 class="font-heading text-3xl font-bold mb-4">A sua assinatura olfativa...</h3>
+            <p class="text-gray-600 mb-8">Com base nas suas respostas, selecionámos estas fragrâncias que combinam com a sua história.</p>
+            <div id="quiz-results-products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="loader-container col-span-full flex justify-center p-8"><div class="loader"></div></div>
+            </div>
+            <button id="restart-quiz-btn" class="mt-8 bg-gray-800 text-white font-bold py-3 px-10 rounded-full hover:bg-black transition-all-ease">Refazer o Quiz</button>
+        </div>
+    `;
+    
+    document.getElementById('restart-quiz-btn').addEventListener('click', startQuiz);
+
+    // Lógica para encontrar os produtos correspondentes
+    const tagCounts = userAnswers.reduce((acc, tag) => {
+        acc[tag] = (acc[tag] || 0) + 1;
+        return acc;
+    }, {});
+
+    const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
+    
+    // Encontra produtos que contenham as tags mais votadas na descrição
+    const recommendedProducts = allProducts.filter(product => {
+        const productText = (product.name + ' ' + product.description).toLowerCase();
+        // Damos mais peso às primeiras tags (mais votadas)
+        if (productText.includes(sortedTags[0]) || productText.includes(sortedTags[1])) {
+            return true;
+        }
+        return false;
+    }).slice(0, 3); // Limita a 3 recomendações
+
+    const resultsContainer = document.getElementById('quiz-results-products');
+    if (recommendedProducts.length > 0) {
+        resultsContainer.innerHTML = recommendedProducts.map(p => createProductCard(p)).join('');
+    } else {
+        // Fallback se nenhum produto corresponder
+        resultsContainer.innerHTML = `<p class="col-span-full text-gray-500">Não encontrámos uma correspondência exata, mas aqui estão os nossos mais populares:</p>` + allProducts.slice(0, 3).map(p => createProductCard(p)).join('');
+    }
+    feather.replace();
+}
+
+
 async function fetchInitialData() {
     try {
         const productsSnapshot = await getDocs(collection(db, "products"));
@@ -1169,6 +1307,10 @@ function initializeEventListeners() {
             }
         });
     });
+
+    // **NOVO**: Event listener para o botão de iniciar o quiz
+    safeAddEventListener('start-quiz-btn', 'click', startQuiz);
+
     document.body.addEventListener('click', (e) => {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
