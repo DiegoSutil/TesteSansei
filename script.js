@@ -565,8 +565,14 @@ async function handleReviewSubmit(e) {
 }
 
 
-function applyFilters() {
+function applyFilters(gender = null) {
     let filteredProducts = [...allProducts];
+
+    if (gender) {
+        // Simple gender filter based on keywords in description
+        filteredProducts = filteredProducts.filter(p => p.description.toLowerCase().includes(gender));
+    }
+
     const selectedCategories = Array.from(document.querySelectorAll('#filter-cat-perfume, #filter-cat-decant'))
         .filter(cb => cb.checked)
         .map(cb => cb.value);
@@ -591,7 +597,7 @@ function applyFilters() {
         filteredProducts.sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0));
     }
 
-    renderProducts(filteredProducts, 'product-list-fragrances');
+    renderProducts(filteredProducts, 'generic-product-list');
 }
 
 async function fetchAndRenderReels() {
@@ -951,35 +957,55 @@ function handleNewsletterSubmit(e) {
 // PAGE INITIALIZATION & NAVIGATION
 // =================================================================
 const pages = document.querySelectorAll('.page-content');
-const navLinks = document.querySelectorAll('.nav-link');
-const mobileMenu = document.getElementById('mobile-menu');
+const mobileMenuEl = document.getElementById('mobile-menu');
 
 function showPage(pageId) {
     pages.forEach(page => page.classList.add('hidden'));
-    const targetPage = document.getElementById('page-' + pageId);
-    if(targetPage) { targetPage.classList.remove('hidden'); }
     
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-    const activeLink = document.getElementById('nav-' + pageId);
+    // **NOVO**: Lógica para páginas genéricas
+    const genericPageIds = ['fragrancias', 'feminino', 'masculino', 'decants', 'kits', 'mais-vendidos', 'descontos'];
+    if (genericPageIds.includes(pageId)) {
+        const pageConfig = {
+            'fragrancias': { title: 'Todas as Fragrâncias', description: 'Explore a nossa coleção completa.', filter: null },
+            'feminino': { title: 'Perfumes Femininos', description: 'Fragrâncias elegantes e marcantes para ela.', filter: 'feminino' },
+            'masculino': { title: 'Perfumes Masculinos', description: 'Aromas sofisticados e potentes para ele.', filter: 'masculino' },
+            'decants': { title: 'Todos os Decants', description: 'A forma perfeita de experimentar antes de se comprometer.', filter: 'decant' },
+            'kits': { title: 'Kits Especiais', description: 'Combinações perfeitas para presentear ou se presentear.', filter: 'kit' },
+            'mais-vendidos': { title: 'Mais Vendidos', description: 'Descubra os favoritos dos nossos clientes.', filter: 'mais-vendidos' },
+            'descontos': { title: 'Descontos Imperdíveis', description: 'Aproveite as nossas melhores ofertas.', filter: 'desconto' }
+        };
+        const config = pageConfig[pageId];
+        document.getElementById('generic-page-title').textContent = config.title;
+        document.getElementById('generic-page-description').textContent = config.description;
+        
+        // Lógica de filtragem
+        let productsToShow;
+        if (config.filter === 'mais-vendidos') {
+            productsToShow = [...allProducts].sort((a, b) => (b.reviews?.length || 0) - (a.reviews?.length || 0)).slice(0, 12);
+        } else if (config.filter === 'desconto') {
+            productsToShow = allProducts.filter(p => p.category === 'decant').slice(0, 8); // Simulação
+        } else if (config.filter) {
+            productsToShow = allProducts.filter(p => p.description.toLowerCase().includes(config.filter) || p.category === config.filter);
+        } else {
+            productsToShow = allProducts;
+        }
+        renderProducts(productsToShow, 'generic-product-list');
+        
+        document.getElementById('page-generic').classList.remove('hidden');
+
+    } else if (pageId === 'quiz') {
+        startQuiz();
+        document.getElementById('page-quiz').classList.remove('hidden');
+    } else {
+        const targetPage = document.getElementById('page-' + pageId);
+        if(targetPage) { targetPage.classList.remove('hidden'); }
+    }
+    
+    document.querySelectorAll('.nav-link, .dropdown-item').forEach(link => link.classList.remove('active'));
+    const activeLink = document.querySelector(`[data-page="${pageId}"]`);
     if(activeLink) { activeLink.classList.add('active'); }
     
-    if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
-    
-    if (pageId === 'fragrancias') {
-        applyFilters();
-    } else if (pageId === 'decants') {
-        const decantProducts = allProducts.filter(p => p.category === 'decant');
-        renderProducts(decantProducts, 'product-list-decants');
-    } else if (pageId === 'profile') {
-        if (!currentUserData) {
-            showPage('inicio');
-            toggleAuthModal(true);
-            return;
-        }
-        document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
-        renderWishlist();
-        renderOrders();
-    }
+    if (!mobileMenuEl.classList.contains('hidden')) { mobileMenuEl.classList.add('hidden'); }
     
     window.scrollTo(0, 0);
     AOS.refresh();
@@ -1092,11 +1118,6 @@ function refreshAllProductViews() {
 
     if (pageId === 'inicio') {
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
-    } else if (pageId === 'fragrancias') {
-        applyFilters();
-    } else if (pageId === 'decants') {
-         const decantProducts = allProducts.filter(p => p.category === 'decant');
-        renderProducts(decantProducts, 'product-list-decants');
     } else if (pageId === 'profile') {
         renderWishlist();
     }
@@ -1137,7 +1158,6 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 
 function startQuiz() {
-    document.getElementById('quiz-intro').classList.add('hidden');
     const quizContainer = document.getElementById('quiz-container');
     quizContainer.classList.remove('hidden');
     currentQuestionIndex = 0;
@@ -1182,7 +1202,6 @@ function handleQuizAnswer(event) {
     const selectedOption = event.currentTarget;
     userAnswers.push(...selectedOption.dataset.tags.split(','));
     
-    // Animação de seleção
     document.querySelectorAll('.quiz-option').forEach(btn => btn.classList.remove('selected'));
     selectedOption.classList.add('selected');
 
@@ -1209,9 +1228,8 @@ function showQuizResults() {
         </div>
     `;
     
-    document.getElementById('restart-quiz-btn').addEventListener('click', startQuiz);
+    document.getElementById('restart-quiz-btn').addEventListener('click', () => showPage('quiz'));
 
-    // Lógica para encontrar os produtos correspondentes
     const tagCounts = userAnswers.reduce((acc, tag) => {
         acc[tag] = (acc[tag] || 0) + 1;
         return acc;
@@ -1219,21 +1237,18 @@ function showQuizResults() {
 
     const sortedTags = Object.keys(tagCounts).sort((a, b) => tagCounts[b] - tagCounts[a]);
     
-    // Encontra produtos que contenham as tags mais votadas na descrição
     const recommendedProducts = allProducts.filter(product => {
         const productText = (product.name + ' ' + product.description).toLowerCase();
-        // Damos mais peso às primeiras tags (mais votadas)
         if (productText.includes(sortedTags[0]) || productText.includes(sortedTags[1])) {
             return true;
         }
         return false;
-    }).slice(0, 3); // Limita a 3 recomendações
+    }).slice(0, 3);
 
     const resultsContainer = document.getElementById('quiz-results-products');
     if (recommendedProducts.length > 0) {
         resultsContainer.innerHTML = recommendedProducts.map(p => createProductCard(p)).join('');
     } else {
-        // Fallback se nenhum produto corresponder
         resultsContainer.innerHTML = `<p class="col-span-full text-gray-500">Não encontrámos uma correspondência exata, mas aqui estão os nossos mais populares:</p>` + allProducts.slice(0, 3).map(p => createProductCard(p)).join('');
     }
     feather.replace();
@@ -1265,13 +1280,14 @@ function initializeEventListeners() {
         }
     };
 
-    safeAddEventListener('logo-link', 'click', (e) => { e.preventDefault(); showPage('inicio'); });
-    document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
+    document.querySelectorAll('.nav-link, .dropdown-item, .nav-link-footer, .nav-link-button').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            showPage(link.dataset.page);
+            const page = link.dataset.page;
+            if (page) showPage(page);
         });
     });
+    
     safeAddEventListener('cart-button', 'click', () => toggleCart(true));
     safeAddEventListener('close-cart-button', 'click', () => toggleCart(false));
     safeAddEventListener('cart-modal-overlay', 'click', () => toggleCart(false));
@@ -1279,7 +1295,7 @@ function initializeEventListeners() {
     safeAddEventListener('calculate-shipping-btn', 'click', handleCalculateShipping);
     safeAddEventListener('close-product-details-modal', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
-    safeAddEventListener('mobile-menu-button', 'click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
+    safeAddEventListener('mobile-menu-button', 'click', () => { mobileMenuEl.classList.toggle('hidden'); });
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
     safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false));
@@ -1293,24 +1309,7 @@ function initializeEventListeners() {
         document.getElementById('search-results').innerHTML = '';
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
-    document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
-    document.querySelectorAll('.faq-question').forEach(question => {
-        question.addEventListener('click', () => {
-            const answer = question.nextElementSibling;
-            const icon = question.querySelector('i');
-            if (answer.style.maxHeight) {
-                answer.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                answer.style.maxHeight = answer.scrollHeight + "px";
-                icon.style.transform = 'rotate(180deg)';
-            }
-        });
-    });
-
-    // **NOVO**: Event listener para o botão de iniciar o quiz
-    safeAddEventListener('start-quiz-btn', 'click', startQuiz);
-
+    
     document.body.addEventListener('click', (e) => {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
@@ -1338,12 +1337,45 @@ function initializeEventListeners() {
     });
 }
 
+function generateMobileMenu() {
+    const desktopNav = document.querySelector('.hidden.md\\:flex.items-center.space-x-6');
+    mobileMenuEl.innerHTML = ''; // Limpa o menu existente
+    desktopNav.childNodes.forEach(node => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const clone = node.cloneNode(true);
+            if (clone.classList.contains('dropdown')) {
+                const mainLink = clone.querySelector('a');
+                mobileMenuEl.innerHTML += `<a href="#" data-page="${mainLink.dataset.page}" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">${mainLink.textContent.replace(' expand_more', '')}</a>`;
+                const subLinks = clone.querySelectorAll('.dropdown-item');
+                subLinks.forEach(sublink => {
+                    mobileMenuEl.innerHTML += `<a href="#" data-page="${sublink.dataset.page}" class="mobile-nav-link block py-2 pl-8 pr-4 text-sm text-gray-700 hover:bg-gray-100 rounded">${sublink.textContent}</a>`;
+                });
+            } else {
+                 clone.classList.remove('nav-link');
+                 clone.classList.add('mobile-nav-link', 'block', 'py-2', 'px-4', 'text-sm', 'text-gray-700', 'hover:bg-gray-100', 'rounded');
+                 mobileMenuEl.appendChild(clone);
+            }
+        }
+    });
+     mobileMenuEl.innerHTML += `<a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>`;
+     // Re-atribui os event listeners para os novos links móveis
+     document.querySelectorAll('.mobile-nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.dataset.page;
+            if (page) showPage(page);
+        });
+    });
+}
+
+
 // =================================================================
 // MAIN APP LOGIC
 // =================================================================
 async function main() {
     try {
         showLoader(true);
+        generateMobileMenu();
         initializeEventListeners();
         
         feather.replace();
