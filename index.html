@@ -3,198 +3,441 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Administração - SANSEI DECANTS</title>
+    
+    <!-- SEO Básico: Título da Página -->
+    <title>SANSEI DECANTS - Perfumes Importados e Decants de Luxo</title>
+
+    <!-- SEO Básico: Descrição do Site -->
+    <meta name="description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Oferecemos uma curadoria exclusiva de perfumes importados e decants de luxo. Compre online com segurança.">
+
+    <!-- SEO Básico: Palavras-chave -->
+    <meta name="keywords" content="decants, perfumes importados, sansei decants, perfumes de nicho, comprar perfume online, fragrâncias">
+
+    <!-- SEO Básico: Open Graph Tags para Redes Sociais -->
+    <meta property="og:title" content="SANSEI DECANTS - Perfumes Importados e Decants de Luxo">
+    <meta property="og:description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Curadoria exclusiva de perfumes importados e decants.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG">
+    <meta property="og:url" content="https://www.sanseidecants.com.br"> <!-- Substitua pelo seu domínio real -->
+    <meta property="og:type" content="website">
+
+    <!-- SEO Básico: Favicon (Ícone do site no separador do navegador) -->
+    <link rel="icon" href="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" type="image/x-icon">
+
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Cormorant Garamond (for headings) & Lato (for body) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Feather Icons for Icons -->
     <script src="https://unpkg.com/feather-icons"></script>
-    <link rel="stylesheet" href="admin-style.css">
-</head>
-<body class="bg-gray-100">
 
-    <!-- Tela de Autenticação -->
-    <div id="auth-screen" class="min-h-screen flex items-center justify-center">
-        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-            <h1 class="text-2xl font-bold mb-6 text-center text-gray-800">Login do Administrador</h1>
-            <div id="auth-message" class="mb-4"></div>
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="email" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
-                </div>
-                <div class="mb-6">
-                    <label for="password" class="block text-sm font-medium text-gray-700">Senha</label>
-                    <input type="password" id="password" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-gold-500 focus:border-gold-500 sm:text-sm">
-                </div>
-                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-black bg-gold-500 hover:bg-gold-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gold-500">
-                    Entrar
+    <!-- AOS (Animate on Scroll) Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-white text-gray-800">
+
+    <!-- =========== Header / Navigation Bar =========== -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" id="logo-link" class="block h-24">
+                <img src="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" alt="SANSEI DECANTS Logo" class="h-full w-auto">
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#" data-page="inicio" id="nav-inicio" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Início</a>
+                <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Fragrâncias</a>
+                <a href="#" data-page="decants" id="nav-decants" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Decants</a>
+                <a href="#" data-page="sobre" id="nav-sobre" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Sobre</a>
+                <a href="#" data-page="faq" id="nav-faq" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">FAQ</a>
+                <a href="#" data-page="contato" id="nav-contato" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Contato</a>
+            </div>
+            <div class="flex items-center space-x-5">
+                <button id="search-button" class="text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="search" class="w-6 h-6"></i></button>
+                <button id="cart-button" class="text-gray-500 hover:text-gold-500 focus:outline-none relative transition-all-ease">
+                    <i data-feather="shopping-cart" class="w-6 h-6"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-gold-500 text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-sans">0</span>
                 </button>
-            </form>
+                <button id="user-button" class="hidden md:block text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="user" class="w-6 h-6"></i></button>
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gold-500 focus:outline-none"><i data-feather="menu" class="w-6 h-6"></i></button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2 bg-white">
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="inicio">Início</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="fragrancias">Fragrâncias</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="decants">Decants</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="sobre">Sobre</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="faq">FAQ</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="contato">Contato</a>
+             <a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>
+        </div>
+        <!-- Search Bar -->
+        <div id="search-bar" class="hidden bg-white border-t border-gray-200">
+            <div class="container mx-auto p-4 flex items-center gap-4">
+                <input type="text" id="search-input" placeholder="O que você procura?" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <button id="close-search-bar" class="text-gray-500 hover:text-black"><i data-feather="x"></i></button>
+            </div>
+            <div id="search-results" class="container mx-auto px-4 pb-4 max-h-96 overflow-y-auto"></div>
+        </div>
+    </header>
+
+    <!-- =========== Main Content =========== -->
+    <main>
+        <!-- =========== INICIO Page Content =========== -->
+        <div id="page-inicio" class="page-content">
+            <!-- Hero Section -->
+            <section class="relative bg-black text-white py-24 md:py-40 parallax-bg" style="background-image: url('https://raw.githubusercontent.com/DiegoSutil/TesteSansei/7d368b520b04e2693d0313b19f040a0611f20ba3/Gemini_Generated_Image_17fx3q17fx3q17fx.png');">
+                <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+                <div class="container mx-auto px-6 text-center relative z-10" data-aos="fade-up">
+                    <h1 class="font-heading text-5xl md:text-7xl font-bold leading-tight mb-4 text-gold-gradient">Fragrâncias que Contam Histórias</h1>
+                    <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto text-gray-200 font-light">Descubra aromas únicos e encontre a sua assinatura olfativa.</p>
+                    <a href="#" data-page="fragrancias" class="nav-link-button bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider shadow-lg hover:shadow-gold-500/50">VER COLEÇÃO</a>
+                </div>
+            </section>
+            <!-- Benefits Bar -->
+            <section class="bg-white py-12">
+                <div class="container mx-auto px-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" data-aos="fade-up">
+                        <div class="flex flex-col items-center"><i data-feather="award" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Fragrâncias Raras</h3><p class="text-gray-600 text-sm">Curadoria de perfumes de nicho e exclusivos.</p></div>
+                        <div class="flex flex-col items-center"><i data-feather="box" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Embalagem de Luxo</h3><p class="text-gray-600 text-sm">Uma experiência premium do início ao fim.</p></div>
+                        <div class="flex flex-col items-center"><i data-feather="truck" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Envio para Todo o Brasil</h3><p class="text-gray-600 text-sm">Receba seus decants com segurança e rapidez.</p></div>
+                    </div>
+                </div>
+            </section>
+            <!-- Featured Products Section -->
+            <section class="py-20 bg-gray-50">
+                <div class="container mx-auto px-6">
+                    <h2 class="font-heading text-4xl font-bold text-center mb-12 text-black" data-aos="fade-up">Mais Desejados</h2>
+                    <div id="product-list-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"></div>
+                </div>
+            </section>
+            <!-- Instagram Reels Section -->
+            <section class="bg-white py-20">
+                <div class="container mx-auto px-6 text-center">
+                    <h2 class="font-heading text-4xl font-bold text-black mb-4" data-aos="fade-up">Veja os nossos Reels</h2>
+                    <p class="text-gray-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
+                    <div id="reels-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
+                        <!-- Reels will be loaded here by JS -->
+                    </div>
+                    <div class="mt-12" data-aos="fade-up">
+                        <a href="https://www.instagram.com/sanseidecants/reels/" target="_blank" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Ver mais no Instagram</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- =========== FRAGRANCIAS Page Content =========== -->
+        <div id="page-fragrancias" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa Coleção</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Explore e encontre a sua fragrância perfeita.</p>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-12">
+                        <!-- Filter Sidebar -->
+                        <aside class="w-full md:w-1/4" data-aos="fade-right">
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm sticky top-32">
+                                <h3 class="font-heading text-2xl font-semibold mb-6 text-black">Filtros</h3>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-gray-800">Categoria</h4>
+                                    <div class="space-y-2">
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" class="form-checkbox filter-control" value="perfume"> <span class="ml-2 text-gray-700">Perfumes</span></label></div>
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" class="form-checkbox filter-control" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
+                                    </div>
+                                </div>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-gray-800">Faixa de Preço</h4>
+                                    <div class="space-y-2">
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="150"> <span class="ml-2 text-gray-700">Até R$ 150</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold mb-3 text-gray-800">Ordenar Por</h4>
+                                    <select id="sort-by" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500 filter-control">
+                                        <option value="popularity">Popularidade</option>
+                                        <option value="price-asc">Preço: Menor para Maior</option>
+                                        <option value="price-desc">Preço: Maior para Menor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </aside>
+                        <!-- Product Grid -->
+                        <div id="product-list-fragrances" class="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== DECANTS Page Content =========== -->
+        <div id="page-decants" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossos Decants</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">A forma perfeita de experimentar antes de se comprometer.</p>
+                    </div>
+                    <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== SOBRE Page Content =========== -->
+        <div id="page-sobre" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa História</h1>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
+                        <div class="md:w-1/2"><img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl"></div>
+                        <div class="md:w-1/2">
+                            <p class="text-gray-600 mb-4 leading-relaxed">A SANSEI DECANTS nasceu da paixão por fragrâncias que transcendem o comum. Acreditamos que um perfume é mais do que um aroma; é uma forma de expressão, uma assinatura pessoal que conta uma história. Nossa missão é democratizar o acesso à alta perfumaria, permitindo que você explore um universo de aromas de nicho e de luxo sem o compromisso de um frasco completo.</p>
+                            <p class="text-gray-600 leading-relaxed">Cada decant é cuidadosamente preparado, extraído diretamente do frasco original para garantir 100% de autenticidade e qualidade. Nosso processo de curadoria é rigoroso, selecionando apenas as fragrâncias mais cativantes e memoráveis para fazer parte da nossa coleção. Bem-vindo ao nosso mundo, onde cada gota é uma nova descoberta.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== FAQ Page Content =========== -->
+        <div id="page-faq" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Perguntas Frequentes</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Tire as suas dúvidas mais comuns.</p>
+                    </div>
+                    <div class="max-w-3xl mx-auto" data-aos="fade-up">
+                        <div class="space-y-4">
+                            <!-- FAQ Item 1 -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
+                                    <span>O que é um decant?</span>
+                                    <i data-feather="chevron-down" class="transition-transform duration-300"></i>
+                                </button>
+                                <div class="faq-answer mt-2 text-gray-600">
+                                    <p>Um decant é uma pequena quantidade de perfume original, transferida do frasco de fábrica para um frasco menor. É a forma ideal de experimentar diferentes fragrâncias de luxo antes de investir num frasco grande, ou para ter os seus perfumes favoritos em tamanho de viagem.</p>
+                                </div>
+                            </div>
+                            <!-- FAQ Item 2 -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
+                                    <span>Os produtos são originais?</span>
+                                    <i data-feather="chevron-down" class="transition-transform duration-300"></i>
+                                </button>
+                                <div class="faq-answer mt-2 text-gray-600">
+                                    <p>Sim, garantimos 100% de autenticidade. Todos os nossos decants são retirados diretamente dos frascos originais dos perfumes, adquiridos de fornecedores e marcas certificadas. A nossa reputação baseia-se na confiança e na qualidade.</p>
+                                </div>
+                            </div>
+                            <!-- FAQ Item 3 -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
+                                    <span>Como funciona o envio?</span>
+                                    <i data-feather="chevron-down" class="transition-transform duration-300"></i>
+                                </button>
+                                <div class="faq-answer mt-2 text-gray-600">
+                                    <p>Enviamos para todo o Brasil através dos Correios. Após a confirmação do pagamento, o seu pedido é preparado e postado em até 2 dias úteis. Receberá um código de rastreio por email para acompanhar a sua encomenda desde a postagem até à entrega.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- =========== CONTATO Page Content =========== -->
+        <div id="page-contato" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Entre em Contato</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Adoraríamos ouvir de você. Preencha o formulário abaixo.</p>
+                    </div>
+                    <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded-lg shadow-md" data-aos="fade-up">
+                        <div id="contact-form-message" class="hidden mb-6 p-4 rounded-md text-center"></div>
+                        <form id="contact-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+                                    <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Assunto</label>
+                                <input type="text" id="subject" name="subject" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Mensagem</label>
+                                <textarea id="message" name="message" rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Enviar Mensagem</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== PROFILE Page Content =========== -->
+        <div id="page-profile" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Minha Conta</h1>
+                        <p id="profile-email" class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100"></p>
+                    </div>
+                    <div class="max-w-4xl mx-auto" data-aos="fade-up">
+                        <h2 class="font-heading text-3xl font-semibold mb-6 text-black">Minhas Encomendas</h2>
+                        <div id="orders-list" class="space-y-4">
+                            <!-- Orders will be rendered here -->
+                        </div>
+                        <h2 class="font-heading text-3xl font-semibold mb-6 mt-12 text-black">Minha Lista de Desejos</h2>
+                        <div id="wishlist-items" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <!-- Wishlist items will be rendered here -->
+                        </div>
+                        <div class="text-center mt-12">
+                            <button id="logout-button" class="bg-black text-white font-bold py-3 px-10 rounded-full hover:bg-gray-800 transition-all-ease">Terminar Sessão</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== Newsletter Section =========== -->
+        <section class="bg-black">
+            <div class="container mx-auto px-6 py-16 text-center" data-aos="fade-up">
+                <h3 class="font-heading text-4xl font-bold text-white">Junte-se ao Círculo SANSEI</h3>
+                <p class="mt-3 text-gray-300 max-w-xl mx-auto">Seja o primeiro a saber sobre lançamentos, coleções limitadas e eventos exclusivos.</p>
+                <form id="newsletter-form" class="mt-8 flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
+                    <input type="email" id="newsletter-email" placeholder="Seu melhor e-mail" required class="w-full flex-grow px-4 py-3 rounded-md text-gray-800 bg-white border border-transparent focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-6 rounded-md hover:bg-gold-600 transition-all-ease">INSCREVER</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- =========== Footer =========== -->
+    <footer class="bg-black text-white border-t border-gray-800">
+        <div class="container mx-auto px-6 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="font-heading text-xl font-semibold mb-4 text-gold-500">SANSEI DECANTS</h4>
+                    <p class="text-gray-400">Sua boutique de fragrâncias e decants exclusivos.</p>
+                </div>
+                <div>
+                    <h4 class="font-heading text-lg font-semibold mb-4">Descubra</h4>
+                    <ul>
+                        <li class="mb-2"><a href="#" data-page="sobre" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">Sobre Nós</a></li>
+                        <li class="mb-2"><a href="#" data-page="contato" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">Contato</a></li>
+                        <li class="mb-2"><a href="#" data-page="faq" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">FAQ</a></li>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white transition-all-ease">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-heading text-lg font-semibold mb-4">Siga-nos</h4>
+                    <div class="flex space-x-4">
+                        <a href="https://www.instagram.com/sanseidecants/" target="_blank" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="twitter"></i></a>
+                    </div>
+                </div>
+                 <div>
+                    <h4 class="font-heading text-lg font-semibold mb-4">Contato</h4>
+                    <p class="text-gray-400">Email: contato@sanseidecants.com</p>
+                    <p class="text-gray-400">Telefone: (11) 99999-8888</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500">
+                <p>&copy; 2025 SANSEI DECANTS. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
+    <div id="cart-modal" class="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-xl z-50 transform translate-x-full">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center p-6 border-b"><h2 class="font-heading text-2xl font-bold">Seu Carrinho</h2><button id="close-cart-button" class="text-gray-500 hover:text-gray-800"><i data-feather="x" class="w-6 h-6"></i></button></div>
+            <div class="flex-grow overflow-y-auto">
+                <div id="cart-items" class="p-6"></div>
+                <!-- Shipping Calculator -->
+                <div class="p-6 border-t">
+                    <h3 class="font-semibold mb-2 text-lg">Calcular Frete</h3>
+                    <div id="shipping-calculator" class="flex gap-2 mb-4">
+                        <input type="text" id="cep-input" placeholder="Seu CEP" class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500" maxlength="9">
+                        <button id="calculate-shipping-btn" class="bg-gray-800 text-white px-4 rounded-md hover:bg-black disabled:bg-gray-400">
+                            <span class="loader-sm hidden"></span>
+                            <span class="btn-text">Calcular</span>
+                        </button>
+                    </div>
+                    <div id="shipping-options" class="space-y-2"></div>
+                </div>
+            </div>
+            <!-- Totals -->
+            <div class="p-6 border-t">
+                <form id="coupon-form" class="flex gap-2 mb-4">
+                    <input type="text" id="coupon-input" placeholder="Código do cupom" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    <button type="submit" class="bg-gray-800 text-white px-4 rounded-md hover:bg-black">Aplicar</button>
+                </form>
+                <div id="discount-info" class="text-sm text-green-600 mb-2"></div>
+                <div class="space-y-1 text-lg">
+                    <div class="flex justify-between"><span>Subtotal</span><span id="cart-subtotal">R$ 0,00</span></div>
+                    <div id="shipping-cost-line" class="flex justify-between hidden"><span>Frete</span><span id="shipping-cost">R$ 0,00</span></div>
+                </div>
+                <div class="flex justify-between items-center font-bold text-xl mt-4 border-t pt-4">
+                    <span>Total</span>
+                    <span id="cart-total">R$ 0,00</span>
+                </div>
+                <button id="checkout-button" class="mt-4 w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease disabled:bg-gray-400 disabled:cursor-not-allowed">Finalizar Compra</button>
+            </div>
         </div>
     </div>
 
-    <!-- Painel de Administração -->
-    <div id="admin-panel" class="hidden">
-        <div class="flex h-screen bg-gray-100">
-            <!-- Sidebar -->
-            <div class="w-64 bg-white shadow-md">
-                <div class="p-6">
-                    <h1 class="text-2xl font-bold text-gold-500">SANSEI ADMIN</h1>
-                    <p id="admin-email" class="text-sm text-gray-500 mt-1"></p>
-                </div>
-                <nav class="mt-6">
-                    <a href="#" class="admin-nav-link flex items-center px-6 py-3 border-l-4" data-view="dashboard"><i data-feather="grid" class="mr-3"></i>Dashboard</a>
-                    <a href="#" class="admin-nav-link flex items-center px-6 py-3 border-l-4" data-view="products"><i data-feather="package" class="mr-3"></i>Produtos</a>
-                    <a href="#" class="admin-nav-link flex items-center px-6 py-3 border-l-4" data-view="orders"><i data-feather="shopping-cart" class="mr-3"></i>Encomendas</a>
-                    <a href="#" class="admin-nav-link flex items-center px-6 py-3 border-l-4" data-view="reviews"><i data-feather="star" class="mr-3"></i>Avaliações</a>
-                    <a href="#" class="admin-nav-link flex items-center px-6 py-3 border-l-4" data-view="coupons"><i data-feather="tag" class="mr-3"></i>Cupons</a>
-                    <a href="#" class="admin-nav-link flex items-center px-6 py-3 border-l-4" data-view="reels"><i data-feather="film" class="mr-3"></i>Reels</a>
-                    <button id="logout-button" class="w-full text-left flex items-center px-6 py-3 text-gray-500 hover:bg-red-50 hover:text-red-600"><i data-feather="log-out" class="mr-3"></i>Terminar Sessão</button>
-                </nav>
-            </div>
-
-            <!-- Main Content -->
-            <div class="flex-1 flex flex-col overflow-hidden">
-                <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-8">
-                    <!-- View: Dashboard -->
-                    <div id="view-dashboard" class="admin-view">
-                        <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Encomendas</h3><p id="stats-orders" class="text-3xl font-bold">0</p></div>
-                            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Produtos</h3><p id="stats-products" class="text-3xl font-bold">0</p></div>
-                            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Utilizadores</h3><p id="stats-users" class="text-3xl font-bold">0</p></div>
-                            <div class="bg-white p-6 rounded-lg shadow"><h3 class="text-gray-500">Avaliações</h3><p id="stats-reviews" class="text-3xl font-bold">0</p></div>
-                        </div>
-                    </div>
-
-                    <!-- View: Produtos -->
-                    <div id="view-products" class="admin-view hidden">
-                        <h2 class="text-3xl font-bold mb-6">Gerir Produtos</h2>
-                        <!-- Formulário de Produto -->
-                        <div class="bg-white p-6 rounded-lg shadow mb-8">
-                            <h3 class="text-xl font-semibold mb-4">Adicionar / Editar Produto</h3>
-                            <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <input type="hidden" id="product-id">
-                                <div class="md:col-span-2"><label for="product-name" class="block text-sm font-medium text-gray-700">Nome</label><input type="text" id="product-name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold-500 focus:ring-gold-500"></div>
-                                <div><label for="product-price" class="block text-sm font-medium text-gray-700">Preço (R$)</label><input type="number" step="0.01" id="product-price" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold-500 focus:ring-gold-500"></div>
-                                <div><label for="product-category" class="block text-sm font-medium text-gray-700">Categoria</label><select id="product-category" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold-500 focus:ring-gold-500"><option value="decant">Decant</option><option value="perfume">Perfume</option></select></div>
-                                <div><label for="product-stock" class="block text-sm font-medium text-gray-700">Stock</label><input type="number" id="product-stock" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold-500 focus:ring-gold-500"></div>
-                                <div><label for="product-image" class="block text-sm font-medium text-gray-700">URL da Imagem</label><input type="url" id="product-image" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold-500 focus:ring-gold-500"></div>
-                                <div class="md:col-span-2"><label for="product-description" class="block text-sm font-medium text-gray-700">Descrição</label><textarea id="product-description" rows="4" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-gold-500 focus:ring-gold-500"></textarea></div>
-                                <div class="md:col-span-2 flex items-center gap-4">
-                                    <button type="submit" id="submit-product-btn" class="bg-gold-500 text-black font-bold py-2 px-4 rounded-md hover:bg-gold-600">Adicionar Produto</button>
-                                    <button type="button" id="cancel-edit-btn" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-300 hidden">Cancelar Edição</button>
-                                </div>
-                            </form>
-                        </div>
-                        <!-- Lista de Produtos -->
-                        <div class="overflow-x-auto bg-white rounded-lg shadow mt-6">
-                            <table class="w-full whitespace-nowrap">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Imagem</th>
-                                        <th class="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
-                                        <th class="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                                        <th class="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Preço</th>
-                                        <th class="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-                                        <th class="py-3 px-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="product-list-body" class="divide-y divide-gray-200">
-                                    <!-- Product rows will be inserted here -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <!-- Controles de Paginação -->
-                        <div id="products-pagination-controls" class="mt-6 flex justify-between items-center">
-                            <button id="prev-product-page" class="bg-white text-gray-800 font-bold py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50">
-                                Anterior
-                            </button>
-                            <span id="product-page-info" class="text-gray-700 font-medium">Página 1</span>
-                            <button id="next-product-page" class="bg-white text-gray-800 font-bold py-2 px-4 rounded-md border border-gray-300 hover:bg-gray-100 disabled:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50">
-                                Próxima
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- View: Encomendas -->
-                    <div id="view-orders" class="admin-view hidden">
-                        <h2 class="text-3xl font-bold mb-6">Gerir Encomendas</h2>
-                        <div class="overflow-x-auto bg-white rounded-lg shadow">
-                            <table class="w-full whitespace-nowrap">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="py-3 px-2 text-left">ID</th><th class="py-3 px-2 text-left">Cliente</th><th class="py-3 px-2 text-left">Data</th><th class="py-3 px-2 text-left">Total</th><th class="py-3 px-2 text-left">Status</th><th class="py-3 px-2 text-left">Itens</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="order-list-body" class="divide-y divide-gray-200"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- View: Avaliações -->
-                    <div id="view-reviews" class="admin-view hidden">
-                        <h2 class="text-3xl font-bold mb-6">Gerir Avaliações</h2>
-                        <div class="overflow-x-auto bg-white rounded-lg shadow">
-                            <table class="w-full whitespace-nowrap">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="py-3 px-2 text-left">Produto</th><th class="py-3 px-2 text-left">Utilizador</th><th class="py-3 px-2 text-left">Rating</th><th class="py-3 px-2 text-left">Comentário</th><th class="py-3 px-2 text-left">Ações</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="review-list-body" class="divide-y divide-gray-200"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- View: Cupons -->
-                    <div id="view-coupons" class="admin-view hidden">
-                        <h2 class="text-3xl font-bold mb-6">Gerir Cupons</h2>
-                        <div class="bg-white p-6 rounded-lg shadow mb-8">
-                            <form id="add-coupon-form" class="flex items-end gap-4">
-                                <div><label for="coupon-code">Código</label><input type="text" id="coupon-code" required class="mt-1 w-full rounded-md border-gray-300"></div>
-                                <div><label for="coupon-discount">Desconto (%)</label><input type="number" step="1" id="coupon-discount" required class="mt-1 w-full rounded-md border-gray-300"></div>
-                                <button type="submit" class="bg-gold-500 text-black font-bold py-2 px-4 rounded-md">Adicionar</button>
-                            </form>
-                        </div>
-                        <div class="overflow-x-auto bg-white rounded-lg shadow">
-                            <table class="w-full">
-                                <thead class="bg-gray-50"><tr><th class="py-3 px-2 text-left">Código</th><th class="py-3 px-2 text-left">Desconto</th><th class="py-3 px-2 text-left">Ações</th></tr></thead>
-                                <tbody id="coupon-list-body" class="divide-y"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- View: Reels -->
-                    <div id="view-reels" class="admin-view hidden">
-                        <h2 class="text-3xl font-bold mb-6">Gerir Reels</h2>
-                        <div class="bg-white p-6 rounded-lg shadow mb-8">
-                            <form id="add-reel-form" class="flex items-end gap-4">
-                                <div><label for="reel-url">URL do Reel</label><input type="url" id="reel-url" required class="mt-1 w-full rounded-md border-gray-300"></div>
-                                <div><label for="reel-thumbnail">URL da Thumbnail</label><input type="url" id="reel-thumbnail" required class="mt-1 w-full rounded-md border-gray-300"></div>
-                                <button type="submit" class="bg-gold-500 text-black font-bold py-2 px-4 rounded-md">Adicionar</button>
-                            </form>
-                        </div>
-                        <div class="overflow-x-auto bg-white rounded-lg shadow">
-                            <table class="w-full">
-                                <thead class="bg-gray-50"><tr><th class="py-3 px-2 text-left">Thumbnail</th><th class="py-3 px-2 text-left">URL</th><th class="py-3 px-2 text-left">Ações</th></tr></thead>
-                                <tbody id="reel-list-body" class="divide-y"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </main>
-            </div>
+    <!-- Product Details Modal -->
+    <div id="product-details-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden"></div>
+    <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-[70] hidden opacity-0 transform scale-95 transition-all duration-300">
+        <div id="product-details-content-wrapper" class="relative max-h-[90vh] overflow-y-auto">
+             <button id="close-product-details-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black z-10 bg-white rounded-full p-1"><i data-feather="x"></i></button>
+            <!-- **NOVO**: Container para o conteúdo principal do modal -->
+            <div id="product-details-main-content"></div>
+            <!-- **NOVO**: Container para reviews e produtos relacionados -->
+            <div id="product-details-extra-content" class="p-8 border-t"></div>
         </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden"></div>
+    <div id="auth-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-md bg-white rounded-lg shadow-xl z-[70] hidden p-8 opacity-0 transform scale-95 transition-all duration-300">
+        <button id="close-auth-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black"><i data-feather="x"></i></button>
+        <div id="auth-content"></div>
     </div>
 
     <!-- Toast Notification -->
-    <div id="admin-toast" class="fixed top-5 right-5 bg-white text-gray-800 px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 opacity-0 transform translate-y-10 transition-all duration-300 z-50">
-        <span id="admin-toast-icon"></span>
-        <span id="admin-toast-message"></span>
+    <div id="toast-notification" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 opacity-0 transform translate-y-10 z-[80]">
+        <span id="toast-icon-container"></span>
+        <span id="toast-message"></span>
     </div>
-    
-    <!-- **ATUALIZADO**: Carrega o novo ficheiro principal da pasta /admin -->
-    <script type="module" src="admin/main.js"></script>
+
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 z-[90] flex items-center justify-center hidden">
+        <div class="loader"></div>
+    </div>
+
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
