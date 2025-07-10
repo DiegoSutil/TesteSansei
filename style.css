@@ -64,16 +64,18 @@ body {
 
 .mega-menu {
     /* FIX: Added z-50 to ensure the dropdown appears above other nav items */
+    /* Increased min-width and added flex-wrap-nowrap to prevent columns from stacking */
     @apply absolute top-full left-0 mt-1 bg-white shadow-xl rounded-b-lg p-6
            opacity-0 invisible group-hover:opacity-100 group-hover:visible
            transition-all duration-300 ease-in-out transform translate-y-2 group-hover:translate-y-0
-           flex gap-8 z-50;
-    min-width: 300px;
+           flex gap-8 z-50 flex-nowrap; /* Adicionado flex-nowrap */
+    min-width: 450px; /* Aumentado o min-width para garantir espaço para as colunas */
     border-top: 2px solid #4f46e5; /* Indigo color */
 }
 
 .mega-menu-column {
-    @apply flex flex-col gap-2 flex-1; /* Adicionado flex-1 para alinhar colunas horizontalmente */
+    /* Removido flex-1 e adicionado w-1/2 para garantir que as colunas dividam o espaço igualmente */
+    @apply flex flex-col gap-2 w-1/2 flex-shrink-0; /* Adicionado w-1/2 e flex-shrink-0 */
 }
 
 .mega-menu-heading {
