@@ -164,36 +164,19 @@ async function handleCalculateShipping() {
     loader.classList.remove('hidden');
     btn.disabled = true;
 
-    const body = {
-        nCdServico: ["04510", "04014"], // PAC, SEDEX
-        sCepOrigem: "01001000", // CEP de origem (ex: São Paulo)
-        sCepDestino: cep,
-        nVlPeso: "0.5", // Peso em kg
-        nCdFormato: 1, // 1 para caixa/pacote
-        nVlComprimento: 20, // cm
-        nVlAltura: 10, // cm
-        nVlLargura: 15, // cm
-        nVlDiametro: 0,
-        sCdMaoPropria: "N",
-        nVlValorDeclarado: calculateSubtotal(),
-        sCdAvisoRecebimento: "N",
-    };
-
     try {
-        const response = await fetch(`https://brasilapi.com.br/api/correios/preco/v2`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body)
-        });
-        
+        const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`);
         if (!response.ok) {
-            throw new Error('Erro ao calcular o frete.');
+            throw new Error('CEP não encontrado.');
         }
+        
+        // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
+        const shippingOptions = [
+            { nome: 'PAC', prazoEntrega: 10, valor: '25,50' },
+            { nome: 'SEDEX', prazoEntrega: 5, valor: '45,80' }
+        ];
 
-        const data = await response.json();
-        renderShippingOptions(data);
+        renderShippingOptions(shippingOptions);
 
     } catch (error) {
         console.error("Shipping calculation error:", error);
@@ -212,7 +195,7 @@ function renderShippingOptions(options) {
     selectedShipping = null;
     renderCart(); // Recalculate total without shipping
 
-    if (options.every(opt => opt.erro)) {
+    if (!options || options.length === 0 || options.every(opt => opt.erro)) {
          container.innerHTML = `<p class="text-red-500 text-sm">Nenhuma opção de frete encontrada para o CEP informado.</p>`;
          return;
     }
@@ -221,7 +204,7 @@ function renderShippingOptions(options) {
         if (option.erro) return;
 
         const price = parseFloat(option.valor.replace(',', '.'));
-        const optionId = `shipping-${option.codigo}`;
+        const optionId = `shipping-${option.nome}`;
         const label = document.createElement('label');
         label.className = 'flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-gray-50';
         label.innerHTML = `
@@ -875,8 +858,6 @@ function initializeEventListeners() {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener(event, handler);
-        } else {
-            console.warn(`Element with id "${id}" not found for event listener.`);
         }
     };
 
