@@ -47,7 +47,7 @@ body {
 
 /* Mega Menu Styles */
 .nav-item {
-    @apply py-3; /* Padding for the entire nav bar height */
+    @apply relative py-3; /* FIX: Added relative positioning */
 }
 
 .mega-menu {
