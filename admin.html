@@ -19,6 +19,15 @@
         .admin-nav-link.active { background-color: #4338ca; color: white; }
         .admin-nav-link { color: #cbd5e1; }
         .admin-nav-link:hover { background-color: #4f46e5; color: white; }
+        /* Loader styles */
+        .loader {
+            border-top-color: #3498db;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-slate-50 antialiased">
@@ -225,7 +234,18 @@
         <span id="admin-toast-icon"></span>
         <span id="admin-toast-message" class="font-medium"></span>
     </div>
+
+    <!-- Custom Confirmation Modal (Admin) -->
+    <div id="admin-confirmation-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[80] hidden"></div>
+    <div id="admin-confirmation-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-sm bg-white rounded-lg shadow-xl z-[90] hidden p-8 opacity-0 transform scale-95 transition-all duration-300">
+        <h3 id="admin-confirmation-modal-title" class="font-heading text-xl font-bold mb-4">Confirmação</h3>
+        <p id="admin-confirmation-modal-message" class="text-slate-700 mb-6 leading-relaxed"></p>
+        <div class="flex justify-end gap-4">
+            <button id="admin-confirmation-cancel-btn" class="bg-slate-200 text-slate-700 font-bold py-2.5 px-5 rounded-lg hover:bg-slate-300 transition-all">Cancelar</button>
+            <button id="admin-confirmation-confirm-btn" class="bg-red-600 text-white font-bold py-2.5 px-5 rounded-lg hover:bg-red-700 transition-all">Confirmar</button>
+        </div>
+    </div>
     
-    <script type="module" src="admin/main.js"></script>
+    <script type="module" src="admin-script.js"></script>
 </body>
 </html>
