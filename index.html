@@ -252,6 +252,7 @@
                     </div>
                     <div class="max-w-3xl mx-auto" data-aos="fade-up">
                         <div class="space-y-4">
+                            <!-- FIX: Removed inline style="display: none;" -->
                             <div class="border-b border-gray-200 pb-4">
                                 <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800"><span>O que é um decant?</span><i data-feather="chevron-down" class="transition-transform duration-300"></i></button>
                                 <div class="faq-answer mt-2 text-gray-600"><p>Um decant é uma pequena quantidade de perfume original, transferida do frasco de fábrica para um frasco menor. É a forma ideal de experimentar diferentes fragrâncias de luxo.</p></div>
@@ -363,7 +364,6 @@
     </footer>
 
     <!-- =========== Modais =========== -->
-    <!-- **CORREÇÃO**: Estrutura interna dos modais restaurada -->
 
     <!-- Shopping Cart Modal -->
     <div id="cart-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden"></div>
@@ -408,6 +408,7 @@
     <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-[70] hidden opacity-0 transform scale-95 transition-all duration-300">
         <div id="product-details-content-wrapper" class="relative max-h-[90vh] overflow-y-auto">
              <button id="close-product-details-modal" class="absolute top-4 right-4 text-slate-500 hover:text-black z-10 bg-white rounded-full p-1"><i data-feather="x"></i></button>
+            <!-- FIX: Added classes for layout -->
             <div id="product-details-main-content" class="flex flex-col md:flex-row"></div>
             <div id="product-details-extra-content" class="p-8 border-t"></div>
         </div>
