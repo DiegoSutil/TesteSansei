@@ -167,7 +167,7 @@ async function handleCalculateShipping() {
     try {
         const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
         if (!response.ok) {
-            throw new Error('CEP não encontrado.');
+            throw new Error('CEP não encontrado ou API indisponível.');
         }
         
         // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
@@ -180,8 +180,15 @@ async function handleCalculateShipping() {
 
     } catch (error) {
         console.error("Shipping calculation error:", error);
-        showToast("Não foi possível calcular o frete para este CEP.", true);
-        document.getElementById('shipping-options').innerHTML = '';
+        showToast("Cálculo indisponível. Usando valores padrão.", true);
+        
+        // Fallback logic: If the API fails, provide default shipping options.
+        const defaultShippingOptions = [
+            { Codigo: '04510', nome: 'PAC (Estimado)', PrazoEntrega: 12, Valor: '28,00' },
+            { Codigo: '04014', nome: 'SEDEX (Estimado)', PrazoEntrega: 7, Valor: '52,00' }
+        ];
+        renderShippingOptions(defaultShippingOptions);
+
     } finally {
         btnText.classList.remove('hidden');
         loader.classList.add('hidden');
