@@ -56,7 +56,10 @@ function showToast(message, isError = false) {
 }
 
 const showLoader = (show) => {
-    document.getElementById('loader').classList.toggle('hidden', !show);
+    const loader = document.getElementById('loader');
+    if (loader) {
+        loader.classList.toggle('hidden', !show);
+    }
 }
 
 // =================================================================
@@ -106,7 +109,6 @@ async function handleCheckout() {
     try {
         await addDoc(collection(db, "orders"), newOrder);
         
-        // Clear cart after successful order
         cart = [];
         selectedShipping = null;
         localStorage.removeItem('sanseiCart');
@@ -115,7 +117,7 @@ async function handleCheckout() {
         showToast("Encomenda realizada com sucesso!");
         updateCartIcon();
         toggleCart(false);
-        showPage('profile'); // Redirect to profile to see the new order
+        showPage('profile');
     } catch (error) {
         console.error("Error creating order: ", error);
         showToast("Ocorreu um erro ao processar a sua encomenda.", true);
@@ -150,8 +152,10 @@ function calculateTotal() {
 // =================================================================
 async function handleCalculateShipping() {
     const cepInput = document.getElementById('cep-input');
-    const cep = cepInput.value.replace(/\D/g, ''); // Remove non-digits
+    if (!cepInput) return;
+    const cep = cepInput.value.replace(/\D/g, '');
     const btn = document.getElementById('calculate-shipping-btn');
+    if (!btn) return;
     const btnText = btn.querySelector('.btn-text');
     const loader = btn.querySelector('.loader-sm');
 
@@ -160,8 +164,8 @@ async function handleCalculateShipping() {
         return;
     }
 
-    btnText.classList.add('hidden');
-    loader.classList.remove('hidden');
+    if (btnText) btnText.classList.add('hidden');
+    if (loader) loader.classList.remove('hidden');
     btn.disabled = true;
 
     try {
@@ -170,19 +174,16 @@ async function handleCalculateShipping() {
             throw new Error('CEP não encontrado ou API indisponível.');
         }
         
-        // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
         const shippingOptions = [
             { Codigo: '04510', nome: 'PAC', PrazoEntrega: 10, Valor: '25,50' },
             { Codigo: '04014', nome: 'SEDEX', PrazoEntrega: 5, Valor: '45,80' }
         ];
-
         renderShippingOptions(shippingOptions);
 
     } catch (error) {
         console.error("Shipping calculation error:", error);
         showToast("Cálculo indisponível. Usando valores padrão.", true);
         
-        // Fallback logic: If the API fails, provide default shipping options.
         const defaultShippingOptions = [
             { Codigo: '04510', nome: 'PAC (Estimado)', PrazoEntrega: 12, Valor: '28,00' },
             { Codigo: '04014', nome: 'SEDEX (Estimado)', PrazoEntrega: 7, Valor: '52,00' }
@@ -190,17 +191,18 @@ async function handleCalculateShipping() {
         renderShippingOptions(defaultShippingOptions);
 
     } finally {
-        btnText.classList.remove('hidden');
-        loader.classList.add('hidden');
+        if (btnText) btnText.classList.remove('hidden');
+        if (loader) loader.classList.add('hidden');
         btn.disabled = false;
     }
 }
 
 function renderShippingOptions(options) {
     const container = document.getElementById('shipping-options');
+    if (!container) return;
     container.innerHTML = '';
     selectedShipping = null;
-    renderCart(); // Recalculate total without shipping
+    renderCart();
 
     if (!options || options.length === 0 || options.every(opt => opt.erro)) {
          container.innerHTML = `<p class="text-red-500 text-sm">Nenhuma opção de frete encontrada para o CEP informado.</p>`;
@@ -244,8 +246,12 @@ function renderShippingOptions(options) {
 // =================================================================
 async function syncCartWithFirestore() {
     if (!currentUserData) return;
-    const userRef = doc(db, "users", currentUserData.uid);
-    await updateDoc(userRef, { cart: cart });
+    try {
+        const userRef = doc(db, "users", currentUserData.uid);
+        await updateDoc(userRef, { cart: cart });
+    } catch (error) {
+        console.error("Error syncing cart with Firestore:", error);
+    }
 }
 
 function flyToCart(targetElement) {
@@ -265,10 +271,8 @@ function flyToCart(targetElement) {
 
     document.body.appendChild(flyingImage);
 
-    // Forçar reflow para aplicar o estado inicial antes da transição
     flyingImage.offsetHeight; 
 
-    // Mover para o carrinho
     flyingImage.style.left = `${cartRect.left + cartRect.width / 2}px`;
     flyingImage.style.top = `${cartRect.top + cartRect.height / 2}px`;
     flyingImage.style.width = '20px';
@@ -277,26 +281,29 @@ function flyToCart(targetElement) {
 
     setTimeout(() => {
         flyingImage.remove();
-    }, 1000); // Duração da animação
+    }, 1000);
 }
 
 
 async function addToCart(productId, quantity = 1, event) {
     const button = event.target.closest('.add-to-cart-btn');
+    if (!button) return;
     const originalText = button.innerHTML;
     button.disabled = true;
     button.innerHTML = '<span class="loader-sm"></span>';
 
     const product = allProducts.find(p => p.id === productId);
     if (!product) {
-        console.error("Product not found in allProducts array:", productId);
+        console.error("Product not found:", productId);
         button.disabled = false;
         button.innerHTML = originalText;
         return;
     }
     
-    const productImage = button.closest('.group').querySelector('img');
-    flyToCart(productImage);
+    const productImage = button.closest('.group')?.querySelector('img');
+    if (productImage) {
+        flyToCart(productImage);
+    }
 
     const cartItem = cart.find(item => item.id === productId);
     if (cartItem) {
@@ -353,7 +360,7 @@ function renderCart() {
     const shippingCostLine = document.getElementById('shipping-cost-line');
     const shippingCostEl = document.getElementById('shipping-cost');
     
-    if (!cartItemsEl || !cartSubtotalEl || !cartTotalEl) {
+    if (!cartItemsEl || !cartSubtotalEl || !cartTotalEl || !discountInfoEl || !shippingCostLine || !shippingCostEl) {
         return;
     }
     
@@ -363,7 +370,7 @@ function renderCart() {
         cartSubtotalEl.textContent = 'R$ 0,00';
         cartTotalEl.textContent = 'R$ 0,00';
         shippingCostLine.classList.add('hidden');
-        if(discountInfoEl) discountInfoEl.innerHTML = '';
+        discountInfoEl.innerHTML = '';
         return;
     }
     
@@ -374,9 +381,10 @@ function renderCart() {
         const discountAmount = subtotal * appliedCoupon.discount;
         subtotal -= discountAmount;
         discountInfoEl.innerHTML = `Cupom "${appliedCoupon.code}" aplicado! (-R$ ${discountAmount.toFixed(2).replace('.',',')}) <button id="remove-coupon-btn" class="text-red-500 ml-2 font-semibold">Remover</button>`;
-        document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
+        const removeBtn = document.getElementById('remove-coupon-btn');
+        if (removeBtn) removeBtn.addEventListener('click', removeCoupon);
     } else {
-        if(discountInfoEl) discountInfoEl.innerHTML = '';
+        discountInfoEl.innerHTML = '';
     }
 
     if(selectedShipping) {
@@ -391,7 +399,7 @@ function renderCart() {
     
     cartItemsEl.innerHTML = cart.map(item => {
         const product = allProducts.find(p => p.id === item.id);
-        if (!product) return ''; // Skip if product not found
+        if (!product) return '';
         return `
         <div class="flex items-center gap-4 mb-4">
             <img src="${product.image}" alt="${product.name}" class="w-16 h-20 object-cover rounded-md">
@@ -414,6 +422,7 @@ function renderCart() {
 function handleApplyCoupon(e) {
     e.preventDefault();
     const couponInput = document.getElementById('coupon-input');
+    if (!couponInput) return;
     const code = couponInput.value.trim().toUpperCase();
     const coupon = allCoupons.find(c => c.code === code);
 
@@ -445,7 +454,8 @@ function renderStars(rating) {
 }
 
 function createProductCard(product) {
-    const isInWishlist = currentUserData && currentUserData.wishlist.includes(product.id);
+    if (!product) return '';
+    const isInWishlist = currentUserData && currentUserData.wishlist && currentUserData.wishlist.includes(product.id);
     return `
         <div class="bg-white group text-center rounded-lg shadow-sm flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl" data-aos="fade-up">
             <div class="relative overflow-hidden rounded-t-lg">
@@ -468,11 +478,11 @@ function renderProducts(productsToRender, containerId) {
     const productListEl = document.getElementById(containerId);
     if (!productListEl) return;
     
-    if (productsToRender.length === 0) {
+    if (!productsToRender || productsToRender.length === 0) {
         productListEl.innerHTML = `
-            <div class="col-span-full text-center text-gray-600">
-                <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
-                <p>Que tal tentar uma nova combinação ou ver os nossos mais vendidos?</p>
+            <div class="col-span-full text-center text-gray-600 py-10">
+                <p class="text-xl mb-2">Nenhum produto encontrado.</p>
+                <p>Tente ajustar os filtros ou veja nossa coleção completa.</p>
             </div>
         `;
     } else {
@@ -484,28 +494,33 @@ function renderProducts(productsToRender, containerId) {
 
 function applyFilters() {
     let filteredProducts = [...allProducts];
-    const selectedCategories = Array.from(document.querySelectorAll('#filter-cat-perfume, #filter-cat-decant'))
-        .filter(cb => cb.checked)
-        .map(cb => cb.value);
-
-    if (selectedCategories.length > 0) {
+    
+    const categoryFilters = document.querySelectorAll('input[name="category"]:checked');
+    if (categoryFilters.length > 0) {
+        const selectedCategories = Array.from(categoryFilters).map(cb => cb.value);
         filteredProducts = filteredProducts.filter(p => selectedCategories.includes(p.category));
     }
 
-    const priceFilter = document.querySelector('input[name="price"]:checked').value;
-    if (priceFilter !== 'all') {
-        if (priceFilter === '150') { filteredProducts = filteredProducts.filter(p => p.price <= 150); }
-        else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); }
-        else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
+    const priceFilterEl = document.querySelector('input[name="price"]:checked');
+    if (priceFilterEl) {
+        const priceFilter = priceFilterEl.value;
+        if (priceFilter !== 'all') {
+            if (priceFilter === '150') { filteredProducts = filteredProducts.filter(p => p.price <= 150); }
+            else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); }
+            else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
+        }
     }
     
-    const sortBy = document.getElementById('sort-by').value;
-    if (sortBy === 'price-asc') {
-        filteredProducts.sort((a, b) => a.price - b.price);
-    } else if (sortBy === 'price-desc') {
-        filteredProducts.sort((a, b) => b.price - a.price);
-    } else if (sortBy === 'popularity') {
-        filteredProducts.sort((a, b) => b.rating - a.rating);
+    const sortByEl = document.getElementById('sort-by');
+    if (sortByEl) {
+        const sortBy = sortByEl.value;
+        if (sortBy === 'price-asc') {
+            filteredProducts.sort((a, b) => a.price - b.price);
+        } else if (sortBy === 'price-desc') {
+            filteredProducts.sort((a, b) => b.price - a.price);
+        } else if (sortBy === 'popularity') {
+            filteredProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        }
     }
 
     renderProducts(filteredProducts, 'product-list-fragrancias');
@@ -521,7 +536,7 @@ async function fetchAndRenderReels() {
             reelsContainer.innerHTML = '<p class="text-gray-400 col-span-full text-center">Nenhum reel encontrado.</p>';
             return;
         }
-        reelsContainer.innerHTML = ''; // Clear existing
+        reelsContainer.innerHTML = '';
         reelsSnapshot.forEach(doc => {
             const reel = doc.data();
             const reelElement = document.createElement('a');
@@ -538,7 +553,7 @@ async function fetchAndRenderReels() {
         });
         feather.replace();
     } catch (error) {
-        console.error("Error fetching reels for homepage:", error);
+        console.error("Error fetching reels:", error);
         reelsContainer.innerHTML = '<p class="text-red-500 col-span-full text-center">Não foi possível carregar os reels.</p>';
     }
 }
@@ -549,6 +564,7 @@ async function fetchAndRenderReels() {
 
 function renderAuthForm(isLogin = true) {
     const authContent = document.getElementById('auth-content');
+    if (!authContent) return;
     let formHtml = `
         <h2 class="font-heading text-3xl font-bold text-center mb-6">${isLogin ? 'Login' : 'Criar Conta'}</h2>
         <div id="auth-error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4 hidden" role="alert"></div>
@@ -581,8 +597,8 @@ function renderAuthForm(isLogin = true) {
         </p>
     `;
     authContent.innerHTML = formHtml;
-    document.getElementById('auth-form').addEventListener('submit', isLogin ? handleLogin : handleRegister);
-    document.getElementById('auth-switch').addEventListener('click', (e) => {
+    document.getElementById('auth-form')?.addEventListener('submit', isLogin ? handleLogin : handleRegister);
+    document.getElementById('auth-switch')?.addEventListener('click', (e) => {
         e.preventDefault();
         renderAuthForm(!isLogin);
     });
@@ -590,15 +606,17 @@ function renderAuthForm(isLogin = true) {
 
 function showAuthError(message) {
     const errorDiv = document.getElementById('auth-error');
-    errorDiv.textContent = message;
-    errorDiv.classList.remove('hidden');
+    if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.classList.remove('hidden');
+    }
 }
 
 async function handleLogin(e) {
     e.preventDefault();
     showLoader(true);
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
+    const email = document.getElementById('auth-email')?.value;
+    const password = document.getElementById('auth-password')?.value;
     try {
         await signInWithEmailAndPassword(auth, email, password);
         toggleAuthModal(false);
@@ -613,9 +631,9 @@ async function handleLogin(e) {
 
 async function handleRegister(e) {
     e.preventDefault();
-    const email = document.getElementById('auth-email').value;
-    const password = document.getElementById('auth-password').value;
-    const confirmPassword = document.getElementById('auth-confirm-password').value;
+    const email = document.getElementById('auth-email')?.value;
+    const password = document.getElementById('auth-password')?.value;
+    const confirmPassword = document.getElementById('auth-confirm-password')?.value;
     
     if (password !== confirmPassword) {
         showAuthError('As senhas não coincidem.');
@@ -628,7 +646,7 @@ async function handleRegister(e) {
         await setDoc(doc(db, "users", user.uid), {
             email: user.email,
             wishlist: [],
-            cart: [] // Initialize cart in Firestore
+            cart: []
         });
         showToast('Conta criada com sucesso! Faça login para continuar.');
         renderAuthForm(true);
@@ -647,19 +665,17 @@ async function handleRegister(e) {
 async function logout() {
     await signOut(auth);
     currentUserData = null;
-    cart = JSON.parse(localStorage.getItem('sanseiCart')) || []; // Revert to local cart
+    cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
     updateAuthUI();
     updateCartIcon();
     showPage('inicio');
     showToast('Sessão terminada.');
 }
 
-// FIX: Correctly handle UI updates for auth state changes, especially for the mobile menu.
 function updateAuthUI(user) {
     const userButton = document.getElementById('user-button');
     const mobileUserLink = document.getElementById('mobile-user-link');
 
-    // FIX: Add checks to prevent errors if elements don't exist
     if (!userButton || !mobileUserLink) {
         console.error("Auth UI elements not found. Could not update UI.");
         return;
@@ -667,23 +683,20 @@ function updateAuthUI(user) {
 
     if (user) {
         userButton.onclick = () => showPage('profile');
-        mobileUserLink.dataset.page = 'profile'; // Make it a navigable link
+        mobileUserLink.dataset.page = 'profile';
         mobileUserLink.onclick = (e) => {
             e.preventDefault();
             showPage('profile');
-            // Also close the mobile menu
-            document.getElementById('mobile-menu').classList.add('hidden');
+            document.getElementById('mobile-menu')?.classList.add('hidden');
         };
         mobileUserLink.textContent = 'Minha Conta';
     } else {
         userButton.onclick = () => toggleAuthModal(true);
-        // Remove page navigation if not logged in, just open modal
         delete mobileUserLink.dataset.page;
         mobileUserLink.onclick = (e) => {
             e.preventDefault();
             toggleAuthModal(true);
-            // Also close the mobile menu
-            document.getElementById('mobile-menu').classList.add('hidden');
+            document.getElementById('mobile-menu')?.classList.add('hidden');
         };
         mobileUserLink.textContent = 'Login / Registar';
     }
@@ -708,7 +721,6 @@ async function toggleWishlist(productId) {
             currentUserData.wishlist.push(productId);
             showToast('Adicionado à lista de desejos!');
         }
-        // Re-render all visible products to update heart icons
         refreshAllProductViews();
     } catch (error) {
         console.error("Error updating wishlist:", error);
@@ -719,11 +731,13 @@ async function toggleWishlist(productId) {
 function handleSearch(e) {
     const query = e.target.value.toLowerCase();
     const resultsContainer = document.getElementById('search-results');
+    if (!resultsContainer) return;
+
     if (query.length < 2) {
         resultsContainer.innerHTML = '';
         return;
     }
-    const results = allProducts.filter(p => p.name.toLowerCase().includes(query) || p.description.toLowerCase().includes(query));
+    const results = allProducts.filter(p => p.name.toLowerCase().includes(query) || (p.description && p.description.toLowerCase().includes(query)));
     if (results.length > 0) {
         resultsContainer.innerHTML = results.map(product => `
             <a href="#" class="search-result-item flex items-center gap-4 p-2 hover:bg-gray-100 rounded-md" data-id="${product.id}">
@@ -745,6 +759,7 @@ function handleSearch(e) {
 function toggleCart(show) {
     const cartModalOverlay = document.getElementById('cart-modal-overlay');
     const cartModal = document.getElementById('cart-modal');
+    if (!cartModalOverlay || !cartModal) return;
     if (show) {
         cartModalOverlay.classList.remove('hidden');
         cartModal.classList.remove('translate-x-full');
@@ -771,7 +786,7 @@ function showProductDetails(productId) {
             <h2 class="font-heading text-4xl font-bold mb-2">${product.name}</h2>
             <div class="flex items-center gap-2 mb-4">
                 ${renderStars(product.rating)}
-                <span class="text-gray-500 text-sm">(${product.reviews ? product.reviews.length : 0} avaliações)</span>
+                <span class="text-gray-500 text-sm">(${(product.reviews || []).length} avaliações)</span>
             </div>
             <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
             <div class="mt-auto">
@@ -788,6 +803,7 @@ function showProductDetails(productId) {
 function toggleProductDetailsModal(show) {
     const overlay = document.getElementById('product-details-modal-overlay');
     const modal = document.getElementById('product-details-modal');
+    if (!overlay || !modal) return;
     if (show) {
         overlay.classList.remove('hidden');
         modal.classList.remove('hidden', 'opacity-0', 'scale-95');
@@ -801,6 +817,7 @@ function toggleProductDetailsModal(show) {
 function toggleAuthModal(show) {
     const overlay = document.getElementById('auth-modal-overlay');
     const modal = document.getElementById('auth-modal');
+    if (!overlay || !modal) return;
     if (show) {
         renderAuthForm();
         overlay.classList.remove('hidden');
@@ -816,18 +833,22 @@ function handleContactFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
     const messageDiv = document.getElementById('contact-form-message');
-    messageDiv.innerHTML = 'Obrigado pelo seu contato! Sua mensagem foi enviada com sucesso.';
-    messageDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700');
-    messageDiv.classList.add('bg-green-100', 'text-green-700');
-    form.reset();
-    setTimeout(() => messageDiv.classList.add('hidden'), 5000);
+    if (messageDiv) {
+        messageDiv.innerHTML = 'Obrigado pelo seu contato! Sua mensagem foi enviada com sucesso.';
+        messageDiv.classList.remove('hidden', 'bg-red-100', 'text-red-700');
+        messageDiv.classList.add('bg-green-100', 'text-green-700');
+        setTimeout(() => messageDiv.classList.add('hidden'), 5000);
+    }
+    if (form) form.reset();
 }
 
 function handleNewsletterSubmit(e) {
     e.preventDefault();
     const emailInput = document.getElementById('newsletter-email');
-    showToast(`Obrigado por se inscrever, ${emailInput.value}!`);
-    emailInput.value = '';
+    if (emailInput) {
+        showToast(`Obrigado por se inscrever, ${emailInput.value}!`);
+        emailInput.value = '';
+    }
 }
 
 // =================================================================
@@ -836,19 +857,20 @@ function handleNewsletterSubmit(e) {
 const pages = document.querySelectorAll('.page-content');
 
 function showPage(pageId) {
-    if (!pageId) return; // Prevent errors if pageId is undefined
+    if (!pageId) return;
 
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
     
+    // FIX: Add a robust check for the target page's existence.
     if (targetPage) {
         targetPage.classList.remove('hidden');
     } else {
         console.warn(`Page with id 'page-${pageId}' not found. Defaulting to home.`);
-        document.getElementById('page-inicio').classList.remove('hidden');
+        const homePage = document.getElementById('page-inicio');
+        if (homePage) homePage.classList.remove('hidden');
     }
 
-    // FIX: Select active navigation links using data-page attribute instead of non-existent IDs.
     document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
         link.classList.remove('active');
         if (link.dataset.page === pageId) {
@@ -861,19 +883,13 @@ function showPage(pageId) {
         mobileMenu.classList.add('hidden');
     }
 
-    // Page-specific logic
-    if (pageId === 'fragrancias') {
-        applyFilters();
-    } else if (pageId === 'decants') {
-        const decantProducts = allProducts.filter(p => p.category === 'decant');
-        renderProducts(decantProducts, 'product-list-decants');
-    } else if (pageId === 'profile') {
+    if (pageId === 'profile') {
         if (!currentUserData) {
             showPage('inicio');
             toggleAuthModal(true);
             return;
         }
-        // FIX: Check if the element exists before setting its content to prevent errors.
+        // FIX: Add a robust check for the profile email element.
         const profileEmailEl = document.getElementById('profile-email');
         if (profileEmailEl) {
             profileEmailEl.textContent = `Bem-vindo(a), ${currentUserData.email}`;
@@ -881,7 +897,7 @@ function showPage(pageId) {
         renderWishlist();
         renderOrders();
     }
-
+    
     window.scrollTo(0, 0);
     AOS.refresh();
 }
@@ -891,10 +907,6 @@ async function renderWishlist() {
     if (!currentUserData || !wishlistContainer) return;
 
     const wishlistProducts = allProducts.filter(p => currentUserData.wishlist.includes(p.id));
-    if (wishlistProducts.length === 0) {
-        wishlistContainer.innerHTML = '<p class="text-gray-500 col-span-full text-center">A sua lista de desejos está vazia.</p>';
-        return;
-    }
     renderProducts(wishlistProducts, 'wishlist-items');
 }
 
@@ -902,34 +914,39 @@ async function renderOrders() {
     const ordersListContainer = document.getElementById('orders-list');
     if (!currentUserData || !ordersListContainer) return;
 
-    const q = query(collection(db, "orders"), where("userId", "==", currentUserData.uid), orderBy("createdAt", "desc"));
-    const querySnapshot = await getDocs(q);
+    try {
+        const q = query(collection(db, "orders"), where("userId", "==", currentUserData.uid), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
 
-    if (querySnapshot.empty) {
-        ordersListContainer.innerHTML = '<p class="text-gray-500 text-center">Você ainda não fez nenhuma encomenda.</p>';
-        return;
+        if (querySnapshot.empty) {
+            ordersListContainer.innerHTML = '<p class="text-gray-500 text-center">Você ainda não fez nenhuma encomenda.</p>';
+            return;
+        }
+
+        ordersListContainer.innerHTML = '';
+        querySnapshot.forEach(doc => {
+            const order = {id: doc.id, ...doc.data()};
+            const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
+            const orderElement = document.createElement('div');
+            orderElement.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
+            orderElement.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-bold">Encomenda #${order.id.substring(0, 7)}</p>
+                        <p class="text-sm text-gray-500">Data: ${orderDate}</p>
+                    </div>
+                    <div>
+                        <p class="font-bold">Total: R$ ${order.total.toFixed(2).replace('.',',')}</p>
+                        <p class="text-sm text-right font-semibold ${order.status === 'Pendente' ? 'text-yellow-500' : 'text-green-500'}">${order.status}</p>
+                    </div>
+                </div>
+            `;
+            ordersListContainer.appendChild(orderElement);
+        });
+    } catch (error) {
+        console.error("Error fetching orders:", error);
+        ordersListContainer.innerHTML = '<p class="text-red-500 text-center">Não foi possível carregar as suas encomendas.</p>';
     }
-
-    ordersListContainer.innerHTML = '';
-    querySnapshot.forEach(doc => {
-        const order = {id: doc.id, ...doc.data()};
-        const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
-        const orderElement = document.createElement('div');
-        orderElement.className = 'bg-gray-50 p-4 rounded-lg shadow-sm';
-        orderElement.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="font-bold">Encomenda #${order.id.substring(0, 7)}</p>
-                    <p class="text-sm text-gray-500">Data: ${orderDate}</p>
-                </div>
-                <div>
-                    <p class="font-bold">Total: R$ ${order.total.toFixed(2).replace('.',',')}</p>
-                    <p class="text-sm text-right font-semibold ${order.status === 'Pendente' ? 'text-yellow-500' : 'text-green-500'}">${order.status}</p>
-                </div>
-            </div>
-        `;
-        ordersListContainer.appendChild(orderElement);
-    });
 }
 
 function refreshAllProductViews() {
@@ -937,18 +954,18 @@ function refreshAllProductViews() {
     if (!currentPage) return;
     const pageId = currentPage.id.replace('page-', '');
 
-    // Re-render products on the current page to update wishlist hearts
     const containerId = `product-list-${pageId}`;
     const container = document.getElementById(containerId);
-    if(container) {
-        // This is a simplified re-render. A more complex app might need to re-fetch or re-filter.
-        const currentProducts = Array.from(container.children).map(child => {
-            const img = child.querySelector('img[data-id]');
-            return img ? allProducts.find(p => p.id === img.dataset.id) : null;
-        }).filter(Boolean);
+
+    if (container) {
+        const currentProductIds = Array.from(container.querySelectorAll('[data-id]')).map(el => el.dataset.id);
+        const uniqueIds = [...new Set(currentProductIds)];
+        const currentProducts = uniqueIds.map(id => allProducts.find(p => p.id === id)).filter(Boolean);
         renderProducts(currentProducts, containerId);
     } else if (pageId === 'profile') {
         renderWishlist();
+    } else if (pageId === 'inicio') {
+        renderProducts(allProducts.slice(0, 4), 'product-list-home');
     }
 }
 
@@ -962,7 +979,7 @@ async function fetchInitialData() {
 
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
         
-        // FIX: Select initial active link using data-page attribute.
+        // FIX: Add a check for the initial link before adding a class.
         const initialLink = document.querySelector('.nav-link[data-page="inicio"]');
         if (initialLink) {
             initialLink.classList.add('active');
@@ -974,44 +991,36 @@ async function fetchInitialData() {
     }
 }
 
-// FIX: New function to generate the mobile menu dynamically.
 function generateMobileMenu() {
     const desktopNavContainer = document.getElementById('desktop-nav-links');
     const mobileMenuContainer = document.getElementById('mobile-menu');
 
     if (!desktopNavContainer || !mobileMenuContainer) return;
 
-    // Clear any existing content
     mobileMenuContainer.innerHTML = '';
 
-    // Clone all items from desktop nav to mobile
-    const desktopLinks = desktopNavContainer.cloneNode(true);
-    mobileMenuContainer.innerHTML = desktopLinks.innerHTML;
+    const desktopLinksClone = desktopNavContainer.cloneNode(true);
+    mobileMenuContainer.innerHTML = desktopLinksClone.innerHTML;
 
-    // Add the user/auth link which is separate on desktop
     const mobileUserLink = document.createElement('a');
     mobileUserLink.href = '#';
-    mobileUserLink.id = 'mobile-user-link'; // The crucial missing ID
-    mobileUserLink.classList.add('nav-link', 'mobile-nav-link', 'text-gray-600', 'hover:text-gold-500', 'transition-all-ease', 'font-semibold', 'block', 'py-2');
+    mobileUserLink.id = 'mobile-user-link';
+    mobileUserLink.className = 'nav-link mobile-nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold block py-2';
     mobileMenuContainer.appendChild(mobileUserLink);
 
-    // Style mobile links to be block-level
     mobileMenuContainer.querySelectorAll('.nav-link').forEach(link => {
         link.classList.add('block', 'py-2');
     });
     
-    // Handle dropdowns in mobile view (simple expansion)
     mobileMenuContainer.querySelectorAll('.dropdown').forEach(dropdown => {
         const mainLink = dropdown.querySelector('a');
         const dropdownMenu = dropdown.querySelector('.dropdown-menu');
         
-        // Remove classes that make it a popup on desktop
-        dropdownMenu.classList.remove('absolute', 'hidden', 'shadow-lg', 'rounded-md', 'mt-2', 'py-2', 'w-48');
-        // Add classes for an indented look on mobile
-        dropdownMenu.classList.add('pl-4', 'space-y-2');
-        
-        // Make main link just a title, not a page link itself for clarity
-        mainLink.addEventListener('click', (e) => e.preventDefault());
+        if (mainLink && dropdownMenu) {
+            dropdownMenu.classList.remove('absolute', 'hidden', 'shadow-lg', 'rounded-md', 'mt-2', 'py-2', 'w-48');
+            dropdownMenu.classList.add('pl-4', 'space-y-2');
+            mainLink.addEventListener('click', (e) => e.preventDefault());
+        }
     });
 }
 
@@ -1021,14 +1030,10 @@ function initializeEventListeners() {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener(event, handler);
-        } else {
-            console.warn(`Element with id '${id}' not found for event listener.`);
         }
     };
 
-    // Use querySelectorAll for classes as it returns an empty list if not found, preventing errors.
     document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
-        // Check for dataset.page to avoid errors on links without it
         if (link.dataset.page) {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -1044,18 +1049,21 @@ function initializeEventListeners() {
     safeAddEventListener('calculate-shipping-btn', 'click', handleCalculateShipping);
     safeAddEventListener('close-product-details-modal', 'click', () => toggleProductDetailsModal(false));
     safeAddEventListener('product-details-modal-overlay', 'click', () => toggleProductDetailsModal(false));
-    safeAddEventListener('mobile-menu-button', 'click', () => { document.getElementById('mobile-menu').classList.toggle('hidden'); });
+    safeAddEventListener('mobile-menu-button', 'click', () => { document.getElementById('mobile-menu')?.classList.toggle('hidden'); });
     safeAddEventListener('coupon-form', 'submit', handleApplyCoupon);
     safeAddEventListener('close-auth-modal', 'click', () => toggleAuthModal(false));
     safeAddEventListener('auth-modal-overlay', 'click', () => toggleAuthModal(false));
     safeAddEventListener('logout-button', 'click', logout);
     safeAddEventListener('contact-form', 'submit', handleContactFormSubmit);
     safeAddEventListener('newsletter-form', 'submit', handleNewsletterSubmit);
-    safeAddEventListener('search-button', 'click', () => document.getElementById('search-bar').classList.toggle('hidden'));
+    safeAddEventListener('search-button', 'click', () => { document.getElementById('search-bar')?.classList.toggle('hidden'); });
     safeAddEventListener('close-search-bar', 'click', () => {
-        document.getElementById('search-bar').classList.add('hidden');
-        document.getElementById('search-input').value = '';
-        document.getElementById('search-results').innerHTML = '';
+        const searchBar = document.getElementById('search-bar');
+        if (searchBar) {
+            searchBar.classList.add('hidden');
+            document.getElementById('search-input').value = '';
+            document.getElementById('search-results').innerHTML = '';
+        }
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
     
@@ -1065,12 +1073,14 @@ function initializeEventListeners() {
         question.addEventListener('click', () => {
             const answer = question.nextElementSibling;
             const icon = question.querySelector('i');
-            if (answer.style.maxHeight) {
-                answer.style.maxHeight = null;
-                icon.style.transform = 'rotate(0deg)';
-            } else {
-                answer.style.maxHeight = answer.scrollHeight + "px";
-                icon.style.transform = 'rotate(180deg)';
+            if (answer && icon) {
+                if (answer.style.maxHeight) {
+                    answer.style.maxHeight = null;
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
             }
         });
     });
@@ -1086,7 +1096,7 @@ function initializeEventListeners() {
         if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
-        else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
+        else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar')?.classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
         else if (cartQtyBtn) { updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty)); }
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
     });
@@ -1107,9 +1117,7 @@ async function main() {
     try {
         showLoader(true);
         
-        // FIX: Generate the mobile menu before initializing event listeners and auth state.
         generateMobileMenu();
-        
         initializeEventListeners();
         
         feather.replace();
@@ -1127,32 +1135,28 @@ async function main() {
                     const firestoreCart = currentUserData.cart || [];
                     const localCart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
                     
-                    // Merge local and firestore carts
                     const mergedCart = [...firestoreCart];
                     localCart.forEach(localItem => {
                         const firestoreItem = mergedCart.find(fi => fi.id === localItem.id);
                         if (firestoreItem) { 
-                            firestoreItem.quantity += localItem.quantity; 
+                            firestoreItem.quantity = (firestoreItem.quantity || 0) + localItem.quantity; 
                         } else { 
                             mergedCart.push(localItem); 
                         }
                     });
-                    cart = mergedCart;
+                    cart = mergedCart.filter(item => item.id && item.quantity > 0);
                     localStorage.removeItem('sanseiCart');
                     await syncCartWithFirestore();
                 } else {
-                    // New user registration
                     const newUser = { email: user.email, wishlist: [], cart: cart };
                     await setDoc(userDocRef, newUser);
                     currentUserData = { uid: user.uid, ...newUser };
                     await syncCartWithFirestore();
                 }
             } else {
-                // User is signed out
                 currentUserData = null;
                 cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
             }
-            // This call should now work without errors
             updateAuthUI(user);
             updateCartIcon();
             refreshAllProductViews();
@@ -1165,5 +1169,4 @@ async function main() {
     }
 }
 
-// Start the application
 document.addEventListener('DOMContentLoaded', main);
