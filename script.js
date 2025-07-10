@@ -33,40 +33,34 @@ let selectedShipping = null;
 // UTILITY FUNCTIONS
 // =================================================================
 function showToast(message, isError = false) {
-    const toast = document.getElementById('toast-notification');
-    const toastMessage = document.getElementById('toast-message');
-    const iconContainer = document.getElementById('toast-icon-container');
-    if (!toast || !toastMessage || !iconContainer) {
-        // Fallback for missing toast elements
-        const fallbackToast = document.createElement('div');
-        fallbackToast.style.position = 'fixed';
-        fallbackToast.style.top = '20px';
-        fallbackToast.style.right = '20px';
-        fallbackToast.style.padding = '16px';
-        fallbackToast.style.background = isError ? '#fecaca' : '#dcfce7';
-        fallbackToast.style.color = isError ? '#b91c1c' : '#166534';
-        fallbackToast.style.borderRadius = '8px';
-        fallbackToast.style.zIndex = '100';
-        fallbackToast.textContent = message;
-        document.body.appendChild(fallbackToast);
-        setTimeout(() => fallbackToast.remove(), 3000);
-        return;
-    }
+    const toastContainer = document.getElementById('toast-notification');
+    if (!toastContainer) return;
 
+    const toastId = `toast-${Date.now()}`;
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `flex items-center gap-4 px-6 py-3 mb-2 rounded-xl shadow-lg bg-white text-slate-800 border-l-4 transform transition-all duration-300 opacity-0 translate-y-10 ${isError ? 'border-red-400' : 'border-green-400'}`;
+    
     const iconName = isError ? 'x-circle' : 'check-circle';
-    const iconColorClass = isError ? 'text-red-400' : 'text-green-400';
+    const iconColorClass = isError ? 'text-red-500' : 'text-green-500';
 
-    iconContainer.innerHTML = `<i data-feather="${iconName}" class="${iconColorClass}"></i>`;
-    toastMessage.textContent = message;
-    
+    toast.innerHTML = `
+        <span class="flex-shrink-0"><i data-feather="${iconName}" class="${iconColorClass}"></i></span>
+        <span class="font-medium">${message}</span>
+    `;
+
+    toastContainer.appendChild(toast);
     feather.replace();
-    
-    toast.classList.remove('opacity-0', 'translate-y-10');
-    toast.classList.add('opacity-100', 'translate-y-0');
 
+    // Animate in
     setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', 'translate-y-10');
+        toast.classList.remove('opacity-0', 'translate-y-10');
+    }, 10);
+
+    // Animate out
+    setTimeout(() => {
+        toast.classList.add('opacity-0');
+        toast.addEventListener('transitionend', () => toast.remove());
     }, 3000);
 }
 
@@ -266,7 +260,6 @@ async function syncCartWithFirestore() {
     await updateDoc(userRef, { cart: cart });
 }
 
-// **NOVO**: Função de animação "Fly to Cart"
 function flyToCart(targetElement) {
     const cartIcon = document.getElementById('cart-button');
     if (!targetElement || !cartIcon) return;
@@ -284,10 +277,10 @@ function flyToCart(targetElement) {
 
     document.body.appendChild(flyingImage);
 
-    // Forçar reflow para aplicar o estado inicial antes da transição
+    // Force reflow to apply the initial state before the transition
     flyingImage.offsetHeight; 
 
-    // Mover para o carrinho
+    // Move to the cart
     flyingImage.style.left = `${cartRect.left + cartRect.width / 2}px`;
     flyingImage.style.top = `${cartRect.top + cartRect.height / 2}px`;
     flyingImage.style.width = '20px';
@@ -301,7 +294,6 @@ function flyToCart(targetElement) {
 
 
 async function addToCart(productId, quantity = 1, event) {
-    // **NOVO**: Adicionado spinner e desativação do botão
     const button = event.target.closest('.add-to-cart-btn');
     const originalText = button.innerHTML;
     button.disabled = true;
@@ -315,7 +307,6 @@ async function addToCart(productId, quantity = 1, event) {
         return;
     }
     
-    // **NOVO**: Animação "Fly to Cart"
     const productImage = button.closest('.group').querySelector('img');
     flyToCart(productImage);
 
@@ -329,7 +320,6 @@ async function addToCart(productId, quantity = 1, event) {
     await syncCartWithFirestore();
     updateCartIcon();
     
-    // Restaurar o botão após um pequeno atraso para a animação ser visível
     setTimeout(() => {
         showToast(`${product.name} foi adicionado ao carrinho!`);
         button.disabled = false;
@@ -491,7 +481,6 @@ function renderProducts(productsToRender, containerId) {
     if (!productListEl) return;
     
     if (productsToRender.length === 0) {
-        // **NOVO**: Mensagem mais amigável para páginas vazias
         productListEl.innerHTML = `
             <div class="col-span-full text-center text-gray-600">
                 <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
@@ -763,10 +752,10 @@ function showProductDetails(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
-    // FIX: Changed ID from 'product-details-content' to 'product-details-main-content'
+    // FIX: Using the correct ID for the content area
     const contentEl = document.getElementById('product-details-main-content');
     if (!contentEl) {
-        console.error('Product details content element not found!');
+        console.error('Element with ID "product-details-main-content" not found!');
         return;
     }
     contentEl.innerHTML = `
@@ -782,7 +771,7 @@ function showProductDetails(productId) {
             <p class="text-gray-600 mb-6 text-lg leading-relaxed">${product.description}</p>
             <div class="mt-auto">
                 <p class="text-gold-500 font-bold text-3xl mb-6">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                <button class="add-to-cart-btn w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
+                <button class="add-to-cart-btn w-full bg-black text-white py-3 rounded-md hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
             </div>
         </div>
     `;
@@ -972,7 +961,8 @@ function initializeEventListeners() {
     document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            showPage(link.dataset.page);
+            const page = link.dataset.page;
+            if (page) showPage(page);
         });
     });
     safeAddEventListener('cart-button', 'click', () => toggleCart(true));
@@ -1001,7 +991,6 @@ function initializeEventListeners() {
         question.addEventListener('click', () => {
             const answer = question.nextElementSibling;
             const icon = question.querySelector('i');
-            // Check if elements exist before using them
             if (answer && icon) {
                 if (answer.style.maxHeight) {
                     answer.style.maxHeight = null;
