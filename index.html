@@ -43,18 +43,22 @@
                     <img src="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" alt="SANSEI DECANTS Logo" class="h-full w-auto">
                 </a>
                 
-                <!-- Search Bar - Visible on larger screens -->
-                <div class="hidden lg:flex flex-grow justify-center px-8">
-                    <form id="header-search-form" class="w-full max-w-lg relative">
-                        <input type="text" id="search-input-header" placeholder="O que você procura?" class="w-full px-5 py-3 border border-slate-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                        <button type="submit" class="absolute top-1/2 right-4 -translate-y-1/2 text-slate-400 hover:text-indigo-600">
-                            <i data-feather="search"></i>
-                        </button>
-                    </form>
-                </div>
+                <!-- Navigation Bar - Visible on larger screens -->
+                <nav class="hidden lg:flex flex-grow justify-center">
+                    <ul class="flex items-center space-x-6">
+                        <li class="nav-item"><a href="#" id="nav-quiz" data-page="quiz" class="nav-link">QUIZ - SEU PERFUME IDEAL</a></li>
+                        <li class="nav-item"><a href="#" id="nav-inicio" data-page="inicio" class="nav-link active">Início</a></li>
+                        <li class="nav-item"><a href="#" id="nav-fragrancias" data-page="fragrancias" class="nav-link">Fragrâncias</a></li>
+                        <li class="nav-item"><a href="#" id="nav-decants" data-page="decants" class="nav-link">Decants</a></li>
+                        <li class="nav-item"><a href="#" id="nav-sobre" data-page="sobre" class="nav-link">Sobre</a></li>
+                        <li class="nav-item"><a href="#" id="nav-faq" data-page="faq" class="nav-link">FAQ</a></li>
+                        <li class="nav-item"><a href="#" id="nav-contato" data-page="contato" class="nav-link">Contato</a></li>
+                    </ul>
+                </nav>
 
                 <div class="flex items-center space-x-4">
                     <button id="search-button-mobile" class="lg:hidden nav-icon"><i data-feather="search"></i></button>
+                    <!-- Cart Button - Now visible on larger screens too -->
                     <button id="cart-button" class="nav-icon relative">
                         <i data-feather="shopping-cart"></i>
                         <span id="cart-count" class="cart-count-badge">0</span>
@@ -65,42 +69,10 @@
             </div>
         </div>
 
-        <!-- Navigation Bar with Mega Menu -->
-        <nav class="hidden lg:block bg-white border-y border-slate-200">
-            <div class="container mx-auto flex justify-center">
-                <ul class="flex items-center space-x-2">
-                    <li class="nav-item"><a href="#" id="nav-inicio" data-page="inicio" class="nav-link active">Início</a></li>
-                    
-                    <li class="nav-item group">
-                        <a href="#" id="nav-fragrancias" data-page="fragrancias" class="nav-link flex items-center gap-1">
-                            Fragrâncias <i data-feather="chevron-down" class="w-4 h-4"></i>
-                        </a>
-                        <div class="mega-menu">
-                            <div class="mega-menu-column">
-                                <h4 class="mega-menu-heading">Por Gênero</h4>
-                                <a href="#" class="mega-menu-link">Masculinos</a>
-                                <a href="#" class="mega-menu-link">Femininos</a>
-                                <a href="#" class="mega-menu-link">Unissex</a>
-                            </div>
-                            <div class="mega-menu-column">
-                                <h4 class="mega-menu-heading">Por Tipo</h4>
-                                <a href="#" data-page="fragrancias" class="mega-menu-link nav-link-button">Todos os Perfumes</a>
-                                <a href="#" data-page="decants" class="mega-menu-link nav-link-button">Todos os Decants</a>
-                            </div>
-                        </div>
-                    </li>
-                    
-                    <li class="nav-item"><a href="#" id="nav-decants" data-page="decants" class="nav-link">Decants</a></li>
-                    <li class="nav-item"><a href="#" id="nav-sobre" data-page="sobre" class="nav-link">Sobre</a></li>
-                    <li class="nav-item"><a href="#" id="nav-faq" data-page="faq" class="nav-link">FAQ</a></li>
-                    <li class="nav-item"><a href="#" id="nav-contato" data-page="contato" class="nav-link">Contato</a></li>
-                </ul>
-            </div>
-        </nav>
-
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden lg:hidden">
             <div class="px-6 pb-4 space-y-2 border-t border-slate-200">
+                 <a href="#" class="mobile-nav-link" data-page="quiz">QUIZ - SEU PERFUME IDEAL</a>
                  <a href="#" class="mobile-nav-link" data-page="inicio">Início</a>
                  <a href="#" class="mobile-nav-link" data-page="fragrancias">Fragrâncias</a>
                  <a href="#" class="mobile-nav-link" data-page="decants">Decants</a>
