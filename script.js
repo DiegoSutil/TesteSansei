@@ -165,17 +165,10 @@ async function handleCalculateShipping() {
     btn.disabled = true;
 
     try {
-        // Using a more reliable endpoint for general CEP validation first
-        const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
-        if (!response.ok) {
-            throw new Error('CEP não encontrado.');
-        }
-        
         // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
-        // The previous complex request was likely failing. This is a more stable placeholder.
         const shippingOptions = [
-            { nome: 'PAC', prazoEntrega: 10, valor: '25,50' },
-            { nome: 'SEDEX', prazoEntrega: 5, valor: '45,80' }
+            { Codigo: '04510', nome: 'PAC', PrazoEntrega: 10, Valor: '25,50' },
+            { Codigo: '04014', nome: 'SEDEX', PrazoEntrega: 5, Valor: '45,80' }
         ];
 
         renderShippingOptions(shippingOptions);
@@ -205,8 +198,8 @@ function renderShippingOptions(options) {
     options.forEach(option => {
         if (option.erro) return;
 
-        const price = parseFloat(option.valor.replace(',', '.'));
-        const optionId = `shipping-${option.nome}`;
+        const price = parseFloat(option.Valor.replace(',', '.'));
+        const optionId = `shipping-${option.Codigo}`;
         const label = document.createElement('label');
         label.className = 'flex items-center justify-between p-3 border rounded-md cursor-pointer hover:bg-gray-50';
         label.innerHTML = `
@@ -214,7 +207,7 @@ function renderShippingOptions(options) {
                 <input type="radio" name="shipping-option" id="${optionId}" value="${price}" data-name="${option.nome}" class="form-radio text-gold-500">
                 <div class="ml-3">
                     <p class="font-semibold">${option.nome}</p>
-                    <p class="text-sm text-gray-500">Prazo: ${option.prazoEntrega} dias úteis</p>
+                    <p class="text-sm text-gray-500">Prazo: ${option.PrazoEntrega} dias úteis</p>
                 </div>
             </div>
             <span class="font-bold">R$ ${price.toFixed(2).replace('.', ',')}</span>
@@ -224,7 +217,7 @@ function renderShippingOptions(options) {
             selectedShipping = {
                 method: option.nome,
                 price: price,
-                deadline: option.prazoEntrega
+                deadline: option.PrazoEntrega
             };
             renderCart();
         });
