@@ -57,6 +57,30 @@ h1, h2, h3, h4, .font-heading {
     stroke: #f59e0b;
 }
 
+/* **NOVO**: Estilos para o formulário de avaliação */
+.rating-input-group {
+    display: flex;
+    flex-direction: row-reverse; /* Inverte a ordem para o truque do CSS funcionar */
+    justify-content: flex-end;
+}
+.rating-input-group input[type="radio"] {
+    display: none;
+}
+.rating-input-group label {
+    cursor: pointer;
+    color: #d1d5db; /* gray-300 */
+    transition: color 0.2s;
+}
+.rating-input-group input[type="radio"]:checked ~ label,
+.rating-input-group label:hover,
+.rating-input-group label:hover ~ label {
+    color: #f59e0b; /* amber-500 */
+}
+.rating-input-group input[type="radio"]:checked + label {
+    color: #f59e0b;
+}
+
+
 /* Wishlist Heart Active State */
 .wishlist-heart.active i {
     fill: #ef4444; /* red-500 */
