@@ -165,12 +165,14 @@ async function handleCalculateShipping() {
     btn.disabled = true;
 
     try {
-        const response = await fetch(`https://brasilapi.com.br/api/cep/v2/${cep}`);
+        // Using a more reliable endpoint for general CEP validation first
+        const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
         if (!response.ok) {
             throw new Error('CEP não encontrado.');
         }
         
         // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
+        // The previous complex request was likely failing. This is a more stable placeholder.
         const shippingOptions = [
             { nome: 'PAC', prazoEntrega: 10, valor: '25,50' },
             { nome: 'SEDEX', prazoEntrega: 5, valor: '45,80' }
@@ -243,7 +245,10 @@ async function syncCartWithFirestore() {
 
 async function addToCart(productId, quantity = 1) {
     const product = allProducts.find(p => p.id === productId);
-    if (!product) return;
+    if (!product) {
+        console.error("Product not found in allProducts array:", productId);
+        return;
+    }
     const cartItem = cart.find(item => item.id === productId);
     if (cartItem) {
         cartItem.quantity += quantity;
@@ -280,8 +285,10 @@ async function updateQuantity(productId, newQuantity) {
 
 function updateCartIcon() {
     const cartCountEl = document.getElementById('cart-count');
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    cartCountEl.textContent = totalItems;
+    if (cartCountEl) {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountEl.textContent = totalItems;
+    }
 }
 
 function renderCart() {
@@ -292,13 +299,18 @@ function renderCart() {
     const shippingCostLine = document.getElementById('shipping-cost-line');
     const shippingCostEl = document.getElementById('shipping-cost');
     
+    if (!cartItemsEl || !cartSubtotalEl || !cartTotalEl) {
+        console.error("Cart elements not found in DOM");
+        return;
+    }
+    
     cartItemsEl.innerHTML = '';
     if (cart.length === 0) {
         cartItemsEl.innerHTML = '<p class="text-gray-500 text-center">Seu carrinho está vazio.</p>';
         cartSubtotalEl.textContent = 'R$ 0,00';
         cartTotalEl.textContent = 'R$ 0,00';
         shippingCostLine.classList.add('hidden');
-        discountInfoEl.innerHTML = '';
+        if(discountInfoEl) discountInfoEl.innerHTML = '';
         return;
     }
     
@@ -311,7 +323,7 @@ function renderCart() {
         discountInfoEl.innerHTML = `Cupom "${appliedCoupon.code}" aplicado! (-R$ ${discountAmount.toFixed(2).replace('.',',')}) <button id="remove-coupon-btn" class="text-red-500 ml-2 font-semibold">Remover</button>`;
         document.getElementById('remove-coupon-btn').addEventListener('click', removeCoupon);
     } else {
-        discountInfoEl.innerHTML = '';
+        if(discountInfoEl) discountInfoEl.innerHTML = '';
     }
 
     if(selectedShipping) {
