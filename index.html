@@ -69,9 +69,16 @@
             </div>
         </div>
 
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+
         <!-- Mobile Menu -->
-        <div id="mobile-menu" class="hidden lg:hidden">
-            <div class="px-6 pb-4 space-y-2 border-t border-slate-200">
+        <div id="mobile-menu" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+            <div class="flex justify-between items-center p-4 border-b border-slate-200">
+                <h3 class="font-bold text-lg">Menu</h3>
+                <button id="close-mobile-menu" class="text-slate-500 hover:text-slate-800"><i data-feather="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="px-4 py-4 space-y-2">
                  <a href="#" class="mobile-nav-link" data-page="quiz">QUIZ - SEU PERFUME IDEAL</a>
                  <a href="#" class="mobile-nav-link" data-page="inicio">Início</a>
                  <a href="#" class="mobile-nav-link" data-page="fragrancias">Fragrâncias</a>
