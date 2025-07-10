@@ -6,7 +6,7 @@
     
     <!-- SEO Básico -->
     <title>SANSEI DECANTS - Perfumes Importados e Decants de Luxo</title>
-    <meta name="description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Oferecemos uma curadoria exclusiva de perfumes importados e decants de luxo. Compre online com segurança.">
+    <meta name="description" content="Descubra a sua assinatura olfativa na SANSAEI DECANTS. Oferecemos uma curadoria exclusiva de perfumes importados e decants de luxo. Compre online com segurança.">
     <meta name="keywords" content="decants, perfumes importados, sansei decants, perfumes de nicho, comprar perfume online, fragrâncias">
     <link rel="icon" href="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" type="image/x-icon">
 
@@ -64,17 +64,17 @@
                         <span id="cart-count" class="cart-count-badge">0</span>
                     </button>
                     <button id="user-button" class="nav-icon hidden md:flex"><i data-feather="user"></i></button>
-                    <!-- Adicionado 'relative' e 'z-50' para garantir que o botão seja clicável -->
-                    <button id="mobile-menu-button" class="lg:hidden nav-icon relative z-50"><i data-feather="menu"></i></button>
+                    <!-- Ajustado z-index para garantir que o botão do menu mobile seja clicável -->
+                    <button id="mobile-menu-button" class="lg:hidden nav-icon relative z-[51]"><i data-feather="menu"></i></button>
                 </div>
             </div>
         </div>
 
-        <!-- Mobile Menu Overlay -->
-        <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden"></div>
+        <!-- Mobile Menu Overlay - Ajustado z-index -->
+        <div id="mobile-menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-[55] hidden"></div>
 
-        <!-- Mobile Menu -->
-        <div id="mobile-menu" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out">
+        <!-- Mobile Menu - Ajustado z-index -->
+        <div id="mobile-menu" class="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-[60] transform -translate-x-full transition-transform duration-300 ease-in-out">
             <div class="flex justify-between items-center p-4 border-b border-slate-200">
                 <h3 class="font-bold text-lg">Menu</h3>
                 <button id="close-mobile-menu" class="text-slate-500 hover:text-slate-800"><i data-feather="x" class="w-6 h-6"></i></button>
@@ -250,7 +250,7 @@
                         <!-- Lista de decants será carregada aqui -->
                     </div>
                 </div>
-            </section>
+            </div>
         </div>
 
         <!-- =========== Página: SOBRE =========== -->
