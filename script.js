@@ -875,6 +875,8 @@ function initializeEventListeners() {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element with id "${id}" not found for event listener.`);
         }
     };
 
