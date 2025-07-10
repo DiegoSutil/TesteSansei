@@ -71,6 +71,60 @@ const showLoader = (show) => {
     }
 }
 
+/**
+ * Exibe um modal de confirmação personalizado.
+ * @param {string} message A mensagem a ser exibida no modal.
+ * @param {string} [title='Confirmação'] O título do modal.
+ * @returns {Promise<boolean>} Uma promessa que resolve para `true` se o usuário confirmar, `false` caso contrário.
+ */
+function showConfirmationModal(message, title = 'Confirmação') {
+    return new Promise(resolve => {
+        const modalOverlay = document.getElementById('confirmation-modal-overlay');
+        const modal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('confirmation-modal-title');
+        const modalMessage = document.getElementById('confirmation-modal-message');
+        const confirmBtn = document.getElementById('confirmation-confirm-btn');
+        const cancelBtn = document.getElementById('confirmation-cancel-btn');
+
+        if (!modalOverlay || !modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
+            console.error("Elementos do modal de confirmação não encontrados.");
+            resolve(false); // Fallback to false if elements are missing
+            return;
+        }
+
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+
+        // Reset event listeners to prevent multiple bindings
+        confirmBtn.onclick = null;
+        cancelBtn.onclick = null;
+
+        confirmBtn.onclick = () => {
+            hideConfirmationModal();
+            resolve(true);
+        };
+
+        cancelBtn.onclick = () => {
+            hideConfirmationModal();
+            resolve(false);
+        };
+
+        modalOverlay.classList.remove('hidden');
+        modal.classList.remove('hidden', 'opacity-0', 'scale-95');
+    });
+}
+
+function hideConfirmationModal() {
+    const modalOverlay = document.getElementById('confirmation-modal-overlay');
+    const modal = document.getElementById('confirmation-modal');
+    if (modalOverlay) modalOverlay.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+}
+
+
 // =================================================================
 // CHECKOUT & ORDER FUNCTIONS
 // =================================================================
@@ -328,11 +382,14 @@ async function addToCart(productId, quantity = 1, event) {
 }
 
 async function removeFromCart(productId) {
-    cart = cart.filter(item => item.id !== productId);
-    localStorage.setItem('sanseiCart', JSON.stringify(cart));
-    await syncCartWithFirestore();
-    updateCartIcon();
-    renderCart();
+    const confirmed = await showConfirmationModal('Tem certeza que deseja remover este item do carrinho?', 'Remover do Carrinho');
+    if (confirmed) {
+        cart = cart.filter(item => item.id !== productId);
+        localStorage.setItem('sanseiCart', JSON.stringify(cart));
+        await syncCartWithFirestore();
+        updateCartIcon();
+        renderCart();
+    }
 }
 
 async function updateQuantity(productId, newQuantity) {
@@ -351,9 +408,13 @@ async function updateQuantity(productId, newQuantity) {
 
 function updateCartIcon() {
     const cartCountEl = document.getElementById('cart-count');
+    const mobileCartCountEl = document.getElementById('mobile-cart-count'); // New mobile cart count
     if (cartCountEl) {
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
         cartCountEl.textContent = totalItems;
+        if (mobileCartCountEl) {
+            mobileCartCountEl.textContent = totalItems;
+        }
     }
 }
 
@@ -456,14 +517,18 @@ function renderStars(rating) {
     return `<div class="flex items-center star-rating">${stars}</div>`;
 }
 
-function createProductCard(product) {
+function createProductCard(product, delay = 0) {
     const isInWishlist = currentUserData && currentUserData.wishlist.includes(product.id);
     return `
-        <div class="bg-white group text-center rounded-lg shadow-sm flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl" data-aos="fade-up">
+        <div class="bg-white group text-center rounded-lg shadow-sm flex flex-col transition-all-ease hover:-translate-y-2 hover:shadow-xl whitespace-normal flex-shrink-0 w-full sm:w-auto" data-aos="fade-up" data-aos-delay="${delay}">
             <div class="relative overflow-hidden rounded-t-lg">
                 <img src="${product.image}" alt="${product.name}" class="w-full h-64 object-cover group-hover:scale-105 transition-all-ease cursor-pointer" data-id="${product.id}">
                 <button class="wishlist-heart absolute top-4 right-4 p-2 bg-white/70 rounded-full ${isInWishlist ? 'active' : ''}" data-id="${product.id}">
                     <i data-feather="heart" class="w-5 h-5"></i>
+                </button>
+                <!-- Quick View Button -->
+                <button class="quick-view-btn absolute bottom-0 left-0 right-0 bg-black/70 text-white py-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300" data-id="${product.id}">
+                    Visualização Rápida
                 </button>
             </div>
             <div class="p-6 flex flex-col flex-grow">
@@ -488,7 +553,8 @@ function renderProducts(productsToRender, containerId) {
             </div>
         `;
     } else {
-        productListEl.innerHTML = productsToRender.map(createProductCard).join('');
+        // Apply cascade animations with data-aos-delay
+        productListEl.innerHTML = productsToRender.map((product, index) => createProductCard(product, index * 100)).join('');
     }
     AOS.refresh();
     feather.replace();
@@ -504,12 +570,14 @@ function applyFilters() {
         filteredProducts = filteredProducts.filter(p => selectedCategories.includes(p.category));
     }
 
-    const priceFilter = document.querySelector('input[name="price"]:checked').value;
-    if (priceFilter !== 'all') {
-        if (priceFilter === '150') { filteredProducts = filteredProducts.filter(p => p.price <= 150); }
-        else if (priceFilter === '500') { filteredProducts = filteredProducts.filter(p => p.price > 150 && p.price <= 500); }
-        else if (priceFilter === '501') { filteredProducts = filteredProducts.filter(p => p.price > 500); }
-    }
+    // Price Range Filter
+    const priceMin = parseFloat(document.getElementById('price-min').value);
+    const priceMax = parseFloat(document.getElementById('price-max').value);
+    filteredProducts = filteredProducts.filter(p => p.price >= priceMin && p.price <= priceMax);
+
+    // Update price display
+    document.getElementById('price-min-display').textContent = `R$ ${priceMin.toFixed(2).replace('.', ',')}`;
+    document.getElementById('price-max-display').textContent = `R$ ${priceMax.toFixed(2).replace('.', ',')}`;
     
     const sortBy = document.getElementById('sort-by').value;
     if (sortBy === 'price-asc') {
@@ -520,7 +588,7 @@ function applyFilters() {
         filteredProducts.sort((a, b) => b.rating - a.rating);
     }
 
-    renderProducts(filteredProducts, 'product-list-fragrances');
+    renderProducts(filteredProducts, 'product-list-fragrancias');
 }
 
 async function fetchAndRenderReels() {
@@ -584,7 +652,9 @@ function renderAuthForm(isLogin = true) {
         `;
     }
     formHtml += `
-            <button type="submit" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">${isLogin ? 'Entrar' : 'Registar'}</button>
+            <button type="submit" class="w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease">
+                ${isLogin ? 'Entrar' : 'Registar'}
+            </button>
         </form>
         <p class="text-center text-sm mt-4">
             ${isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?'}
@@ -672,14 +742,23 @@ async function logout() {
 function updateAuthUI(user) {
     const userButton = document.getElementById('user-button');
     const mobileUserLink = document.getElementById('mobile-user-link');
+    const mobileBottomUserLink = document.getElementById('mobile-bottom-user-link'); // New
     if (user) {
         userButton.onclick = () => showPage('profile');
         mobileUserLink.onclick = (e) => { e.preventDefault(); showPage('profile'); };
         mobileUserLink.textContent = 'Minha Conta';
+        if (mobileBottomUserLink) { // Update new mobile bottom nav link
+            mobileBottomUserLink.onclick = (e) => { e.preventDefault(); showPage('profile'); };
+            mobileBottomUserLink.querySelector('span').textContent = 'Conta';
+        }
     } else {
         userButton.onclick = () => toggleAuthModal(true);
         mobileUserLink.onclick = (e) => { e.preventDefault(); toggleAuthModal(true); };
         mobileUserLink.textContent = 'Login / Registar';
+        if (mobileBottomUserLink) { // Update new mobile bottom nav link
+            mobileBottomUserLink.onclick = (e) => { e.preventDefault(); toggleAuthModal(true); };
+            mobileBottomUserLink.querySelector('span').textContent = 'Login';
+        }
     }
 }
 
@@ -830,16 +909,31 @@ function handleNewsletterSubmit(e) {
 const pages = document.querySelectorAll('.page-content');
 const navLinks = document.querySelectorAll('.nav-link');
 const mobileMenu = document.getElementById('mobile-menu');
+const mobileBottomNavLinks = document.querySelectorAll('#mobile-bottom-nav .mobile-bottom-nav-link');
+
 
 function showPage(pageId) {
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
     if(targetPage) { targetPage.classList.remove('hidden'); }
     
+    // Update top navigation active state
     document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
     const activeLink = document.getElementById('nav-' + pageId);
     if(activeLink) { activeLink.classList.add('active'); }
-    
+
+    // Update mobile bottom navigation active state
+    mobileBottomNavLinks.forEach(link => link.classList.remove('active'));
+    const activeBottomLink = document.querySelector(`#mobile-bottom-nav a[data-page="${pageId}"]`);
+    if (activeBottomLink) {
+        activeBottomLink.classList.add('active');
+    } else if (pageId === 'search') { // Special handling for search button
+        document.getElementById('mobile-bottom-search-btn').classList.add('active');
+    } else if (pageId === 'cart') { // Special handling for cart button
+        document.getElementById('mobile-bottom-cart-btn').classList.add('active');
+    }
+
+
     if (mobileMenu && !mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
     
     // Page-specific logic
@@ -986,7 +1080,33 @@ function initializeEventListeners() {
         document.getElementById('search-results').innerHTML = '';
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
+    
+    // New: Mobile Bottom Nav Listeners
+    safeAddEventListener('mobile-bottom-search-btn', 'click', () => {
+        document.getElementById('search-bar').classList.toggle('hidden');
+        showPage('search'); // You might want a dedicated search page or just toggle the bar
+    });
+    safeAddEventListener('mobile-bottom-cart-btn', 'click', () => toggleCart(true));
+    document.querySelectorAll('#mobile-bottom-nav a[data-page]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage(link.dataset.page);
+        });
+    });
+
+
+    // Filter controls
     document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
+    
+    // Price range slider listeners
+    const priceMinInput = document.getElementById('price-min');
+    const priceMaxInput = document.getElementById('price-max');
+    if (priceMinInput && priceMaxInput) {
+        priceMinInput.addEventListener('input', applyFilters);
+        priceMaxInput.addEventListener('input', applyFilters);
+    }
+
+
     document.querySelectorAll('.faq-question').forEach(question => {
         question.addEventListener('click', () => {
             const answer = question.nextElementSibling;
@@ -1006,6 +1126,7 @@ function initializeEventListeners() {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
         const productLink = e.target.closest('img[data-id], h3[data-id]');
+        const quickViewBtn = e.target.closest('.quick-view-btn'); // New
         const searchResult = e.target.closest('.search-result-item');
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
@@ -1013,6 +1134,7 @@ function initializeEventListeners() {
         if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
+        else if (quickViewBtn) { e.stopPropagation(); showProductDetails(quickViewBtn.dataset.id); } // Handle quick view
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
         else if (cartQtyBtn) { updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty)); }
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
@@ -1023,6 +1145,7 @@ function initializeEventListeners() {
             toggleCart(false);
             toggleProductDetailsModal(false);
             toggleAuthModal(false);
+            hideConfirmationModal(); // Close confirmation modal on escape
         }
     });
 }
