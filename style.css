@@ -63,19 +63,18 @@ body {
 }
 
 .mega-menu {
-    /* FIX: Added z-50 to ensure the dropdown appears above other nav items */
-    /* Increased min-width and added flex-wrap-nowrap to prevent columns from stacking */
+    /* FIX: Changed to grid for better column control */
     @apply absolute top-full left-0 mt-1 bg-white shadow-xl rounded-b-lg p-6
            opacity-0 invisible group-hover:opacity-100 group-hover:visible
            transition-all duration-300 ease-in-out transform translate-y-2 group-hover:translate-y-0
-           flex gap-8 z-50 flex-nowrap; /* Adicionado flex-nowrap */
-    min-width: 450px; /* Aumentado o min-width para garantir espaço para as colunas */
+           grid grid-cols-2 gap-8 z-50; /* Usando grid com 2 colunas e gap */
+    min-width: 450px; /* Mantido para garantir espaço suficiente */
     border-top: 2px solid #4f46e5; /* Indigo color */
 }
 
 .mega-menu-column {
-    /* Removido flex-1 e adicionado w-1/2 para garantir que as colunas dividam o espaço igualmente */
-    @apply flex flex-col gap-2 w-1/2 flex-shrink-0; /* Adicionado w-1/2 e flex-shrink-0 */
+    /* Removido w-1/2 e flex-shrink-0, pois o grid já gerencia o tamanho das colunas */
+    @apply flex flex-col gap-2;
 }
 
 .mega-menu-heading {
