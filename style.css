@@ -43,22 +43,6 @@ h1, h2, h3, h4, .font-heading {
     background-color: #D4AF37;
 }
 
-/* **NOVO**: Dropdown Menu Styles */
-.dropdown:hover .dropdown-menu {
-    display: block;
-}
-
-.dropdown-menu {
-    display: none;
-    animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-
 /* Parallax Background Effect */
 .parallax-bg {
     background-attachment: fixed;
@@ -72,29 +56,6 @@ h1, h2, h3, h4, .font-heading {
     fill: #f59e0b; /* amber-500 */
     stroke: #f59e0b;
 }
-
-.rating-input-group {
-    display: flex;
-    flex-direction: row-reverse;
-    justify-content: flex-end;
-}
-.rating-input-group input[type="radio"] {
-    display: none;
-}
-.rating-input-group label {
-    cursor: pointer;
-    color: #d1d5db; /* gray-300 */
-    transition: color 0.2s;
-}
-.rating-input-group input[type="radio"]:checked ~ label,
-.rating-input-group label:hover,
-.rating-input-group label:hover ~ label {
-    color: #f59e0b; /* amber-500 */
-}
-.rating-input-group input[type="radio"]:checked + label {
-    color: #f59e0b;
-}
-
 
 /* Wishlist Heart Active State */
 .wishlist-heart.active i {
@@ -153,35 +114,6 @@ h1, h2, h3, h4, .font-heading {
     transition: all 1s ease-in-out;
     object-fit: cover;
 }
-
-/* Quiz Styles */
-.quiz-option {
-    transition: all 0.2s ease-in-out;
-    transform: scale(1);
-}
-.quiz-option:hover {
-    transform: scale(1.03);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
-.quiz-option.selected {
-    border-color: #D4AF37;
-    background-color: #fefce8; /* yellow-50 */
-    transform: scale(1.03);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-}
-.quiz-progress-bar {
-    transition: width 0.5s ease-in-out;
-}
-.quiz-question-container {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-}
-.quiz-question-container.active {
-    opacity: 1;
-    transform: translateY(0);
-}
-
 
 @keyframes spin {
     0% { transform: rotate(0deg); }
