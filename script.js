@@ -79,13 +79,10 @@ async function handleCheckout() {
         return;
     }
 
-    // **NOVO**: Simulação de Gateway de Pagamento
     showLoader(true);
     setTimeout(() => {
-        // Esta parte simula a resposta de um gateway de pagamento.
-        // Numa implementação real, aqui viria o código para redirecionar para o Stripe, Mercado Pago, etc.
         createOrder();
-    }, 2000); // Simula um tempo de processamento de 2 segundos
+    }, 2000);
 }
 
 async function createOrder() {
@@ -106,7 +103,7 @@ async function createOrder() {
         items: orderItems,
         total: total,
         shipping: selectedShipping,
-        status: "Pendente", // Numa implementação real, o status seria "Pago" após confirmação do gateway
+        status: "Pendente",
         createdAt: Timestamp.now(),
         coupon: appliedCoupon ? appliedCoupon.code : null
     };
@@ -158,7 +155,7 @@ function calculateTotal() {
 // =================================================================
 async function handleCalculateShipping() {
     const cepInput = document.getElementById('cep-input');
-    const cep = cepInput.value.replace(/\D/g, ''); // Remove non-digits
+    const cep = cepInput.value.replace(/\D/g, '');
     const btn = document.getElementById('calculate-shipping-btn');
     const btnText = btn.querySelector('.btn-text');
     const loader = btn.querySelector('.loader-sm');
@@ -442,10 +439,9 @@ function removeCoupon() {
 // =================================================================
 function renderStars(rating, isInteractive = false, size = 'w-5 h-5') {
     let stars = '';
-    const ratingValue = Math.round(rating); // Arredonda para a estrela mais próxima
+    const ratingValue = Math.round(rating);
 
     if (isInteractive) {
-        // Para formulário de avaliação
         stars = `
             <div class="rating-input-group">
                 <input type="radio" id="star5" name="rating" value="5" /><label for="star5"><i data-feather="star" class="${size}"></i></label>
@@ -456,7 +452,6 @@ function renderStars(rating, isInteractive = false, size = 'w-5 h-5') {
             </div>
         `;
     } else {
-        // Para exibição
         let starIcons = '';
         for (let i = 1; i <= 5; i++) {
             starIcons += `<i data-feather="star" class="feather-star ${size} ${i <= ratingValue ? 'filled' : ''}"></i>`;
@@ -483,7 +478,7 @@ function createProductCard(product, isSmall = false) {
                 <h3 class="font-heading font-semibold ${titleClass} cursor-pointer" data-id="${product.id}">${product.name}</h3>
                 <div class="flex justify-center my-2">${renderStars(product.rating)}</div>
                 <p class="text-gold-500 font-bold mt-auto text-lg">R$ ${product.price.toFixed(2).replace('.',',')}</p>
-                <button class="add-to-cart-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Adicionar</button>
+                <button class="view-details-btn mt-4 bg-black text-white py-2 px-6 rounded-full hover:bg-gold-500 hover:text-black transition-all-ease" data-id="${product.id}">Ver Detalhes</button>
             </div>
         </div>
     `;
@@ -530,7 +525,7 @@ async function handleReviewSubmit(e) {
 
     const newReview = {
         userId: currentUserData.uid,
-        userName: currentUserData.email.split('@')[0], // Simple name extraction
+        userName: currentUserData.email.split('@')[0],
         rating: parseInt(rating),
         text: text,
         createdAt: Timestamp.now()
@@ -538,12 +533,10 @@ async function handleReviewSubmit(e) {
 
     try {
         const productRef = doc(db, "products", productId);
-        // Use arrayUnion to add the new review
         await updateDoc(productRef, {
             reviews: arrayUnion(newReview)
         });
 
-        // Recalculate average rating
         const updatedDoc = await getDoc(productRef);
         const productData = updatedDoc.data();
         const reviews = productData.reviews || [];
@@ -554,7 +547,6 @@ async function handleReviewSubmit(e) {
             rating: avgRating
         });
         
-        // Update local product data
         const productIndex = allProducts.findIndex(p => p.id === productId);
         if (productIndex !== -1) {
             allProducts[productIndex].reviews = reviews;
@@ -562,7 +554,7 @@ async function handleReviewSubmit(e) {
         }
 
         showToast("Avaliação enviada com sucesso!");
-        showProductDetails(productId); // Refresh modal content
+        showProductDetails(productId);
 
     } catch (error) {
         console.error("Error submitting review:", error);
@@ -830,7 +822,6 @@ function showProductDetails(productId) {
     const mainContentEl = document.getElementById('product-details-main-content');
     const extraContentEl = document.getElementById('product-details-extra-content');
     
-    // Renderiza o conteúdo principal do produto
     mainContentEl.innerHTML = `
         <div class="flex flex-col md:flex-row">
             <div class="w-full md:w-1/2 p-8">
@@ -851,7 +842,6 @@ function showProductDetails(productId) {
         </div>
     `;
 
-    // Renderiza o conteúdo extra (reviews e produtos relacionados)
     const reviews = product.reviews || [];
     const hasUserReviewed = currentUserData && reviews.some(r => r.userId === currentUserData.uid);
 
@@ -896,7 +886,6 @@ function showProductDetails(productId) {
     
     feather.replace();
     
-    // Adiciona event listeners para os novos elementos
     const reviewForm = document.getElementById('review-form');
     if (reviewForm) {
         reviewForm.addEventListener('submit', handleReviewSubmit);
@@ -995,6 +984,60 @@ function showPage(pageId) {
     window.scrollTo(0, 0);
     AOS.refresh();
 }
+
+function initializePromoCarousel() {
+    const track = document.getElementById('promo-carousel-track');
+    const slides = document.querySelectorAll('.promo-carousel-slide');
+    const nextBtn = document.getElementById('promo-next');
+    const prevBtn = document.getElementById('promo-prev');
+    
+    if (!track || slides.length === 0) return;
+
+    let currentIndex = 0;
+    const slideCount = slides.length;
+    let autoPlayInterval;
+
+    function goToSlide(index) {
+        if (index < 0) {
+            currentIndex = slideCount - 1;
+        } else if (index >= slideCount) {
+            currentIndex = 0;
+        } else {
+            currentIndex = index;
+        }
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    function startAutoPlay() {
+        stopAutoPlay(); // Evita múltiplos intervalos
+        autoPlayInterval = setInterval(() => {
+            goToSlide(currentIndex + 1);
+        }, 5000);
+    }
+
+    function stopAutoPlay() {
+        clearInterval(autoPlayInterval);
+    }
+
+    nextBtn.addEventListener('click', () => {
+        goToSlide(currentIndex + 1);
+        stopAutoPlay();
+        startAutoPlay();
+    });
+
+    prevBtn.addEventListener('click', () => {
+        goToSlide(currentIndex - 1);
+        stopAutoPlay();
+        startAutoPlay();
+    });
+    
+    const carousel = document.getElementById('promo-carousel');
+    carousel.addEventListener('mouseenter', stopAutoPlay);
+    carousel.addEventListener('mouseleave', startAutoPlay);
+
+    startAutoPlay();
+}
+
 
 async function renderWishlist() {
     const wishlistContainer = document.getElementById('wishlist-items');
@@ -1133,8 +1176,10 @@ function initializeEventListeners() {
         const searchResult = e.target.closest('.search-result-item');
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
+        const viewDetailsBtn = e.target.closest('.view-details-btn');
 
         if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
+        else if (viewDetailsBtn) { e.stopPropagation(); showProductDetails(viewDetailsBtn.dataset.id); }
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
@@ -1164,6 +1209,8 @@ async function main() {
         updateCartIcon();
 
         await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
+        
+        initializePromoCarousel();
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
