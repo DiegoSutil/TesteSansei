@@ -248,12 +248,59 @@ async function syncCartWithFirestore() {
     await updateDoc(userRef, { cart: cart });
 }
 
-async function addToCart(productId, quantity = 1) {
+// **NOVO**: Função de animação "Fly to Cart"
+function flyToCart(targetElement) {
+    const cartIcon = document.getElementById('cart-button');
+    if (!targetElement || !cartIcon) return;
+
+    const rect = targetElement.getBoundingClientRect();
+    const cartRect = cartIcon.getBoundingClientRect();
+
+    const flyingImage = document.createElement('img');
+    flyingImage.src = targetElement.src;
+    flyingImage.className = 'fly-to-cart';
+    flyingImage.style.left = `${rect.left}px`;
+    flyingImage.style.top = `${rect.top}px`;
+    flyingImage.style.width = `${rect.width}px`;
+    flyingImage.style.height = `${rect.height}px`;
+
+    document.body.appendChild(flyingImage);
+
+    // Forçar reflow para aplicar o estado inicial antes da transição
+    flyingImage.offsetHeight; 
+
+    // Mover para o carrinho
+    flyingImage.style.left = `${cartRect.left + cartRect.width / 2}px`;
+    flyingImage.style.top = `${cartRect.top + cartRect.height / 2}px`;
+    flyingImage.style.width = '20px';
+    flyingImage.style.height = '20px';
+    flyingImage.style.opacity = '0';
+
+    setTimeout(() => {
+        flyingImage.remove();
+    }, 1000); // Duração da animação
+}
+
+
+async function addToCart(productId, quantity = 1, event) {
+    // **NOVO**: Adicionado spinner e desativação do botão
+    const button = event.target.closest('.add-to-cart-btn');
+    const originalText = button.innerHTML;
+    button.disabled = true;
+    button.innerHTML = '<span class="loader-sm"></span>';
+
     const product = allProducts.find(p => p.id === productId);
     if (!product) {
         console.error("Product not found in allProducts array:", productId);
+        button.disabled = false;
+        button.innerHTML = originalText;
         return;
     }
+    
+    // **NOVO**: Animação "Fly to Cart"
+    const productImage = button.closest('.group').querySelector('img');
+    flyToCart(productImage);
+
     const cartItem = cart.find(item => item.id === productId);
     if (cartItem) {
         cartItem.quantity += quantity;
@@ -263,7 +310,13 @@ async function addToCart(productId, quantity = 1) {
     localStorage.setItem('sanseiCart', JSON.stringify(cart));
     await syncCartWithFirestore();
     updateCartIcon();
-    showToast(`${product.name} foi adicionado ao carrinho!`);
+    
+    // Restaurar o botão após um pequeno atraso para a animação ser visível
+    setTimeout(() => {
+        showToast(`${product.name} foi adicionado ao carrinho!`);
+        button.disabled = false;
+        button.innerHTML = originalText;
+    }, 500);
 }
 
 async function removeFromCart(productId) {
@@ -420,7 +473,13 @@ function renderProducts(productsToRender, containerId) {
     if (!productListEl) return;
     
     if (productsToRender.length === 0) {
-        productListEl.innerHTML = '<p class="text-gray-600 col-span-full text-center">Nenhum produto encontrado.</p>';
+        // **NOVO**: Mensagem mais amigável para páginas vazias
+        productListEl.innerHTML = `
+            <div class="col-span-full text-center text-gray-600">
+                <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
+                <p>Que tal tentar uma nova combinação ou ver os nossos mais vendidos?</p>
+            </div>
+        `;
     } else {
         productListEl.innerHTML = productsToRender.map(createProductCard).join('');
     }
@@ -927,12 +986,21 @@ function initializeEventListeners() {
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
 
-        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id); }
+        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); } // **NOVO**: Passar o evento
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
         else if (cartQtyBtn) { updateQuantity(cartQtyBtn.dataset.id, parseInt(cartQtyBtn.dataset.qty)); }
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
+    });
+    
+    // **NOVO**: Event listener para fechar modais com a tecla 'Esc'
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            toggleCart(false);
+            toggleProductDetailsModal(false);
+            toggleAuthModal(false);
+        }
     });
 }
 
@@ -994,4 +1062,3 @@ async function main() {
 
 // Start the application
 document.addEventListener('DOMContentLoaded', main);
- 
