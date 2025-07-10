@@ -165,6 +165,11 @@ async function handleCalculateShipping() {
     btn.disabled = true;
 
     try {
+        const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cep}`);
+        if (!response.ok) {
+            throw new Error('CEP não encontrado.');
+        }
+        
         // This is a simplified calculation. For real scenarios, use Correios API with package dimensions.
         const shippingOptions = [
             { Codigo: '04510', nome: 'PAC', PrazoEntrega: 10, Valor: '25,50' },
