@@ -1,571 +1,443 @@
-/**
- * @fileoverview Admin panel script for SANSEI DECANTS.
- * Handles admin authentication, and CRUD operations for products,
- * orders, coupons, reels, and reviews.
- */
-
-// Importa o db e auth do módulo de configuração central
-import { db, auth } from './firebase-config.js';
-// Importa as funções do Firebase que serão usadas neste ficheiro
-import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-// IMPORTANT: List of authorized admin emails
-const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com", "sanseiadmin@gmail.com"];
-
-// =================================================================
-// DOM ELEMENTS
-// =================================================================
-const DOMElements = {
-    authScreen: document.getElementById('auth-screen'),
-    adminPanel: document.getElementById('admin-panel'),
-    loginForm: document.getElementById('login-form'),
-    logoutButton: document.getElementById('logout-button'),
-    productForm: document.getElementById('product-form'),
-    productListBody: document.getElementById('product-list-body'),
-    authMessage: document.getElementById('auth-message'),
-    navLinks: document.querySelectorAll('.admin-nav-link'),
-    views: document.querySelectorAll('.admin-view'),
-    addCouponForm: document.getElementById('add-coupon-form'),
-    couponListBody: document.getElementById('coupon-list-body'),
-    addReelForm: document.getElementById('add-reel-form'),
-    reelListBody: document.getElementById('reel-list-body'),
-    orderListBody: document.getElementById('order-list-body'),
-    reviewListBody: document.getElementById('review-list-body'),
-    adminEmail: document.getElementById('admin-email'),
-    productIdField: document.getElementById('product-id'),
-    submitProductBtn: document.getElementById('submit-product-btn'),
-    cancelEditBtn: document.getElementById('cancel-edit-btn'),
-};
-
-// =================================================================
-// UTILITY & UI FUNCTIONS
-// =================================================================
-
-function showToast(message, isError = false) {
-    const toast = document.getElementById('admin-toast');
-    const toastMessage = document.getElementById('admin-toast-message');
-    const iconContainer = document.getElementById('admin-toast-icon');
-    if (!toast || !toastMessage || !iconContainer) return;
-
-    const iconName = isError ? 'x-circle' : 'check-circle';
-    const iconColorClass = isError ? 'text-red-400' : 'text-green-400';
-
-    iconContainer.innerHTML = `<i data-feather="${iconName}" class="${iconColorClass}"></i>`;
-    toastMessage.textContent = message;
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    feather.replace();
+    <!-- SEO Básico: Título da Página -->
+    <title>SANSEI DECANTS - Perfumes Importados e Decants de Luxo</title>
+
+    <!-- SEO Básico: Descrição do Site -->
+    <meta name="description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Oferecemos uma curadoria exclusiva de perfumes importados e decants de luxo. Compre online com segurança.">
+
+    <!-- SEO Básico: Palavras-chave -->
+    <meta name="keywords" content="decants, perfumes importados, sansei decants, perfumes de nicho, comprar perfume online, fragrâncias">
+
+    <!-- SEO Básico: Open Graph Tags para Redes Sociais -->
+    <meta property="og:title" content="SANSEI DECANTS - Perfumes Importados e Decants de Luxo">
+    <meta property="og:description" content="Descubra a sua assinatura olfativa na SANSEI DECANTS. Curadoria exclusiva de perfumes importados e decants.">
+    <meta property="og:image" content="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG">
+    <meta property="og:url" content="https://www.sanseidecants.com.br"> <!-- Substitua pelo seu domínio real -->
+    <meta property="og:type" content="website">
+
+    <!-- SEO Básico: Favicon (Ícone do site no separador do navegador) -->
+    <link rel="icon" href="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" type="image/x-icon">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    toast.classList.remove('opacity-0', 'translate-y-10');
-    setTimeout(() => {
-        toast.classList.add('opacity-0', 'translate-y-10');
-    }, 3000);
-}
+    <!-- Google Fonts: Cormorant Garamond (for headings) & Lato (for body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Feather Icons for Icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
 
-function showAuthMessage(message, color) {
-    DOMElements.authMessage.textContent = message;
-    DOMElements.authMessage.className = `mb-4 p-3 rounded-md text-center bg-${color}-100 text-${color}-700`;
-}
+    <!-- AOS (Animate on Scroll) Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
-function switchView(viewToShow) {
-    DOMElements.views.forEach(view => view.classList.add('hidden'));
-    document.getElementById(`view-${viewToShow}`).classList.remove('hidden');
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-white text-gray-800">
 
-    DOMElements.navLinks.forEach(nav => {
-        nav.classList.toggle('active', nav.dataset.view === viewToShow);
-    });
-}
+    <!-- =========== Header / Navigation Bar =========== -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" id="logo-link" class="block h-24">
+                <img src="https://raw.githubusercontent.com/DiegoSutil/TesteSansei/main/IMG_4164.JPG" alt="SANSEI DECANTS Logo" class="h-full w-auto">
+            </a>
+            <div class="hidden md:flex items-center space-x-8">
+                <a href="#" data-page="inicio" id="nav-inicio" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Início</a>
+                <a href="#" data-page="fragrancias" id="nav-fragrancias" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Fragrâncias</a>
+                <a href="#" data-page="decants" id="nav-decants" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Decants</a>
+                <a href="#" data-page="sobre" id="nav-sobre" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Sobre</a>
+                <a href="#" data-page="faq" id="nav-faq" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">FAQ</a>
+                <a href="#" data-page="contato" id="nav-contato" class="nav-link text-gray-600 hover:text-gold-500 transition-all-ease font-semibold">Contato</a>
+            </div>
+            <div class="flex items-center space-x-5">
+                <button id="search-button" class="text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="search" class="w-6 h-6"></i></button>
+                <button id="cart-button" class="text-gray-500 hover:text-gold-500 focus:outline-none relative transition-all-ease">
+                    <i data-feather="shopping-cart" class="w-6 h-6"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-gold-500 text-black text-xs rounded-full h-5 w-5 flex items-center justify-center font-sans">0</span>
+                </button>
+                <button id="user-button" class="hidden md:block text-gray-500 hover:text-gold-500 focus:outline-none transition-all-ease"><i data-feather="user" class="w-6 h-6"></i></button>
+                <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gold-500 focus:outline-none"><i data-feather="menu" class="w-6 h-6"></i></button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 space-y-2 bg-white">
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="inicio">Início</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="fragrancias">Fragrâncias</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="decants">Decants</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="sobre">Sobre</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="faq">FAQ</a>
+             <a href="#" class="mobile-nav-link block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded" data-page="contato">Contato</a>
+             <a href="#" id="mobile-user-link" class="block py-2 px-4 text-sm text-gray-700 hover:bg-gray-100 rounded">Minha Conta</a>
+        </div>
+        <!-- Search Bar -->
+        <div id="search-bar" class="hidden bg-white border-t border-gray-200">
+            <div class="container mx-auto p-4 flex items-center gap-4">
+                <input type="text" id="search-input" placeholder="O que você procura?" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <button id="close-search-bar" class="text-gray-500 hover:text-black"><i data-feather="x"></i></button>
+            </div>
+            <div id="search-results" class="container mx-auto px-4 pb-4 max-h-96 overflow-y-auto"></div>
+        </div>
+    </header>
 
-function renderStars(rating) {
-    let stars = '';
-    const ratingValue = Math.round(rating);
-    for (let i = 1; i <= 5; i++) {
-        stars += `<i data-feather="star" class="w-4 h-4 ${i <= ratingValue ? 'text-yellow-500 fill-current' : 'text-gray-300'}"></i>`;
-    }
-    return `<div class="flex items-center">${stars}</div>`;
-}
+    <!-- =========== Main Content =========== -->
+    <main>
+        <!-- =========== INICIO Page Content =========== -->
+        <div id="page-inicio" class="page-content">
+            <!-- Hero Section -->
+            <section class="relative bg-black text-white py-24 md:py-40 parallax-bg" style="background-image: url('https://raw.githubusercontent.com/DiegoSutil/TesteSansei/7d368b520b04e2693d0313b19f040a0611f20ba3/Gemini_Generated_Image_17fx3q17fx3q17fx.png');">
+                <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+                <div class="container mx-auto px-6 text-center relative z-10" data-aos="fade-up">
+                    <h1 class="font-heading text-5xl md:text-7xl font-bold leading-tight mb-4 text-gold-gradient">Fragrâncias que Contam Histórias</h1>
+                    <p class="text-lg md:text-xl mb-10 max-w-2xl mx-auto text-gray-200 font-light">Descubra aromas únicos e encontre a sua assinatura olfativa.</p>
+                    <a href="#" data-page="fragrancias" class="nav-link-button bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease text-lg tracking-wider shadow-lg hover:shadow-gold-500/50">VER COLEÇÃO</a>
+                </div>
+            </section>
+            <!-- Benefits Bar -->
+            <section class="bg-white py-12">
+                <div class="container mx-auto px-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center" data-aos="fade-up">
+                        <div class="flex flex-col items-center"><i data-feather="award" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Fragrâncias Raras</h3><p class="text-gray-600 text-sm">Curadoria de perfumes de nicho e exclusivos.</p></div>
+                        <div class="flex flex-col items-center"><i data-feather="box" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Embalagem de Luxo</h3><p class="text-gray-600 text-sm">Uma experiência premium do início ao fim.</p></div>
+                        <div class="flex flex-col items-center"><i data-feather="truck" class="w-10 h-10 text-gold-500 mb-3"></i><h3 class="font-semibold text-lg">Envio para Todo o Brasil</h3><p class="text-gray-600 text-sm">Receba seus decants com segurança e rapidez.</p></div>
+                    </div>
+                </div>
+            </section>
+            <!-- Featured Products Section -->
+            <section class="py-20 bg-gray-50">
+                <div class="container mx-auto px-6">
+                    <h2 class="font-heading text-4xl font-bold text-center mb-12 text-black" data-aos="fade-up">Mais Desejados</h2>
+                    <div id="product-list-home" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10"></div>
+                </div>
+            </section>
+            <!-- Instagram Reels Section -->
+            <section class="bg-white py-20">
+                <div class="container mx-auto px-6 text-center">
+                    <h2 class="font-heading text-4xl font-bold text-black mb-4" data-aos="fade-up">Veja os nossos Reels</h2>
+                    <p class="text-gray-600 mb-12" data-aos="fade-up" data-aos-delay="100">Conteúdo exclusivo e bastidores da nossa paixão por perfumes.</p>
+                    <div id="reels-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4" data-aos="fade-up" data-aos-delay="200">
+                        <!-- Reels will be loaded here by JS -->
+                    </div>
+                    <div class="mt-12" data-aos="fade-up">
+                        <a href="https://www.instagram.com/sanseidecants/reels/" target="_blank" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Ver mais no Instagram</a>
+                    </div>
+                </div>
+            </section>
+        </div>
 
-// =================================================================
-// DATA FETCHING & RENDERING
-// =================================================================
+        <!-- =========== FRAGRANCIAS Page Content =========== -->
+        <div id="page-fragrancias" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa Coleção</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Explore e encontre a sua fragrância perfeita.</p>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-12">
+                        <!-- Filter Sidebar -->
+                        <aside class="w-full md:w-1/4" data-aos="fade-right">
+                            <div class="bg-gray-50 p-6 rounded-lg shadow-sm sticky top-32">
+                                <h3 class="font-heading text-2xl font-semibold mb-6 text-black">Filtros</h3>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-gray-800">Categoria</h4>
+                                    <div class="space-y-2">
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-perfume" class="form-checkbox filter-control" value="perfume"> <span class="ml-2 text-gray-700">Perfumes</span></label></div>
+                                        <div><label class="flex items-center"><input type="checkbox" id="filter-cat-decant" class="form-checkbox filter-control" value="decant"> <span class="ml-2 text-gray-700">Decants</span></label></div>
+                                    </div>
+                                </div>
+                                <div class="mb-6">
+                                    <h4 class="font-semibold mb-3 text-gray-800">Faixa de Preço</h4>
+                                    <div class="space-y-2">
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="all" checked> <span class="ml-2 text-gray-700">Todos</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="150"> <span class="ml-2 text-gray-700">Até R$ 150</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="500"> <span class="ml-2 text-gray-700">R$ 150 - R$ 500</span></label></div>
+                                        <div><label class="flex items-center"><input type="radio" name="price" class="form-radio text-gold-500 border-gray-300 focus:ring-gold-500 filter-control" value="501"> <span class="ml-2 text-gray-700">Acima de R$ 500</span></label></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold mb-3 text-gray-800">Ordenar Por</h4>
+                                    <select id="sort-by" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500 filter-control">
+                                        <option value="popularity">Popularidade</option>
+                                        <option value="price-asc">Preço: Menor para Maior</option>
+                                        <option value="price-desc">Preço: Maior para Menor</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </aside>
+                        <!-- Product Grid -->
+                        <div id="product-list-fragrances" class="w-full md:w-3/4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-async function fetchStats() {
-    try {
-        const productsSnapshot = await getDocs(collection(db, "products"));
-        const usersSnapshot = await getDocs(collection(db, "users"));
-        const couponsSnapshot = await getDocs(collection(db, "coupons"));
-        const ordersSnapshot = await getDocs(collection(db, "orders"));
+        <!-- =========== DECANTS Page Content =========== -->
+        <div id="page-decants" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossos Decants</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">A forma perfeita de experimentar antes de se comprometer.</p>
+                    </div>
+                    <div id="product-list-decants" class="w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== SOBRE Page Content =========== -->
+        <div id="page-sobre" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Nossa História</h1>
+                    </div>
+                    <div class="flex flex-col md:flex-row items-center gap-12" data-aos="fade-up">
+                        <div class="md:w-1/2"><img src="https://placehold.co/800x600/e7e5e4/333333?text=SANSEI+DECANTS" alt="Imagem sobre a Sansei Decants" class="rounded-lg shadow-xl"></div>
+                        <div class="md:w-1/2">
+                            <p class="text-gray-600 mb-4 leading-relaxed">A SANSEI DECANTS nasceu da paixão por fragrâncias que transcendem o comum. Acreditamos que um perfume é mais do que um aroma; é uma forma de expressão, uma assinatura pessoal que conta uma história. Nossa missão é democratizar o acesso à alta perfumaria, permitindo que você explore um universo de aromas de nicho e de luxo sem o compromisso de um frasco completo.</p>
+                            <p class="text-gray-600 leading-relaxed">Cada decant é cuidadosamente preparado, extraído diretamente do frasco original para garantir 100% de autenticidade e qualidade. Nosso processo de curadoria é rigoroso, selecionando apenas as fragrâncias mais cativantes e memoráveis para fazer parte da nossa coleção. Bem-vindo ao nosso mundo, onde cada gota é uma nova descoberta.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- =========== FAQ Page Content =========== -->
+        <div id="page-faq" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Perguntas Frequentes</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Tire as suas dúvidas mais comuns.</p>
+                    </div>
+                    <div class="max-w-3xl mx-auto" data-aos="fade-up">
+                        <div class="space-y-4">
+                            <!-- FAQ Item 1 -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
+                                    <span>O que é um decant?</span>
+                                    <i data-feather="chevron-down" class="transition-transform duration-300"></i>
+                                </button>
+                                <div class="faq-answer mt-2 text-gray-600">
+                                    <p>Um decant é uma pequena quantidade de perfume original, transferida do frasco de fábrica para um frasco menor. É a forma ideal de experimentar diferentes fragrâncias de luxo antes de investir num frasco grande, ou para ter os seus perfumes favoritos em tamanho de viagem.</p>
+                                </div>
+                            </div>
+                            <!-- FAQ Item 2 -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
+                                    <span>Os produtos são originais?</span>
+                                    <i data-feather="chevron-down" class="transition-transform duration-300"></i>
+                                </button>
+                                <div class="faq-answer mt-2 text-gray-600">
+                                    <p>Sim, garantimos 100% de autenticidade. Todos os nossos decants são retirados diretamente dos frascos originais dos perfumes, adquiridos de fornecedores e marcas certificadas. A nossa reputação baseia-se na confiança e na qualidade.</p>
+                                </div>
+                            </div>
+                            <!-- FAQ Item 3 -->
+                            <div class="border-b border-gray-200 pb-4">
+                                <button class="faq-question w-full flex justify-between items-center text-left text-xl font-semibold text-gray-800">
+                                    <span>Como funciona o envio?</span>
+                                    <i data-feather="chevron-down" class="transition-transform duration-300"></i>
+                                </button>
+                                <div class="faq-answer mt-2 text-gray-600">
+                                    <p>Enviamos para todo o Brasil através dos Correios. Após a confirmação do pagamento, o seu pedido é preparado e postado em até 2 dias úteis. Receberá um código de rastreio por email para acompanhar a sua encomenda desde a postagem até à entrega.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        let totalReviews = 0;
-        productsSnapshot.forEach(doc => {
-            totalReviews += doc.data().reviews?.length || 0;
-        });
+        <!-- =========== CONTATO Page Content =========== -->
+        <div id="page-contato" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Entre em Contato</h1>
+                        <p class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100">Adoraríamos ouvir de você. Preencha o formulário abaixo.</p>
+                    </div>
+                    <div class="max-w-2xl mx-auto bg-gray-50 p-8 rounded-lg shadow-md" data-aos="fade-up">
+                        <div id="contact-form-message" class="hidden mb-6 p-4 rounded-md text-center"></div>
+                        <form id="contact-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Nome</label>
+                                    <input type="text" id="name" name="name" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                </div>
+                                <div>
+                                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="email" name="email" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                                </div>
+                            </div>
+                            <div class="mb-6">
+                                <label for="subject" class="block text-sm font-semibold text-gray-700 mb-2">Assunto</label>
+                                <input type="text" id="subject" name="subject" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                            </div>
+                            <div class="mb-6">
+                                <label for="message" class="block text-sm font-semibold text-gray-700 mb-2">Mensagem</label>
+                                <textarea id="message" name="message" rows="5" required class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-10 rounded-full hover:bg-gold-600 transition-all-ease">Enviar Mensagem</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        document.getElementById('stats-orders').textContent = ordersSnapshot.size;
-        document.getElementById('stats-products').textContent = productsSnapshot.size;
-        document.getElementById('stats-users').textContent = usersSnapshot.size;
-        document.getElementById('stats-reviews').textContent = totalReviews;
-    } catch (e) {
-        console.error("Error fetching stats:", e);
-        showToast("Erro ao carregar estatísticas.", true);
-    }
-}
+        <!-- =========== PROFILE Page Content =========== -->
+        <div id="page-profile" class="page-content hidden">
+            <div class="bg-white">
+                <div class="container mx-auto px-6 py-20">
+                    <div class="text-center mb-16">
+                        <h1 class="font-heading text-5xl font-bold mb-4 text-black" data-aos="fade-up">Minha Conta</h1>
+                        <p id="profile-email" class="text-lg text-gray-600" data-aos="fade-up" data-aos-delay="100"></p>
+                    </div>
+                    <div class="max-w-4xl mx-auto" data-aos="fade-up">
+                        <h2 class="font-heading text-3xl font-semibold mb-6 text-black">Minhas Encomendas</h2>
+                        <div id="orders-list" class="space-y-4">
+                            <!-- Orders will be rendered here -->
+                        </div>
+                        <h2 class="font-heading text-3xl font-semibold mb-6 mt-12 text-black">Minha Lista de Desejos</h2>
+                        <div id="wishlist-items" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            <!-- Wishlist items will be rendered here -->
+                        </div>
+                        <div class="text-center mt-12">
+                            <button id="logout-button" class="bg-black text-white font-bold py-3 px-10 rounded-full hover:bg-gray-800 transition-all-ease">Terminar Sessão</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-async function fetchAndRenderProducts() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        DOMElements.productListBody.innerHTML = '';
-        querySnapshot.forEach((doc) => {
-            const product = { id: doc.id, ...doc.data() };
-            const row = document.createElement('tr');
-            row.className = 'border-b';
-            row.innerHTML = `
-                <td class="py-2 px-2"><img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded-md"></td>
-                <td class="py-3 px-2">${product.name}</td>
-                <td class="py-3 px-2 capitalize">${product.category}</td>
-                <td class="py-3 px-2">R$ ${product.price.toFixed(2)}</td>
-                <td class="py-3 px-2">${product.stock}</td>
-                <td class="py-3 px-2 flex gap-2 items-center">
-                    <button class="edit-btn text-blue-500 hover:text-blue-700" data-id="${product.id}"><i data-feather="edit-2" class="w-5 h-5"></i></button>
-                    <button class="delete-btn text-red-500 hover:text-red-700" data-id="${product.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
-                </td>
-            `;
-            DOMElements.productListBody.appendChild(row);
-        });
-        feather.replace();
-    } catch (error) {
-        console.error("Error fetching products: ", error);
-        showToast('Erro ao carregar produtos.', true);
-    }
-}
+        <!-- =========== Newsletter Section =========== -->
+        <section class="bg-black">
+            <div class="container mx-auto px-6 py-16 text-center" data-aos="fade-up">
+                <h3 class="font-heading text-4xl font-bold text-white">Junte-se ao Círculo SANSEI</h3>
+                <p class="mt-3 text-gray-300 max-w-xl mx-auto">Seja o primeiro a saber sobre lançamentos, coleções limitadas e eventos exclusivos.</p>
+                <form id="newsletter-form" class="mt-8 flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
+                    <input type="email" id="newsletter-email" placeholder="Seu melhor e-mail" required class="w-full flex-grow px-4 py-3 rounded-md text-gray-800 bg-white border border-transparent focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    <button type="submit" class="bg-gold-500 text-black font-bold py-3 px-6 rounded-md hover:bg-gold-600 transition-all-ease">INSCREVER</button>
+                </form>
+            </div>
+        </section>
+    </main>
 
-async function fetchAndRenderReviews() {
-    try {
-        const productsSnapshot = await getDocs(collection(db, "products"));
-        DOMElements.reviewListBody.innerHTML = '';
-        productsSnapshot.forEach(pDoc => {
-            const product = { id: pDoc.id, ...pDoc.data() };
-            if (product.reviews && product.reviews.length > 0) {
-                product.reviews.forEach((review, index) => {
-                    const row = document.createElement('tr');
-                    row.className = 'border-b';
-                    row.innerHTML = `
-                        <td class="py-3 px-2">${product.name}</td>
-                        <td class="py-3 px-2">${review.userName}</td>
-                        <td class="py-3 px-2">${renderStars(review.rating)}</td>
-                        <td class="py-3 px-2 text-xs">${review.text}</td>
-                        <td class="py-3 px-2">
-                            <button class="delete-review-btn text-red-500 hover:text-red-700" data-product-id="${product.id}" data-review-index="${index}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
-                        </td>
-                    `;
-                    DOMElements.reviewListBody.appendChild(row);
-                });
-            }
-        });
-        feather.replace();
-    } catch (error) {
-        console.error("Error fetching reviews: ", error);
-        showToast("Erro ao carregar avaliações.", true);
-    }
-}
+    <!-- =========== Footer =========== -->
+    <footer class="bg-black text-white border-t border-gray-800">
+        <div class="container mx-auto px-6 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h4 class="font-heading text-xl font-semibold mb-4 text-gold-500">SANSEI DECANTS</h4>
+                    <p class="text-gray-400">Sua boutique de fragrâncias e decants exclusivos.</p>
+                </div>
+                <div>
+                    <h4 class="font-heading text-lg font-semibold mb-4">Descubra</h4>
+                    <ul>
+                        <li class="mb-2"><a href="#" data-page="sobre" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">Sobre Nós</a></li>
+                        <li class="mb-2"><a href="#" data-page="contato" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">Contato</a></li>
+                        <li class="mb-2"><a href="#" data-page="faq" class="nav-link-footer text-gray-400 hover:text-white transition-all-ease">FAQ</a></li>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white transition-all-ease">Política de Privacidade</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-heading text-lg font-semibold mb-4">Siga-nos</h4>
+                    <div class="flex space-x-4">
+                        <a href="https://www.instagram.com/sanseidecants/" target="_blank" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-all-ease"><i data-feather="twitter"></i></a>
+                    </div>
+                </div>
+                 <div>
+                    <h4 class="font-heading text-lg font-semibold mb-4">Contato</h4>
+                    <p class="text-gray-400">Email: contato@sanseidecants.com</p>
+                    <p class="text-gray-400">Telefone: (11) 99999-8888</p>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500">
+                <p>&copy; 2025 SANSEI DECANTS. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
 
+    <!-- Shopping Cart Modal -->
+    <div id="cart-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden"></div>
+    <div id="cart-modal" class="fixed top-0 right-0 h-full w-full max-w-sm bg-white shadow-xl z-50 transform translate-x-full">
+        <div class="flex flex-col h-full">
+            <div class="flex justify-between items-center p-6 border-b"><h2 class="font-heading text-2xl font-bold">Seu Carrinho</h2><button id="close-cart-button" class="text-gray-500 hover:text-gray-800"><i data-feather="x" class="w-6 h-6"></i></button></div>
+            <div class="flex-grow overflow-y-auto">
+                <div id="cart-items" class="p-6"></div>
+                <!-- Shipping Calculator -->
+                <div class="p-6 border-t">
+                    <h3 class="font-semibold mb-2 text-lg">Calcular Frete</h3>
+                    <div id="shipping-calculator" class="flex gap-2 mb-4">
+                        <input type="text" id="cep-input" placeholder="Seu CEP" class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500" maxlength="9">
+                        <button id="calculate-shipping-btn" class="bg-gray-800 text-white px-4 rounded-md hover:bg-black disabled:bg-gray-400">
+                            <span class="loader-sm hidden"></span>
+                            <span class="btn-text">Calcular</span>
+                        </button>
+                    </div>
+                    <div id="shipping-options" class="space-y-2"></div>
+                </div>
+            </div>
+            <!-- Totals -->
+            <div class="p-6 border-t">
+                <form id="coupon-form" class="flex gap-2 mb-4">
+                    <input type="text" id="coupon-input" placeholder="Código do cupom" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gold-500">
+                    <button type="submit" class="bg-gray-800 text-white px-4 rounded-md hover:bg-black">Aplicar</button>
+                </form>
+                <div id="discount-info" class="text-sm text-green-600 mb-2"></div>
+                <div class="space-y-1 text-lg">
+                    <div class="flex justify-between"><span>Subtotal</span><span id="cart-subtotal">R$ 0,00</span></div>
+                    <div id="shipping-cost-line" class="flex justify-between hidden"><span>Frete</span><span id="shipping-cost">R$ 0,00</span></div>
+                </div>
+                <div class="flex justify-between items-center font-bold text-xl mt-4 border-t pt-4">
+                    <span>Total</span>
+                    <span id="cart-total">R$ 0,00</span>
+                </div>
+                <button id="checkout-button" class="mt-4 w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease disabled:bg-gray-400 disabled:cursor-not-allowed">Finalizar Compra</button>
+            </div>
+        </div>
+    </div>
 
-async function fetchAndRenderCoupons() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "coupons"));
-        DOMElements.couponListBody.innerHTML = '';
-        querySnapshot.forEach((doc) => {
-            const coupon = { id: doc.id, ...doc.data() };
-            const row = document.createElement('tr');
-            row.className = 'border-b';
-            row.innerHTML = `
-                <td class="py-3 px-2 font-mono">${coupon.code}</td>
-                <td class="py-3 px-2">${(coupon.discount * 100).toFixed(0)}%</td>
-                <td class="py-3 px-2">
-                    <button class="delete-coupon-btn text-red-500 hover:text-red-700" data-id="${coupon.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
-                </td>
-            `;
-            DOMElements.couponListBody.appendChild(row);
-        });
-        feather.replace();
-    } catch (error) {
-        console.error("Error fetching coupons: ", error);
-        showToast("Erro ao carregar cupons.", true);
-    }
-}
+    <!-- Product Details Modal -->
+    <div id="product-details-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden"></div>
+    <div id="product-details-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-lg shadow-xl z-[70] hidden opacity-0 transform scale-95 transition-all duration-300">
+        <div id="product-details-content-wrapper" class="relative max-h-[90vh] overflow-y-auto">
+             <button id="close-product-details-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black z-10 bg-white rounded-full p-1"><i data-feather="x"></i></button>
+            <!-- **NOVO**: Container para o conteúdo principal do modal -->
+            <div id="product-details-main-content"></div>
+            <!-- **NOVO**: Container para reviews e produtos relacionados -->
+            <div id="product-details-extra-content" class="p-8 border-t"></div>
+        </div>
+    </div>
 
-async function fetchAndRenderReels() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "reels"));
-        DOMElements.reelListBody.innerHTML = '';
-        querySnapshot.forEach((doc) => {
-            const reel = { id: doc.id, ...doc.data() };
-            const row = document.createElement('tr');
-            row.className = 'border-b';
-            row.innerHTML = `
-                <td class="py-3 px-2">
-                    <img src="${reel.thumbnail}" alt="Reel Thumbnail" class="w-24 h-24 object-cover rounded-md">
-                </td>
-                <td class="py-3 px-2 break-all"><a href="${reel.url}" target="_blank" class="text-blue-500 hover:underline">${reel.url}</a></td>
-                <td class="py-3 px-2">
-                    <button class="delete-reel-btn text-red-500 hover:text-red-700" data-id="${reel.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
-                </td>
-            `;
-            DOMElements.reelListBody.appendChild(row);
-        });
-        feather.replace();
-    } catch (error) {
-        console.error("Error fetching reels: ", error);
-        showToast("Erro ao carregar reels.", true);
-    }
-}
+    <!-- Auth Modal -->
+    <div id="auth-modal-overlay" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden"></div>
+    <div id="auth-modal" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-md bg-white rounded-lg shadow-xl z-[70] hidden p-8 opacity-0 transform scale-95 transition-all duration-300">
+        <button id="close-auth-modal" class="absolute top-4 right-4 text-gray-500 hover:text-black"><i data-feather="x"></i></button>
+        <div id="auth-content"></div>
+    </div>
 
-async function fetchAndRenderOrders() {
-    try {
-        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
-        const querySnapshot = await getDocs(q);
-        DOMElements.orderListBody.innerHTML = '';
-        querySnapshot.forEach((doc) => {
-            const order = { id: doc.id, ...doc.data() };
-            const row = document.createElement('tr');
-            row.className = 'border-b hover:bg-gray-50';
-            const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 opacity-0 transform translate-y-10 z-[80]">
+        <span id="toast-icon-container"></span>
+        <span id="toast-message"></span>
+    </div>
 
-            const statusColors = {
-                Pendente: 'bg-yellow-100 text-yellow-800',
-                Enviado: 'bg-blue-100 text-blue-800',
-                Entregue: 'bg-green-100 text-green-800',
-                Cancelado: 'bg-red-100 text-red-800',
-            };
-
-            const statusSelect = `
-                <select class="order-status-select p-2 rounded-md border-gray-300 focus:ring-gold-500 ${statusColors[order.status]}" data-id="${order.id}">
-                    <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
-                    <option value="Enviado" ${order.status === 'Enviado' ? 'selected' : ''}>Enviado</option>
-                    <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
-                    <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
-                </select>
-            `;
-
-            const itemsList = order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('');
-
-            row.innerHTML = `
-                <td class="py-3 px-2 font-mono text-xs">${order.id}</td>
-                <td class="py-3 px-2">${order.userEmail}</td>
-                <td class="py-3 px-2">${orderDate}</td>
-                <td class="py-3 px-2 font-semibold">R$ ${order.total.toFixed(2)}</td>
-                <td class="py-3 px-2">${statusSelect}</td>
-                <td class="py-3 px-2"><ul>${itemsList}</ul></td>
-            `;
-            DOMElements.orderListBody.appendChild(row);
-        });
-    } catch (error) {
-        console.error("Error fetching orders: ", error);
-        showToast('Erro ao carregar encomendas.', true);
-    }
-}
-
-// =================================================================
-// CRUD & FORM HANDLING
-// =================================================================
-
-async function updateOrderStatus(orderId, newStatus) {
-    const orderRef = doc(db, "orders", orderId);
-    try {
-        await updateDoc(orderRef, { status: newStatus });
-        showToast(`Estado da encomenda atualizado para ${newStatus}.`);
-        fetchAndRenderOrders();
-    } catch (error) {
-        console.error("Error updating order status: ", error);
-        showToast("Erro ao atualizar o estado da encomenda.", true);
-    }
-}
-
-function resetProductForm() {
-    DOMElements.productForm.reset();
-    DOMElements.productIdField.value = '';
-    DOMElements.submitProductBtn.textContent = 'Adicionar Produto';
-    DOMElements.cancelEditBtn.classList.add('hidden');
-    DOMElements.submitProductBtn.disabled = false;
-}
-
-function populateProductForm(productId) {
-    const productRef = doc(db, "products", productId);
-    getDoc(productRef).then(docSnap => {
-        if (docSnap.exists()) {
-            const product = docSnap.data();
-            DOMElements.productIdField.value = productId;
-            document.getElementById('product-name').value = product.name;
-            document.getElementById('product-price').value = product.price;
-            document.getElementById('product-category').value = product.category;
-            document.getElementById('product-stock').value = product.stock;
-            document.getElementById('product-image').value = product.image;
-            document.getElementById('product-description').value = product.description;
-
-            DOMElements.submitProductBtn.textContent = 'Salvar Alterações';
-            DOMElements.cancelEditBtn.classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    });
-}
-
-async function handleProductFormSubmit(e) {
-    e.preventDefault();
-    DOMElements.submitProductBtn.disabled = true;
-    DOMElements.submitProductBtn.textContent = 'A guardar...';
-
-    const productId = DOMElements.productIdField.value;
-    const imageUrl = document.getElementById('product-image').value;
-
-    if (!imageUrl) {
-        showToast("Por favor, insira a URL da imagem.", true);
-        DOMElements.submitProductBtn.disabled = false;
-        DOMElements.submitProductBtn.textContent = productId ? 'Salvar Alterações' : 'Adicionar Produto';
-        return;
-    }
-
-    const productData = {
-        name: document.getElementById('product-name').value,
-        price: parseFloat(document.getElementById('product-price').value),
-        category: document.getElementById('product-category').value,
-        stock: parseInt(document.getElementById('product-stock').value),
-        image: imageUrl,
-        description: document.getElementById('product-description').value,
-    };
-
-    try {
-        if (productId) {
-            await updateDoc(doc(db, "products", productId), productData);
-            showToast('Produto atualizado com sucesso!');
-        } else {
-            productData.rating = 0;
-            productData.reviews = [];
-            await addDoc(collection(db, "products"), productData);
-            showToast('Produto adicionado com sucesso!');
-        }
-        resetProductForm();
-        await fetchAndRenderProducts();
-        await fetchStats();
-
-    } catch (error) {
-        console.error("Error saving product: ", error);
-        showToast('Erro ao salvar produto.', true);
-    } finally {
-        DOMElements.submitProductBtn.disabled = false;
-    }
-}
-
-async function deleteProduct(productId) {
-    if (confirm('Tem a certeza que quer eliminar este produto?')) {
-        try {
-            await deleteDoc(doc(db, "products", productId));
-            showToast('Produto eliminado com sucesso.');
-            await fetchAndRenderProducts();
-            await fetchStats();
-        } catch (error) {
-            console.error("Error deleting product: ", error);
-            showToast('Erro ao eliminar produto.', true);
-        }
-    }
-}
-
-async function deleteReview(productId, reviewIndex) {
-    if (confirm('Tem a certeza que quer eliminar esta avaliação?')) {
-        const productRef = doc(db, "products", productId);
-        try {
-            const productDoc = await getDoc(productRef);
-            if (!productDoc.exists()) throw new Error("Produto não encontrado");
-            
-            const reviews = productDoc.data().reviews || [];
-            const reviewToDelete = reviews[reviewIndex];
-            
-            if (!reviewToDelete) throw new Error("Avaliação não encontrada");
-
-            await updateDoc(productRef, {
-                reviews: arrayRemove(reviewToDelete)
-            });
-
-            const updatedProductDoc = await getDoc(productRef);
-            const updatedReviews = updatedProductDoc.data().reviews || [];
-            const newAvgRating = updatedReviews.length > 0
-                ? updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length
-                : 0;
-            
-            await updateDoc(productRef, { rating: newAvgRating });
-
-            showToast('Avaliação eliminada com sucesso.');
-            await fetchAndRenderReviews();
-            await fetchStats();
-        } catch (error) {
-            console.error("Error deleting review: ", error);
-            showToast('Erro ao eliminar avaliação.', true);
-        }
-    }
-}
+    <!-- Loader -->
+    <div id="loader" class="fixed inset-0 bg-white bg-opacity-75 z-[90] flex items-center justify-center hidden">
+        <div class="loader"></div>
+    </div>
 
 
-async function handleCouponFormSubmit(e) {
-    e.preventDefault();
-    const newCoupon = {
-        code: document.getElementById('coupon-code').value.toUpperCase(),
-        discount: parseFloat(document.getElementById('coupon-discount').value)
-    };
-    try {
-        await addDoc(collection(db, "coupons"), newCoupon);
-        DOMElements.addCouponForm.reset();
-        showToast('Cupom adicionado com sucesso!');
-        await fetchAndRenderCoupons();
-        await fetchStats();
-    } catch (error) {
-        showToast('Erro ao adicionar cupom.', true);
-    }
-}
-
-async function deleteCoupon(couponId) {
-    if (confirm('Tem a certeza que quer eliminar este cupom?')) {
-        try {
-            await deleteDoc(doc(db, "coupons", couponId));
-            showToast('Cupom eliminado com sucesso.');
-            await fetchAndRenderCoupons();
-            await fetchStats();
-        } catch (error) {
-            showToast('Erro ao eliminar cupom.', true);
-        }
-    }
-}
-
-async function handleAddReelFormSubmit(e) {
-    e.preventDefault();
-    const newReel = {
-        url: document.getElementById('reel-url').value,
-        thumbnail: document.getElementById('reel-thumbnail').value
-    };
-    try {
-        await addDoc(collection(db, "reels"), newReel);
-        DOMElements.addReelForm.reset();
-        showToast('Reel adicionado com sucesso!');
-        await fetchAndRenderReels();
-    } catch (error) {
-        showToast('Erro ao adicionar reel.', true);
-    }
-}
-
-async function deleteReel(reelId) {
-    if (confirm('Tem a certeza que quer eliminar este reel?')) {
-        try {
-            await deleteDoc(doc(db, "reels", reelId));
-            showToast('Reel eliminado com sucesso.');
-            await fetchAndRenderReels();
-        } catch (error) {
-            showToast('Erro ao eliminar reel.', true);
-        }
-    }
-}
-
-// =================================================================
-// AUTHENTICATION
-// =================================================================
-
-async function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    if (!ADMIN_EMAILS.includes(email)) {
-        showAuthMessage('Acesso negado. Este email não é de um administrador.', 'red');
-        return;
-    }
-
-    try {
-        await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-        console.error("Login Error:", error.code);
-        showAuthMessage('Email ou senha inválidos.', 'red');
-    }
-}
-
-async function handleLogout() {
-    try {
-        await signOut(auth);
-    } catch (error) {
-        console.error("Logout Error:", error);
-    }
-}
-
-// =================================================================
-// MAIN APP LOGIC & EVENT LISTENERS
-// =================================================================
-document.addEventListener('DOMContentLoaded', () => {
-    feather.replace();
-
-    onAuthStateChanged(auth, async (user) => {
-        if (user && ADMIN_EMAILS.includes(user.email)) {
-            DOMElements.authScreen.classList.add('hidden');
-            DOMElements.adminPanel.classList.remove('hidden');
-            DOMElements.adminEmail.textContent = user.email;
-            
-            switchView('dashboard');
-            await fetchStats();
-            await fetchAndRenderProducts();
-            await fetchAndRenderCoupons();
-            await fetchAndRenderReels();
-            await fetchAndRenderOrders();
-            await fetchAndRenderReviews();
-        } else {
-            DOMElements.authScreen.classList.remove('hidden');
-            DOMElements.adminPanel.classList.add('hidden');
-            if (user) { 
-                signOut(auth);
-            }
-        }
-        feather.replace();
-    });
-
-    DOMElements.loginForm.addEventListener('submit', handleLogin);
-    DOMElements.logoutButton.addEventListener('click', handleLogout);
-    DOMElements.productForm.addEventListener('submit', handleProductFormSubmit);
-    DOMElements.addCouponForm.addEventListener('submit', handleCouponFormSubmit);
-    DOMElements.addReelForm.addEventListener('submit', handleAddReelFormSubmit);
-    DOMElements.cancelEditBtn.addEventListener('click', resetProductForm);
-
-    DOMElements.navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            switchView(link.dataset.view);
-        });
-    });
-
-    DOMElements.productListBody.addEventListener('click', (e) => {
-        const editBtn = e.target.closest('.edit-btn');
-        const deleteBtn = e.target.closest('.delete-btn');
-        if (editBtn) populateProductForm(editBtn.dataset.id);
-        if (deleteBtn) deleteProduct(deleteBtn.dataset.id);
-    });
-    
-    DOMElements.reviewListBody.addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-review-btn');
-        if (deleteBtn) {
-            const productId = deleteBtn.dataset.productId;
-            const reviewIndex = parseInt(deleteBtn.dataset.reviewIndex, 10);
-            deleteReview(productId, reviewIndex);
-        }
-    });
-
-    DOMElements.couponListBody.addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-coupon-btn');
-        if (deleteBtn) deleteCoupon(deleteBtn.dataset.id);
-    });
-
-    DOMElements.reelListBody.addEventListener('click', (e) => {
-        const deleteBtn = e.target.closest('.delete-reel-btn');
-        if (deleteBtn) deleteReel(deleteBtn.dataset.id);
-    });
-
-    DOMElements.orderListBody.addEventListener('change', (e) => {
-        if (e.target.classList.contains('order-status-select')) {
-            const orderId = e.target.dataset.id;
-            const newStatus = e.target.value;
-            updateOrderStatus(orderId, newStatus);
-        }
-    });
-});
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
