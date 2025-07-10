@@ -248,7 +248,6 @@ async function syncCartWithFirestore() {
     await updateDoc(userRef, { cart: cart });
 }
 
-// **NOVO**: Função de animação "Fly to Cart"
 function flyToCart(targetElement) {
     const cartIcon = document.getElementById('cart-button');
     if (!targetElement || !cartIcon) return;
@@ -283,7 +282,6 @@ function flyToCart(targetElement) {
 
 
 async function addToCart(productId, quantity = 1, event) {
-    // **NOVO**: Adicionado spinner e desativação do botão
     const button = event.target.closest('.add-to-cart-btn');
     const originalText = button.innerHTML;
     button.disabled = true;
@@ -297,7 +295,6 @@ async function addToCart(productId, quantity = 1, event) {
         return;
     }
     
-    // **NOVO**: Animação "Fly to Cart"
     const productImage = button.closest('.group').querySelector('img');
     flyToCart(productImage);
 
@@ -311,7 +308,6 @@ async function addToCart(productId, quantity = 1, event) {
     await syncCartWithFirestore();
     updateCartIcon();
     
-    // Restaurar o botão após um pequeno atraso para a animação ser visível
     setTimeout(() => {
         showToast(`${product.name} foi adicionado ao carrinho!`);
         button.disabled = false;
@@ -473,7 +469,6 @@ function renderProducts(productsToRender, containerId) {
     if (!productListEl) return;
     
     if (productsToRender.length === 0) {
-        // **NOVO**: Mensagem mais amigável para páginas vazias
         productListEl.innerHTML = `
             <div class="col-span-full text-center text-gray-600">
                 <p class="text-xl mb-2">Nenhum perfume encontrado com estes filtros.</p>
@@ -513,7 +508,7 @@ function applyFilters() {
         filteredProducts.sort((a, b) => b.rating - a.rating);
     }
 
-    renderProducts(filteredProducts, 'product-list-fragrances');
+    renderProducts(filteredProducts, 'product-list-fragrancias');
 }
 
 async function fetchAndRenderReels() {
@@ -659,19 +654,41 @@ async function logout() {
     showToast('Sessão terminada.');
 }
 
+// FIX: Correctly handle UI updates for auth state changes, especially for the mobile menu.
 function updateAuthUI(user) {
     const userButton = document.getElementById('user-button');
     const mobileUserLink = document.getElementById('mobile-user-link');
+
+    // FIX: Add checks to prevent errors if elements don't exist
+    if (!userButton || !mobileUserLink) {
+        console.error("Auth UI elements not found. Could not update UI.");
+        return;
+    }
+
     if (user) {
         userButton.onclick = () => showPage('profile');
-        mobileUserLink.onclick = (e) => { e.preventDefault(); showPage('profile'); };
+        mobileUserLink.dataset.page = 'profile'; // Make it a navigable link
+        mobileUserLink.onclick = (e) => {
+            e.preventDefault();
+            showPage('profile');
+            // Also close the mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+        };
         mobileUserLink.textContent = 'Minha Conta';
     } else {
         userButton.onclick = () => toggleAuthModal(true);
-        mobileUserLink.onclick = (e) => { e.preventDefault(); toggleAuthModal(true); };
+        // Remove page navigation if not logged in, just open modal
+        delete mobileUserLink.dataset.page;
+        mobileUserLink.onclick = (e) => {
+            e.preventDefault();
+            toggleAuthModal(true);
+            // Also close the mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+        };
         mobileUserLink.textContent = 'Login / Registar';
     }
 }
+
 
 async function toggleWishlist(productId) {
     if (!currentUserData) {
@@ -742,8 +759,11 @@ function showProductDetails(productId) {
     const product = allProducts.find(p => p.id === productId);
     if (!product) return;
 
-    const contentEl = document.getElementById('product-details-content');
-    contentEl.innerHTML = `
+    const contentWrapper = document.getElementById('product-details-main-content');
+    if (!contentWrapper) return;
+    
+    contentWrapper.innerHTML = `
+      <div class="flex flex-col md:flex-row">
         <div class="w-full md:w-1/2 p-8">
             <img src="${product.image}" alt="${product.name}" class="w-full h-auto object-cover rounded-lg shadow-lg">
         </div>
@@ -759,6 +779,7 @@ function showProductDetails(productId) {
                 <button class="add-to-cart-btn w-full bg-gold-500 text-black font-bold py-3 rounded-md hover:bg-gold-600 transition-all-ease" data-id="${product.id}">Adicionar ao Carrinho</button>
             </div>
         </div>
+      </div>
     `;
     feather.replace();
     toggleProductDetailsModal(true);
@@ -813,20 +834,33 @@ function handleNewsletterSubmit(e) {
 // PAGE INITIALIZATION & NAVIGATION
 // =================================================================
 const pages = document.querySelectorAll('.page-content');
-const navLinks = document.querySelectorAll('.nav-link');
-const mobileMenu = document.getElementById('mobile-menu');
 
 function showPage(pageId) {
+    if (!pageId) return; // Prevent errors if pageId is undefined
+
     pages.forEach(page => page.classList.add('hidden'));
     const targetPage = document.getElementById('page-' + pageId);
-    if(targetPage) { targetPage.classList.remove('hidden'); }
     
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-    const activeLink = document.getElementById('nav-' + pageId);
-    if(activeLink) { activeLink.classList.add('active'); }
+    if (targetPage) {
+        targetPage.classList.remove('hidden');
+    } else {
+        console.warn(`Page with id 'page-${pageId}' not found. Defaulting to home.`);
+        document.getElementById('page-inicio').classList.remove('hidden');
+    }
+
+    // FIX: Select active navigation links using data-page attribute instead of non-existent IDs.
+    document.querySelectorAll('.nav-link, .mobile-nav-link').forEach(link => {
+        link.classList.remove('active');
+        if (link.dataset.page === pageId) {
+            link.classList.add('active');
+        }
+    });
     
-    if (!mobileMenu.classList.contains('hidden')) { mobileMenu.classList.add('hidden'); }
-    
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+        mobileMenu.classList.add('hidden');
+    }
+
     // Page-specific logic
     if (pageId === 'fragrancias') {
         applyFilters();
@@ -839,11 +873,15 @@ function showPage(pageId) {
             toggleAuthModal(true);
             return;
         }
-        document.getElementById('profile-email').textContent = `Bem-vindo(a), ${currentUserData.email}`;
+        // FIX: Check if the element exists before setting its content to prevent errors.
+        const profileEmailEl = document.getElementById('profile-email');
+        if (profileEmailEl) {
+            profileEmailEl.textContent = `Bem-vindo(a), ${currentUserData.email}`;
+        }
         renderWishlist();
         renderOrders();
     }
-    
+
     window.scrollTo(0, 0);
     AOS.refresh();
 }
@@ -899,13 +937,16 @@ function refreshAllProductViews() {
     if (!currentPage) return;
     const pageId = currentPage.id.replace('page-', '');
 
-    if (pageId === 'inicio') {
-        renderProducts(allProducts.slice(0, 4), 'product-list-home');
-    } else if (pageId === 'fragrancias') {
-        applyFilters();
-    } else if (pageId === 'decants') {
-         const decantProducts = allProducts.filter(p => p.category === 'decant');
-        renderProducts(decantProducts, 'product-list-decants');
+    // Re-render products on the current page to update wishlist hearts
+    const containerId = `product-list-${pageId}`;
+    const container = document.getElementById(containerId);
+    if(container) {
+        // This is a simplified re-render. A more complex app might need to re-fetch or re-filter.
+        const currentProducts = Array.from(container.children).map(child => {
+            const img = child.querySelector('img[data-id]');
+            return img ? allProducts.find(p => p.id === img.dataset.id) : null;
+        }).filter(Boolean);
+        renderProducts(currentProducts, containerId);
     } else if (pageId === 'profile') {
         renderWishlist();
     }
@@ -920,7 +961,12 @@ async function fetchInitialData() {
         allCoupons = couponsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
         renderProducts(allProducts.slice(0, 4), 'product-list-home');
-        document.getElementById('nav-inicio').classList.add('active');
+        
+        // FIX: Select initial active link using data-page attribute.
+        const initialLink = document.querySelector('.nav-link[data-page="inicio"]');
+        if (initialLink) {
+            initialLink.classList.add('active');
+        }
         
     } catch (error) {
         console.error("Error fetching initial data: ", error);
@@ -928,21 +974,69 @@ async function fetchInitialData() {
     }
 }
 
+// FIX: New function to generate the mobile menu dynamically.
+function generateMobileMenu() {
+    const desktopNavContainer = document.getElementById('desktop-nav-links');
+    const mobileMenuContainer = document.getElementById('mobile-menu');
+
+    if (!desktopNavContainer || !mobileMenuContainer) return;
+
+    // Clear any existing content
+    mobileMenuContainer.innerHTML = '';
+
+    // Clone all items from desktop nav to mobile
+    const desktopLinks = desktopNavContainer.cloneNode(true);
+    mobileMenuContainer.innerHTML = desktopLinks.innerHTML;
+
+    // Add the user/auth link which is separate on desktop
+    const mobileUserLink = document.createElement('a');
+    mobileUserLink.href = '#';
+    mobileUserLink.id = 'mobile-user-link'; // The crucial missing ID
+    mobileUserLink.classList.add('nav-link', 'mobile-nav-link', 'text-gray-600', 'hover:text-gold-500', 'transition-all-ease', 'font-semibold', 'block', 'py-2');
+    mobileMenuContainer.appendChild(mobileUserLink);
+
+    // Style mobile links to be block-level
+    mobileMenuContainer.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.add('block', 'py-2');
+    });
+    
+    // Handle dropdowns in mobile view (simple expansion)
+    mobileMenuContainer.querySelectorAll('.dropdown').forEach(dropdown => {
+        const mainLink = dropdown.querySelector('a');
+        const dropdownMenu = dropdown.querySelector('.dropdown-menu');
+        
+        // Remove classes that make it a popup on desktop
+        dropdownMenu.classList.remove('absolute', 'hidden', 'shadow-lg', 'rounded-md', 'mt-2', 'py-2', 'w-48');
+        // Add classes for an indented look on mobile
+        dropdownMenu.classList.add('pl-4', 'space-y-2');
+        
+        // Make main link just a title, not a page link itself for clarity
+        mainLink.addEventListener('click', (e) => e.preventDefault());
+    });
+}
+
+
 function initializeEventListeners() {
     const safeAddEventListener = (id, event, handler) => {
         const element = document.getElementById(id);
         if (element) {
             element.addEventListener(event, handler);
+        } else {
+            console.warn(`Element with id '${id}' not found for event listener.`);
         }
     };
 
-    safeAddEventListener('logo-link', 'click', (e) => { e.preventDefault(); showPage('inicio'); });
+    // Use querySelectorAll for classes as it returns an empty list if not found, preventing errors.
     document.querySelectorAll('.nav-link, .mobile-nav-link, .nav-link-footer, .nav-link-button').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            showPage(link.dataset.page);
-        });
+        // Check for dataset.page to avoid errors on links without it
+        if (link.dataset.page) {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                showPage(link.dataset.page);
+            });
+        }
     });
+
     safeAddEventListener('cart-button', 'click', () => toggleCart(true));
     safeAddEventListener('close-cart-button', 'click', () => toggleCart(false));
     safeAddEventListener('cart-modal-overlay', 'click', () => toggleCart(false));
@@ -964,7 +1058,9 @@ function initializeEventListeners() {
         document.getElementById('search-results').innerHTML = '';
     });
     safeAddEventListener('search-input', 'keyup', handleSearch);
+    
     document.querySelectorAll('.filter-control').forEach(el => el.addEventListener('change', applyFilters));
+    
     document.querySelectorAll('.faq-question').forEach(question => {
         question.addEventListener('click', () => {
             const answer = question.nextElementSibling;
@@ -978,6 +1074,7 @@ function initializeEventListeners() {
             }
         });
     });
+
     document.body.addEventListener('click', (e) => {
         const addToCartBtn = e.target.closest('.add-to-cart-btn');
         const wishlistHeart = e.target.closest('.wishlist-heart');
@@ -986,7 +1083,7 @@ function initializeEventListeners() {
         const cartQtyBtn = e.target.closest('.cart-qty-btn');
         const cartRemoveBtn = e.target.closest('.cart-remove-btn');
 
-        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); } // **NOVO**: Passar o evento
+        if (addToCartBtn) { e.stopPropagation(); addToCart(addToCartBtn.dataset.id, 1, e); }
         else if (wishlistHeart) { e.stopPropagation(); toggleWishlist(wishlistHeart.dataset.id); }
         else if (productLink) { e.stopPropagation(); showProductDetails(productLink.dataset.id); }
         else if (searchResult) { e.preventDefault(); showProductDetails(searchResult.dataset.id); document.getElementById('search-bar').classList.add('hidden'); document.getElementById('search-input').value = ''; document.getElementById('search-results').innerHTML = ''; }
@@ -994,7 +1091,6 @@ function initializeEventListeners() {
         else if (cartRemoveBtn) { removeFromCart(cartRemoveBtn.dataset.id); }
     });
     
-    // **NOVO**: Event listener para fechar modais com a tecla 'Esc'
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             toggleCart(false);
@@ -1010,17 +1106,18 @@ function initializeEventListeners() {
 async function main() {
     try {
         showLoader(true);
+        
+        // FIX: Generate the mobile menu before initializing event listeners and auth state.
+        generateMobileMenu();
+        
         initializeEventListeners();
         
-        // Initial UI setup that doesn't depend on data
         feather.replace();
         AOS.init({ duration: 800, once: true });
         updateCartIcon();
 
-        // Fetch all site data first
         await Promise.all([fetchInitialData(), fetchAndRenderReels()]);
 
-        // Now set up the auth listener
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userDocRef = doc(db, "users", user.uid);
@@ -1029,25 +1126,33 @@ async function main() {
                     currentUserData = { uid: user.uid, ...userDoc.data() };
                     const firestoreCart = currentUserData.cart || [];
                     const localCart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
+                    
+                    // Merge local and firestore carts
                     const mergedCart = [...firestoreCart];
                     localCart.forEach(localItem => {
                         const firestoreItem = mergedCart.find(fi => fi.id === localItem.id);
-                        if (firestoreItem) { firestoreItem.quantity += localItem.quantity; }
-                        else { mergedCart.push(localItem); }
+                        if (firestoreItem) { 
+                            firestoreItem.quantity += localItem.quantity; 
+                        } else { 
+                            mergedCart.push(localItem); 
+                        }
                     });
                     cart = mergedCart;
                     localStorage.removeItem('sanseiCart');
                     await syncCartWithFirestore();
                 } else {
+                    // New user registration
                     const newUser = { email: user.email, wishlist: [], cart: cart };
                     await setDoc(userDocRef, newUser);
                     currentUserData = { uid: user.uid, ...newUser };
                     await syncCartWithFirestore();
                 }
             } else {
+                // User is signed out
                 currentUserData = null;
                 cart = JSON.parse(localStorage.getItem('sanseiCart')) || [];
             }
+            // This call should now work without errors
             updateAuthUI(user);
             updateCartIcon();
             refreshAllProductViews();
