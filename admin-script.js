@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Use the same Firebase config as the e-commerce site
 const firebaseConfig = {
@@ -40,6 +40,7 @@ const DOMElements = {
     addReelForm: document.getElementById('add-reel-form'),
     reelListBody: document.getElementById('reel-list-body'),
     orderListBody: document.getElementById('order-list-body'),
+    reviewListBody: document.getElementById('review-list-body'), // **NOVO**
     adminEmail: document.getElementById('admin-email'),
     productIdField: document.getElementById('product-id'),
     submitProductBtn: document.getElementById('submit-product-btn'),
@@ -84,6 +85,15 @@ function switchView(viewToShow) {
     });
 }
 
+function renderStars(rating) {
+    let stars = '';
+    const ratingValue = Math.round(rating);
+    for (let i = 1; i <= 5; i++) {
+        stars += `<i data-feather="star" class="w-4 h-4 ${i <= ratingValue ? 'text-yellow-500 fill-current' : 'text-gray-300'}"></i>`;
+    }
+    return `<div class="flex items-center">${stars}</div>`;
+}
+
 // =================================================================
 // DATA FETCHING & RENDERING
 // =================================================================
@@ -95,10 +105,15 @@ async function fetchStats() {
         const couponsSnapshot = await getDocs(collection(db, "coupons"));
         const ordersSnapshot = await getDocs(collection(db, "orders"));
         
+        let totalReviews = 0;
+        productsSnapshot.forEach(doc => {
+            totalReviews += doc.data().reviews?.length || 0;
+        });
+
         document.getElementById('stats-orders').textContent = ordersSnapshot.size;
         document.getElementById('stats-products').textContent = productsSnapshot.size;
         document.getElementById('stats-users').textContent = usersSnapshot.size;
-        document.getElementById('stats-coupons').textContent = couponsSnapshot.size;
+        document.getElementById('stats-reviews').textContent = totalReviews; // **NOVO**
     } catch (e) {
         console.error("Error fetching stats:", e);
         showToast("Erro ao carregar estatísticas.", true);
@@ -132,6 +147,38 @@ async function fetchAndRenderProducts() {
         showToast('Erro ao carregar produtos.', true);
     }
 }
+
+// **NOVO**: Função para buscar e renderizar avaliações
+async function fetchAndRenderReviews() {
+    try {
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        DOMElements.reviewListBody.innerHTML = '';
+        productsSnapshot.forEach(pDoc => {
+            const product = { id: pDoc.id, ...pDoc.data() };
+            if (product.reviews && product.reviews.length > 0) {
+                product.reviews.forEach((review, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b';
+                    row.innerHTML = `
+                        <td class="py-3 px-2">${product.name}</td>
+                        <td class="py-3 px-2">${review.userName}</td>
+                        <td class="py-3 px-2">${renderStars(review.rating)}</td>
+                        <td class="py-3 px-2 text-xs">${review.text}</td>
+                        <td class="py-3 px-2">
+                            <button class="delete-review-btn text-red-500 hover:text-red-700" data-product-id="${product.id}" data-review-index="${index}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                        </td>
+                    `;
+                    DOMElements.reviewListBody.appendChild(row);
+                });
+            }
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching reviews: ", error);
+        showToast("Erro ao carregar avaliações.", true);
+    }
+}
+
 
 async function fetchAndRenderCoupons() {
     try {
@@ -237,7 +284,7 @@ async function updateOrderStatus(orderId, newStatus) {
     try {
         await updateDoc(orderRef, { status: newStatus });
         showToast(`Estado da encomenda atualizado para ${newStatus}.`);
-        fetchAndRenderOrders(); // Refresh the list to show color changes
+        fetchAndRenderOrders();
     } catch (error) {
         console.error("Error updating order status: ", error);
         showToast("Erro ao atualizar o estado da encomenda.", true);
@@ -315,7 +362,6 @@ async function handleProductFormSubmit(e) {
         showToast('Erro ao salvar produto.', true);
     } finally {
         DOMElements.submitProductBtn.disabled = false;
-        // The text is reset inside resetProductForm
     }
 }
 
@@ -332,6 +378,44 @@ async function deleteProduct(productId) {
         }
     }
 }
+
+// **NOVO**: Função para apagar uma avaliação
+async function deleteReview(productId, reviewIndex) {
+    if (confirm('Tem a certeza que quer eliminar esta avaliação?')) {
+        const productRef = doc(db, "products", productId);
+        try {
+            const productDoc = await getDoc(productRef);
+            if (!productDoc.exists()) throw new Error("Produto não encontrado");
+            
+            const reviews = productDoc.data().reviews || [];
+            const reviewToDelete = reviews[reviewIndex];
+            
+            if (!reviewToDelete) throw new Error("Avaliação não encontrada");
+
+            // Remove a avaliação específica do array
+            await updateDoc(productRef, {
+                reviews: arrayRemove(reviewToDelete)
+            });
+
+            // Recalcula a média
+            const updatedProductDoc = await getDoc(productRef);
+            const updatedReviews = updatedProductDoc.data().reviews || [];
+            const newAvgRating = updatedReviews.length > 0
+                ? updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length
+                : 0;
+            
+            await updateDoc(productRef, { rating: newAvgRating });
+
+            showToast('Avaliação eliminada com sucesso.');
+            await fetchAndRenderReviews();
+            await fetchStats();
+        } catch (error) {
+            console.error("Error deleting review: ", error);
+            showToast('Erro ao eliminar avaliação.', true);
+        }
+    }
+}
+
 
 async function handleCouponFormSubmit(e) {
     e.preventDefault();
@@ -439,6 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await fetchAndRenderCoupons();
             await fetchAndRenderReels();
             await fetchAndRenderOrders();
+            await fetchAndRenderReviews(); // **NOVO**
         } else {
             DOMElements.authScreen.classList.remove('hidden');
             DOMElements.adminPanel.classList.add('hidden');
@@ -468,6 +553,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const deleteBtn = e.target.closest('.delete-btn');
         if (editBtn) populateProductForm(editBtn.dataset.id);
         if (deleteBtn) deleteProduct(deleteBtn.dataset.id);
+    });
+    
+    // **NOVO**: Event listener para apagar avaliações
+    DOMElements.reviewListBody.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-review-btn');
+        if (deleteBtn) {
+            const productId = deleteBtn.dataset.productId;
+            const reviewIndex = parseInt(deleteBtn.dataset.reviewIndex, 10);
+            deleteReview(productId, reviewIndex);
+        }
     });
 
     DOMElements.couponListBody.addEventListener('click', (e) => {
