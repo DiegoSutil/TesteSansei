@@ -1,259 +1,571 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Administração - SANSEI DECANTS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/feather-icons"></script>
-    <link rel="stylesheet" href="admin-style.css">
-</head>
-<body class="bg-gray-100">
+/**
+ * @fileoverview Admin panel script for SANSEI DECANTS.
+ * Handles admin authentication, and CRUD operations for products,
+ * orders, coupons, reels, and reviews.
+ */
 
-    <!-- Auth Screen -->
-    <div id="auth-screen" class="flex items-center justify-center min-h-screen">
-        <div class="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
-            <h2 class="text-3xl font-bold text-center mb-6">Acesso Restrito</h2>
-            <div id="auth-message" class="hidden mb-4 p-3 rounded-md text-center"></div>
-            <form id="login-form">
-                <div class="mb-4">
-                    <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email</label>
-                    <input type="email" id="email" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ring-gold-500">
-                </div>
-                <div class="mb-6">
-                    <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">Senha</label>
-                    <input type="password" id="password" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 ring-gold-500">
-                </div>
-                <button type="submit" class="w-full bg-gray-800 text-white font-bold py-3 rounded-md hover:bg-black transition-colors">Entrar</button>
-            </form>
-        </div>
-    </div>
+// Importa o db e auth do módulo de configuração central
+import { db, auth } from './firebase-config.js';
+// Importa as funções do Firebase que serão usadas neste ficheiro
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-    <!-- Admin Panel (hidden by default) -->
-    <div id="admin-panel" class="hidden">
-        <header class="bg-white shadow-md">
-            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-800">Painel de Administração</h1>
-                <div class="flex items-center gap-4">
-                    <span id="admin-email" class="text-sm text-gray-600"></span>
-                    <button id="logout-button" class="bg-red-500 text-white font-bold py-2 px-4 rounded-md hover:bg-red-600">Sair</button>
-                </div>
-            </div>
-        </header>
-        <main class="container mx-auto p-6">
-            <!-- Admin Navigation -->
-            <div class="mb-6 border-b border-gray-200">
-                <nav class="flex space-x-8" aria-label="Tabs">
-                    <a href="#" data-view="dashboard" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Dashboard</a>
-                    <a href="#" data-view="orders" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Encomendas</a>
-                    <a href="#" data-view="products" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Produtos</a>
-                    <a href="#" data-view="reviews" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Avaliações</a>
-                    <a href="#" data-view="coupons" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Cupons</a>
-                    <a href="#" data-view="reels" class="admin-nav-link whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm">Reels</a>
-                </nav>
-            </div>
+// IMPORTANT: List of authorized admin emails
+const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com", "sanseiadmin@gmail.com"];
 
-            <!-- Dashboard View -->
-            <div id="view-dashboard" class="admin-view">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500">Total de Encomendas</h3>
-                        <p id="stats-orders" class="text-3xl font-bold mt-2">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500">Total de Produtos</h3>
-                        <p id="stats-products" class="text-3xl font-bold mt-2">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500">Utilizadores Registados</h3>
-                        <p id="stats-users" class="text-3xl font-bold mt-2">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-lg shadow-md">
-                        <h3 class="text-lg font-semibold text-gray-500">Total de Avaliações</h3>
-                        <p id="stats-reviews" class="text-3xl font-bold mt-2">0</p>
-                    </div>
-                </div>
-            </div>
+// =================================================================
+// DOM ELEMENTS
+// =================================================================
+const DOMElements = {
+    authScreen: document.getElementById('auth-screen'),
+    adminPanel: document.getElementById('admin-panel'),
+    loginForm: document.getElementById('login-form'),
+    logoutButton: document.getElementById('logout-button'),
+    productForm: document.getElementById('product-form'),
+    productListBody: document.getElementById('product-list-body'),
+    authMessage: document.getElementById('auth-message'),
+    navLinks: document.querySelectorAll('.admin-nav-link'),
+    views: document.querySelectorAll('.admin-view'),
+    addCouponForm: document.getElementById('add-coupon-form'),
+    couponListBody: document.getElementById('coupon-list-body'),
+    addReelForm: document.getElementById('add-reel-form'),
+    reelListBody: document.getElementById('reel-list-body'),
+    orderListBody: document.getElementById('order-list-body'),
+    reviewListBody: document.getElementById('review-list-body'),
+    adminEmail: document.getElementById('admin-email'),
+    productIdField: document.getElementById('product-id'),
+    submitProductBtn: document.getElementById('submit-product-btn'),
+    cancelEditBtn: document.getElementById('cancel-edit-btn'),
+};
 
-            <!-- Orders View -->
-            <div id="view-orders" class="admin-view hidden">
-                <section id="order-list-section" class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-6">Gerir Encomendas</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2 px-2">ID</th>
-                                    <th class="py-2 px-2">Cliente</th>
-                                    <th class="py-2 px-2">Data</th>
-                                    <th class="py-2 px-2">Total</th>
-                                    <th class="py-2 px-2">Estado</th>
-                                    <th class="py-2 px-2">Itens</th>
-                                </tr>
-                            </thead>
-                            <tbody id="order-list-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
+// =================================================================
+// UTILITY & UI FUNCTIONS
+// =================================================================
 
-            <!-- Products View -->
-            <div id="view-products" class="admin-view hidden">
-                <section id="add-product-section" class="bg-white p-8 rounded-lg shadow-md mb-8">
-                    <h2 class="text-2xl font-bold mb-6">Adicionar/Editar Produto</h2>
-                    <form id="product-form">
-                        <input type="hidden" id="product-id">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="product-name" class="block text-sm font-semibold mb-2">Nome do Produto</label>
-                                <input type="text" id="product-name" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                            </div>
-                            <div>
-                                <label for="product-price" class="block text-sm font-semibold mb-2">Preço (ex: 89.90)</label>
-                                <input type="number" step="0.01" id="product-price" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                            </div>
-                            <div>
-                                <label for="product-category" class="block text-sm font-semibold mb-2">Categoria</label>
-                                <select id="product-category" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                                    <option value="perfume">Perfume</option>
-                                    <option value="decant">Decant</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="product-stock" class="block text-sm font-semibold mb-2">Quantidade em Stock</label>
-                                <input type="number" id="product-stock" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="product-image" class="block text-sm font-semibold mb-2">URL da Imagem</label>
-                                <input type="url" id="product-image" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label for="product-description" class="block text-sm font-semibold mb-2">Descrição</label>
-                                <textarea id="product-description" rows="4" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500"></textarea>
-                            </div>
-                        </div>
-                        <div class="mt-6 text-right space-x-4">
-                            <button type="button" id="cancel-edit-btn" class="bg-gray-200 text-gray-800 font-bold py-2 px-6 rounded-md hover:bg-gray-300 hidden">Cancelar</button>
-                            <button type="submit" id="submit-product-btn" class="bg-gold-500 text-black font-bold py-2 px-6 rounded-md hover:bg-gold-600">Adicionar Produto</button>
-                        </div>
-                    </form>
-                </section>
-                <section id="product-list-section" class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-6">Lista de Produtos</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2">Imagem</th>
-                                    <th class="py-2">Nome</th>
-                                    <th class="py-2">Categoria</th>
-                                    <th class="py-2">Preço</th>
-                                    <th class="py-2">Stock</th>
-                                    <th class="py-2">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="product-list-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
+function showToast(message, isError = false) {
+    const toast = document.getElementById('admin-toast');
+    const toastMessage = document.getElementById('admin-toast-message');
+    const iconContainer = document.getElementById('admin-toast-icon');
+    if (!toast || !toastMessage || !iconContainer) return;
+
+    const iconName = isError ? 'x-circle' : 'check-circle';
+    const iconColorClass = isError ? 'text-red-400' : 'text-green-400';
+
+    iconContainer.innerHTML = `<i data-feather="${iconName}" class="${iconColorClass}"></i>`;
+    toastMessage.textContent = message;
+    
+    feather.replace();
+    
+    toast.classList.remove('opacity-0', 'translate-y-10');
+    setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-10');
+    }, 3000);
+}
+
+function showAuthMessage(message, color) {
+    DOMElements.authMessage.textContent = message;
+    DOMElements.authMessage.className = `mb-4 p-3 rounded-md text-center bg-${color}-100 text-${color}-700`;
+}
+
+function switchView(viewToShow) {
+    DOMElements.views.forEach(view => view.classList.add('hidden'));
+    document.getElementById(`view-${viewToShow}`).classList.remove('hidden');
+
+    DOMElements.navLinks.forEach(nav => {
+        nav.classList.toggle('active', nav.dataset.view === viewToShow);
+    });
+}
+
+function renderStars(rating) {
+    let stars = '';
+    const ratingValue = Math.round(rating);
+    for (let i = 1; i <= 5; i++) {
+        stars += `<i data-feather="star" class="w-4 h-4 ${i <= ratingValue ? 'text-yellow-500 fill-current' : 'text-gray-300'}"></i>`;
+    }
+    return `<div class="flex items-center">${stars}</div>`;
+}
+
+// =================================================================
+// DATA FETCHING & RENDERING
+// =================================================================
+
+async function fetchStats() {
+    try {
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const couponsSnapshot = await getDocs(collection(db, "coupons"));
+        const ordersSnapshot = await getDocs(collection(db, "orders"));
+        
+        let totalReviews = 0;
+        productsSnapshot.forEach(doc => {
+            totalReviews += doc.data().reviews?.length || 0;
+        });
+
+        document.getElementById('stats-orders').textContent = ordersSnapshot.size;
+        document.getElementById('stats-products').textContent = productsSnapshot.size;
+        document.getElementById('stats-users').textContent = usersSnapshot.size;
+        document.getElementById('stats-reviews').textContent = totalReviews;
+    } catch (e) {
+        console.error("Error fetching stats:", e);
+        showToast("Erro ao carregar estatísticas.", true);
+    }
+}
+
+async function fetchAndRenderProducts() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        DOMElements.productListBody.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const product = { id: doc.id, ...doc.data() };
+            const row = document.createElement('tr');
+            row.className = 'border-b';
+            row.innerHTML = `
+                <td class="py-2 px-2"><img src="${product.image}" alt="${product.name}" class="w-12 h-12 object-cover rounded-md"></td>
+                <td class="py-3 px-2">${product.name}</td>
+                <td class="py-3 px-2 capitalize">${product.category}</td>
+                <td class="py-3 px-2">R$ ${product.price.toFixed(2)}</td>
+                <td class="py-3 px-2">${product.stock}</td>
+                <td class="py-3 px-2 flex gap-2 items-center">
+                    <button class="edit-btn text-blue-500 hover:text-blue-700" data-id="${product.id}"><i data-feather="edit-2" class="w-5 h-5"></i></button>
+                    <button class="delete-btn text-red-500 hover:text-red-700" data-id="${product.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                </td>
+            `;
+            DOMElements.productListBody.appendChild(row);
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching products: ", error);
+        showToast('Erro ao carregar produtos.', true);
+    }
+}
+
+async function fetchAndRenderReviews() {
+    try {
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        DOMElements.reviewListBody.innerHTML = '';
+        productsSnapshot.forEach(pDoc => {
+            const product = { id: pDoc.id, ...pDoc.data() };
+            if (product.reviews && product.reviews.length > 0) {
+                product.reviews.forEach((review, index) => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b';
+                    row.innerHTML = `
+                        <td class="py-3 px-2">${product.name}</td>
+                        <td class="py-3 px-2">${review.userName}</td>
+                        <td class="py-3 px-2">${renderStars(review.rating)}</td>
+                        <td class="py-3 px-2 text-xs">${review.text}</td>
+                        <td class="py-3 px-2">
+                            <button class="delete-review-btn text-red-500 hover:text-red-700" data-product-id="${product.id}" data-review-index="${index}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                        </td>
+                    `;
+                    DOMElements.reviewListBody.appendChild(row);
+                });
+            }
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching reviews: ", error);
+        showToast("Erro ao carregar avaliações.", true);
+    }
+}
+
+
+async function fetchAndRenderCoupons() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "coupons"));
+        DOMElements.couponListBody.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const coupon = { id: doc.id, ...doc.data() };
+            const row = document.createElement('tr');
+            row.className = 'border-b';
+            row.innerHTML = `
+                <td class="py-3 px-2 font-mono">${coupon.code}</td>
+                <td class="py-3 px-2">${(coupon.discount * 100).toFixed(0)}%</td>
+                <td class="py-3 px-2">
+                    <button class="delete-coupon-btn text-red-500 hover:text-red-700" data-id="${coupon.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                </td>
+            `;
+            DOMElements.couponListBody.appendChild(row);
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching coupons: ", error);
+        showToast("Erro ao carregar cupons.", true);
+    }
+}
+
+async function fetchAndRenderReels() {
+    try {
+        const querySnapshot = await getDocs(collection(db, "reels"));
+        DOMElements.reelListBody.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const reel = { id: doc.id, ...doc.data() };
+            const row = document.createElement('tr');
+            row.className = 'border-b';
+            row.innerHTML = `
+                <td class="py-3 px-2">
+                    <img src="${reel.thumbnail}" alt="Reel Thumbnail" class="w-24 h-24 object-cover rounded-md">
+                </td>
+                <td class="py-3 px-2 break-all"><a href="${reel.url}" target="_blank" class="text-blue-500 hover:underline">${reel.url}</a></td>
+                <td class="py-3 px-2">
+                    <button class="delete-reel-btn text-red-500 hover:text-red-700" data-id="${reel.id}"><i data-feather="trash-2" class="w-5 h-5"></i></button>
+                </td>
+            `;
+            DOMElements.reelListBody.appendChild(row);
+        });
+        feather.replace();
+    } catch (error) {
+        console.error("Error fetching reels: ", error);
+        showToast("Erro ao carregar reels.", true);
+    }
+}
+
+async function fetchAndRenderOrders() {
+    try {
+        const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+        const querySnapshot = await getDocs(q);
+        DOMElements.orderListBody.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const order = { id: doc.id, ...doc.data() };
+            const row = document.createElement('tr');
+            row.className = 'border-b hover:bg-gray-50';
+            const orderDate = order.createdAt.toDate().toLocaleDateString('pt-BR');
+
+            const statusColors = {
+                Pendente: 'bg-yellow-100 text-yellow-800',
+                Enviado: 'bg-blue-100 text-blue-800',
+                Entregue: 'bg-green-100 text-green-800',
+                Cancelado: 'bg-red-100 text-red-800',
+            };
+
+            const statusSelect = `
+                <select class="order-status-select p-2 rounded-md border-gray-300 focus:ring-gold-500 ${statusColors[order.status]}" data-id="${order.id}">
+                    <option value="Pendente" ${order.status === 'Pendente' ? 'selected' : ''}>Pendente</option>
+                    <option value="Enviado" ${order.status === 'Enviado' ? 'selected' : ''}>Enviado</option>
+                    <option value="Entregue" ${order.status === 'Entregue' ? 'selected' : ''}>Entregue</option>
+                    <option value="Cancelado" ${order.status === 'Cancelado' ? 'selected' : ''}>Cancelado</option>
+                </select>
+            `;
+
+            const itemsList = order.items.map(item => `<li>${item.quantity}x ${item.name}</li>`).join('');
+
+            row.innerHTML = `
+                <td class="py-3 px-2 font-mono text-xs">${order.id}</td>
+                <td class="py-3 px-2">${order.userEmail}</td>
+                <td class="py-3 px-2">${orderDate}</td>
+                <td class="py-3 px-2 font-semibold">R$ ${order.total.toFixed(2)}</td>
+                <td class="py-3 px-2">${statusSelect}</td>
+                <td class="py-3 px-2"><ul>${itemsList}</ul></td>
+            `;
+            DOMElements.orderListBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Error fetching orders: ", error);
+        showToast('Erro ao carregar encomendas.', true);
+    }
+}
+
+// =================================================================
+// CRUD & FORM HANDLING
+// =================================================================
+
+async function updateOrderStatus(orderId, newStatus) {
+    const orderRef = doc(db, "orders", orderId);
+    try {
+        await updateDoc(orderRef, { status: newStatus });
+        showToast(`Estado da encomenda atualizado para ${newStatus}.`);
+        fetchAndRenderOrders();
+    } catch (error) {
+        console.error("Error updating order status: ", error);
+        showToast("Erro ao atualizar o estado da encomenda.", true);
+    }
+}
+
+function resetProductForm() {
+    DOMElements.productForm.reset();
+    DOMElements.productIdField.value = '';
+    DOMElements.submitProductBtn.textContent = 'Adicionar Produto';
+    DOMElements.cancelEditBtn.classList.add('hidden');
+    DOMElements.submitProductBtn.disabled = false;
+}
+
+function populateProductForm(productId) {
+    const productRef = doc(db, "products", productId);
+    getDoc(productRef).then(docSnap => {
+        if (docSnap.exists()) {
+            const product = docSnap.data();
+            DOMElements.productIdField.value = productId;
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-price').value = product.price;
+            document.getElementById('product-category').value = product.category;
+            document.getElementById('product-stock').value = product.stock;
+            document.getElementById('product-image').value = product.image;
+            document.getElementById('product-description').value = product.description;
+
+            DOMElements.submitProductBtn.textContent = 'Salvar Alterações';
+            DOMElements.cancelEditBtn.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+}
+
+async function handleProductFormSubmit(e) {
+    e.preventDefault();
+    DOMElements.submitProductBtn.disabled = true;
+    DOMElements.submitProductBtn.textContent = 'A guardar...';
+
+    const productId = DOMElements.productIdField.value;
+    const imageUrl = document.getElementById('product-image').value;
+
+    if (!imageUrl) {
+        showToast("Por favor, insira a URL da imagem.", true);
+        DOMElements.submitProductBtn.disabled = false;
+        DOMElements.submitProductBtn.textContent = productId ? 'Salvar Alterações' : 'Adicionar Produto';
+        return;
+    }
+
+    const productData = {
+        name: document.getElementById('product-name').value,
+        price: parseFloat(document.getElementById('product-price').value),
+        category: document.getElementById('product-category').value,
+        stock: parseInt(document.getElementById('product-stock').value),
+        image: imageUrl,
+        description: document.getElementById('product-description').value,
+    };
+
+    try {
+        if (productId) {
+            await updateDoc(doc(db, "products", productId), productData);
+            showToast('Produto atualizado com sucesso!');
+        } else {
+            productData.rating = 0;
+            productData.reviews = [];
+            await addDoc(collection(db, "products"), productData);
+            showToast('Produto adicionado com sucesso!');
+        }
+        resetProductForm();
+        await fetchAndRenderProducts();
+        await fetchStats();
+
+    } catch (error) {
+        console.error("Error saving product: ", error);
+        showToast('Erro ao salvar produto.', true);
+    } finally {
+        DOMElements.submitProductBtn.disabled = false;
+    }
+}
+
+async function deleteProduct(productId) {
+    if (confirm('Tem a certeza que quer eliminar este produto?')) {
+        try {
+            await deleteDoc(doc(db, "products", productId));
+            showToast('Produto eliminado com sucesso.');
+            await fetchAndRenderProducts();
+            await fetchStats();
+        } catch (error) {
+            console.error("Error deleting product: ", error);
+            showToast('Erro ao eliminar produto.', true);
+        }
+    }
+}
+
+async function deleteReview(productId, reviewIndex) {
+    if (confirm('Tem a certeza que quer eliminar esta avaliação?')) {
+        const productRef = doc(db, "products", productId);
+        try {
+            const productDoc = await getDoc(productRef);
+            if (!productDoc.exists()) throw new Error("Produto não encontrado");
             
-            <!-- **NOVO**: Reviews View -->
-            <div id="view-reviews" class="admin-view hidden">
-                <section id="review-list-section" class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-6">Gerir Avaliações</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left text-sm">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2 px-2">Produto</th>
-                                    <th class="py-2 px-2">Utilizador</th>
-                                    <th class="py-2 px-2">Avaliação</th>
-                                    <th class="py-2 px-2">Comentário</th>
-                                    <th class="py-2 px-2">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="review-list-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
+            const reviews = productDoc.data().reviews || [];
+            const reviewToDelete = reviews[reviewIndex];
+            
+            if (!reviewToDelete) throw new Error("Avaliação não encontrada");
 
-            <!-- Coupons View -->
-            <div id="view-coupons" class="admin-view hidden">
-                <section id="add-coupon-section" class="bg-white p-8 rounded-lg shadow-md mb-8">
-                    <h2 class="text-2xl font-bold mb-6">Adicionar Novo Cupom</h2>
-                    <form id="add-coupon-form" class="flex items-end gap-4">
-                        <div class="flex-grow">
-                            <label for="coupon-code" class="block text-sm font-semibold mb-2">Código do Cupom (ex: SANSEI10)</label>
-                            <input type="text" id="coupon-code" required class="w-full px-4 py-2 border rounded-md uppercase focus:ring-2 ring-gold-500">
-                        </div>
-                        <div class="flex-grow">
-                            <label for="coupon-discount" class="block text-sm font-semibold mb-2">Desconto (ex: 0.10 para 10%)</label>
-                            <input type="number" step="0.01" min="0.01" max="1" id="coupon-discount" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                        </div>
-                        <button type="submit" class="bg-gold-500 text-black font-bold py-2 px-6 rounded-md hover:bg-gold-600">Adicionar</button>
-                    </form>
-                </section>
-                <section id="coupon-list-section" class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-6">Lista de Cupons</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2">Código</th>
-                                    <th class="py-2">Desconto</th>
-                                    <th class="py-2">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="coupon-list-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
+            await updateDoc(productRef, {
+                reviews: arrayRemove(reviewToDelete)
+            });
 
-            <!-- Reels View -->
-            <div id="view-reels" class="admin-view hidden">
-                <section id="add-reel-section" class="bg-white p-8 rounded-lg shadow-md mb-8">
-                    <h2 class="text-2xl font-bold mb-6">Adicionar Novo Reel</h2>
-                    <form id="add-reel-form" class="flex flex-col md:flex-row md:items-end gap-4">
-                        <div class="flex-grow">
-                            <label for="reel-url" class="block text-sm font-semibold mb-2">URL do Reel (Instagram)</label>
-                            <input type="url" id="reel-url" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                        </div>
-                        <div class="flex-grow">
-                            <label for="reel-thumbnail" class="block text-sm font-semibold mb-2">URL da Imagem de Capa</label>
-                            <input type="url" id="reel-thumbnail" required class="w-full px-4 py-2 border rounded-md focus:ring-2 ring-gold-500">
-                        </div>
-                        <button type="submit" class="bg-gold-500 text-black font-bold py-2 px-6 rounded-md hover:bg-gold-600 w-full md:w-auto">Adicionar</button>
-                    </form>
-                </section>
-                <section id="reel-list-section" class="bg-white p-8 rounded-lg shadow-md">
-                    <h2 class="text-2xl font-bold mb-6">Lista de Reels</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead>
-                                <tr class="border-b">
-                                    <th class="py-2 px-2">Imagem de Capa</th>
-                                    <th class="py-2 px-2">URL do Reel</th>
-                                    <th class="py-2 px-2">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="reel-list-body"></tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-        </main>
-    </div>
+            const updatedProductDoc = await getDoc(productRef);
+            const updatedReviews = updatedProductDoc.data().reviews || [];
+            const newAvgRating = updatedReviews.length > 0
+                ? updatedReviews.reduce((sum, r) => sum + r.rating, 0) / updatedReviews.length
+                : 0;
+            
+            await updateDoc(productRef, { rating: newAvgRating });
 
-    <!-- Toast Notification -->
-    <div id="admin-toast" class="fixed top-5 right-5 bg-gray-800 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-4 opacity-0 transform translate-y-10 z-50 transition-all duration-300">
-        <span id="admin-toast-icon"></span>
-        <span id="admin-toast-message"></span>
-    </div>
+            showToast('Avaliação eliminada com sucesso.');
+            await fetchAndRenderReviews();
+            await fetchStats();
+        } catch (error) {
+            console.error("Error deleting review: ", error);
+            showToast('Erro ao eliminar avaliação.', true);
+        }
+    }
+}
 
-    <script type="module" src="admin-script.js"></script>
-</body>
-</html>
+
+async function handleCouponFormSubmit(e) {
+    e.preventDefault();
+    const newCoupon = {
+        code: document.getElementById('coupon-code').value.toUpperCase(),
+        discount: parseFloat(document.getElementById('coupon-discount').value)
+    };
+    try {
+        await addDoc(collection(db, "coupons"), newCoupon);
+        DOMElements.addCouponForm.reset();
+        showToast('Cupom adicionado com sucesso!');
+        await fetchAndRenderCoupons();
+        await fetchStats();
+    } catch (error) {
+        showToast('Erro ao adicionar cupom.', true);
+    }
+}
+
+async function deleteCoupon(couponId) {
+    if (confirm('Tem a certeza que quer eliminar este cupom?')) {
+        try {
+            await deleteDoc(doc(db, "coupons", couponId));
+            showToast('Cupom eliminado com sucesso.');
+            await fetchAndRenderCoupons();
+            await fetchStats();
+        } catch (error) {
+            showToast('Erro ao eliminar cupom.', true);
+        }
+    }
+}
+
+async function handleAddReelFormSubmit(e) {
+    e.preventDefault();
+    const newReel = {
+        url: document.getElementById('reel-url').value,
+        thumbnail: document.getElementById('reel-thumbnail').value
+    };
+    try {
+        await addDoc(collection(db, "reels"), newReel);
+        DOMElements.addReelForm.reset();
+        showToast('Reel adicionado com sucesso!');
+        await fetchAndRenderReels();
+    } catch (error) {
+        showToast('Erro ao adicionar reel.', true);
+    }
+}
+
+async function deleteReel(reelId) {
+    if (confirm('Tem a certeza que quer eliminar este reel?')) {
+        try {
+            await deleteDoc(doc(db, "reels", reelId));
+            showToast('Reel eliminado com sucesso.');
+            await fetchAndRenderReels();
+        } catch (error) {
+            showToast('Erro ao eliminar reel.', true);
+        }
+    }
+}
+
+// =================================================================
+// AUTHENTICATION
+// =================================================================
+
+async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!ADMIN_EMAILS.includes(email)) {
+        showAuthMessage('Acesso negado. Este email não é de um administrador.', 'red');
+        return;
+    }
+
+    try {
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+        console.error("Login Error:", error.code);
+        showAuthMessage('Email ou senha inválidos.', 'red');
+    }
+}
+
+async function handleLogout() {
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Logout Error:", error);
+    }
+}
+
+// =================================================================
+// MAIN APP LOGIC & EVENT LISTENERS
+// =================================================================
+document.addEventListener('DOMContentLoaded', () => {
+    feather.replace();
+
+    onAuthStateChanged(auth, async (user) => {
+        if (user && ADMIN_EMAILS.includes(user.email)) {
+            DOMElements.authScreen.classList.add('hidden');
+            DOMElements.adminPanel.classList.remove('hidden');
+            DOMElements.adminEmail.textContent = user.email;
+            
+            switchView('dashboard');
+            await fetchStats();
+            await fetchAndRenderProducts();
+            await fetchAndRenderCoupons();
+            await fetchAndRenderReels();
+            await fetchAndRenderOrders();
+            await fetchAndRenderReviews();
+        } else {
+            DOMElements.authScreen.classList.remove('hidden');
+            DOMElements.adminPanel.classList.add('hidden');
+            if (user) { 
+                signOut(auth);
+            }
+        }
+        feather.replace();
+    });
+
+    DOMElements.loginForm.addEventListener('submit', handleLogin);
+    DOMElements.logoutButton.addEventListener('click', handleLogout);
+    DOMElements.productForm.addEventListener('submit', handleProductFormSubmit);
+    DOMElements.addCouponForm.addEventListener('submit', handleCouponFormSubmit);
+    DOMElements.addReelForm.addEventListener('submit', handleAddReelFormSubmit);
+    DOMElements.cancelEditBtn.addEventListener('click', resetProductForm);
+
+    DOMElements.navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            switchView(link.dataset.view);
+        });
+    });
+
+    DOMElements.productListBody.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+        if (editBtn) populateProductForm(editBtn.dataset.id);
+        if (deleteBtn) deleteProduct(deleteBtn.dataset.id);
+    });
+    
+    DOMElements.reviewListBody.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-review-btn');
+        if (deleteBtn) {
+            const productId = deleteBtn.dataset.productId;
+            const reviewIndex = parseInt(deleteBtn.dataset.reviewIndex, 10);
+            deleteReview(productId, reviewIndex);
+        }
+    });
+
+    DOMElements.couponListBody.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-coupon-btn');
+        if (deleteBtn) deleteCoupon(deleteBtn.dataset.id);
+    });
+
+    DOMElements.reelListBody.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-reel-btn');
+        if (deleteBtn) deleteReel(deleteBtn.dataset.id);
+    });
+
+    DOMElements.orderListBody.addEventListener('change', (e) => {
+        if (e.target.classList.contains('order-status-select')) {
+            const orderId = e.target.dataset.id;
+            const newStatus = e.target.value;
+            updateOrderStatus(orderId, newStatus);
+        }
+    });
+});
