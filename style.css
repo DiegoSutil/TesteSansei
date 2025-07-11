@@ -56,13 +56,18 @@ body {
 /* --- Novos estilos para o menu mobile (conforme a imagem) --- */
 .mobile-nav-item {
     @apply block w-full text-left py-3 px-4 text-base font-medium text-slate-700 relative;
-    border-bottom: 1px solid #e2e8f0; /* Corresponde a slate-200 */
+    /* Removido: border-bottom: 1px solid #e2e8f0; */ /* A borda será aplicada ao LI pai */
     transition: color 0.2s ease-in-out; /* Transição apenas para a cor */
 }
 
 .mobile-nav-item:hover {
     @apply text-indigo-700; /* Apenas muda a cor do texto no hover */
     background-color: transparent; /* Garante que não haja fundo no hover */
+}
+
+/* Adicionado: Borda inferior para os itens da lista do menu mobile */
+#mobile-menu nav ul li {
+    border-bottom: 1px solid #e2e8f0; /* Aplica a borda ao LI */
 }
 
 .mobile-nav-item.with-arrow {
@@ -73,7 +78,7 @@ body {
 }
 
 /* Remove a borda inferior do último item da lista principal do menu */
-#mobile-menu nav ul li:last-child .mobile-nav-item {
+#mobile-menu nav ul li:last-child { /* Aplicar diretamente ao LI */
     border-bottom: none;
 }
 
