@@ -393,7 +393,7 @@ async function removeFromCart(productId) {
 }
 
 async function updateQuantity(productId, newQuantity) {
-    const cartItem = cart.find(item => item.id !== productId);
+    const cartItem = cart.find(item => item.id === productId); // Corrigido: era item.id !== productId
     if (!cartItem) return;
     if (newQuantity <= 0) {
         await removeFromCart(productId);
@@ -1014,6 +1014,9 @@ async function renderOrders() {
     const ordersListContainer = document.getElementById('orders-list');
     if (!currentUserData || !ordersListContainer) return;
 
+    // ATENÇÃO: Para esta consulta funcionar, você precisará criar um índice no Firestore.
+    // O Firestore exige um índice composto para consultas que usam where e orderBy.
+    // Se a consulta falhar, o console do Firebase fornecerá um link para criar o índice necessário.
     const q = query(collection(db, "orders"), where("userId", "==", currentUserData.uid), orderBy("createdAt", "desc"));
     const querySnapshot = await getDocs(q);
 
@@ -1103,7 +1106,8 @@ function initializeEventListeners() {
     safeAddEventListener('mobile-menu-overlay', 'click', () => toggleMobileMenu(false));
 
     // NEW: Event listeners for mobile nav items inside the sliding menu
-    document.querySelectorAll('.mobile-nav-item').forEach(item => { // Alterado de .mobile-nav-link para .mobile-nav-item
+    // Corrigido o seletor para '.mobile-nav-link'
+    document.querySelectorAll('.mobile-nav-link').forEach(item => {
         item.addEventListener('click', (e) => {
             e.preventDefault();
             const page = item.dataset.page;
