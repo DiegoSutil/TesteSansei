@@ -2,8 +2,8 @@
  * @fileoverview Módulo de Gestão de Produtos.
  */
 import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc, getDoc, query, orderBy, limit, startAfter, endBefore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from '../firebase-config.js';
-import { DOMElements, showToast } from './ui.js';
+import { db } from '../firebase-config.js'; // Importa a instância db do ficheiro de configuração centralizado
+import { DOMElements, showToast, showAdminConfirmationModal } from './ui.js'; // Importa showAdminConfirmationModal
 import { fetchStats } from './stats.js';
 
 // Estado da paginação
@@ -17,6 +17,9 @@ async function updateProductPaginationButtons() {
     DOMElements.prevProductPageBtn.disabled = productCurrentPage === 1;
 
     const productsRef = collection(db, "products");
+    // ATENÇÃO: Para esta consulta funcionar, você precisará criar um índice no Firestore.
+    // O Firestore exige um índice composto para consultas que usam orderBy e startAfter.
+    // Se a consulta falhar, o console do Firebase fornecerá um link para criar o índice necessário.
     const nextQuery = query(productsRef, orderBy("name"), startAfter(lastVisibleProduct), limit(1));
     const nextSnap = await getDocs(nextQuery);
     DOMElements.nextProductPageBtn.disabled = nextSnap.empty;
@@ -26,6 +29,9 @@ export async function fetchAndRenderProducts(direction = 'first') {
     try {
         const productsRef = collection(db, "products");
         let q;
+        // ATENÇÃO: Para esta consulta funcionar, você precisará criar um índice no Firestore.
+        // O Firestore exige um índice composto para consultas que usam orderBy.
+        // Se a consulta falhar, o console do Firebase fornecerá um link para criar o índice necessário.
         const baseQuery = query(productsRef, orderBy("name"));
 
         switch (direction) {
@@ -144,7 +150,9 @@ export async function handleProductFormSubmit(e) {
 }
 
 export async function deleteProduct(productId) {
-    if (confirm('Tem a certeza que quer eliminar este produto?')) {
+    // Usa o modal de confirmação personalizado
+    const confirmed = await showAdminConfirmationModal('Tem a certeza que quer eliminar este produto?', 'Eliminar Produto');
+    if (confirmed) {
         try {
             await deleteDoc(doc(db, "products", productId));
             showToast('Produto eliminado com sucesso.');
