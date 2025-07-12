@@ -2,11 +2,14 @@
  * @fileoverview Módulo de Gestão de Encomendas.
  */
 import { collection, getDocs, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from '../firebase-config.js';
+import { db } from '../firebase-config.js'; // Importa a instância db do ficheiro de configuração centralizado
 import { DOMElements, showToast } from './ui.js';
 
 export async function fetchAndRenderOrders() {
     try {
+        // ATENÇÃO: Para esta consulta funcionar, você precisará criar um índice no Firestore.
+        // O Firestore exige um índice composto para consultas que usam orderBy.
+        // Se a consulta falhar, o console do Firebase fornecerá um link para criar o índice necessário.
         const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         DOMElements.orderListBody.innerHTML = '';
