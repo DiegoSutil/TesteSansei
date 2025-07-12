@@ -2,8 +2,8 @@
  * @fileoverview Módulo de Gestão de Avaliações.
  */
 import { collection, getDocs, doc, updateDoc, getDoc, arrayRemove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from '../firebase-config.js';
-import { DOMElements, showToast, renderStars } from './ui.js';
+import { db } from '../firebase-config.js'; // Importa a instância db do ficheiro de configuração centralizado
+import { DOMElements, showToast, renderStars, showAdminConfirmationModal } from './ui.js'; // Importa showAdminConfirmationModal
 import { fetchStats } from './stats.js';
 
 export async function fetchAndRenderReviews() {
@@ -36,7 +36,9 @@ export async function fetchAndRenderReviews() {
 }
 
 export async function deleteReview(productId, reviewIndex) {
-    if (confirm('Tem a certeza que quer eliminar esta avaliação?')) {
+    // Usa o modal de confirmação personalizado
+    const confirmed = await showAdminConfirmationModal('Tem a certeza que quer eliminar esta avaliação?', 'Eliminar Avaliação');
+    if (confirmed) {
         const productRef = doc(db, "products", productId);
         try {
             const productDoc = await getDoc(productRef);
