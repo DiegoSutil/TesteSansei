@@ -90,3 +90,59 @@ export function renderStars(rating) {
     }
     return `<div class="flex items-center">${stars}</div>`;
 }
+
+/**
+ * Exibe um modal de confirmação personalizado para o painel de administração.
+ * @param {string} message A mensagem a ser exibida no modal.
+ * @param {string} [title='Confirmação'] O título do modal.
+ * @returns {Promise<boolean>} Uma promessa que resolve para `true` se o usuário confirmar, `false` caso contrário.
+ */
+export function showAdminConfirmationModal(message, title = 'Confirmação') {
+    return new Promise(resolve => {
+        const modalOverlay = document.getElementById('admin-confirmation-modal-overlay');
+        const modal = document.getElementById('admin-confirmation-modal');
+        const modalTitle = document.getElementById('admin-confirmation-modal-title');
+        const modalMessage = document.getElementById('admin-confirmation-modal-message');
+        const confirmBtn = document.getElementById('admin-confirmation-confirm-btn');
+        const cancelBtn = document.getElementById('admin-confirmation-cancel-btn');
+
+        if (!modalOverlay || !modal || !modalTitle || !modalMessage || !confirmBtn || !cancelBtn) {
+            console.error("Elementos do modal de confirmação do admin não encontrados.");
+            resolve(false); // Fallback para false se os elementos estiverem em falta
+            return;
+        }
+
+        modalTitle.textContent = title;
+        modalMessage.textContent = message;
+
+        // Reset event listeners para prevenir múltiplas ligações
+        confirmBtn.onclick = null;
+        cancelBtn.onclick = null;
+
+        confirmBtn.onclick = () => {
+            hideAdminConfirmationModal();
+            resolve(true);
+        };
+
+        cancelBtn.onclick = () => {
+            hideAdminConfirmationModal();
+            resolve(false);
+        };
+
+        modalOverlay.classList.remove('hidden');
+        modal.classList.remove('hidden', 'opacity-0', 'scale-95');
+    });
+}
+
+/**
+ * Esconde o modal de confirmação do painel de administração.
+ */
+export function hideAdminConfirmationModal() {
+    const modalOverlay = document.getElementById('admin-confirmation-modal-overlay');
+    const modal = document.getElementById('admin-confirmation-modal');
+    if (modalOverlay) modalOverlay.classList.add('hidden');
+    if (modal) {
+        modal.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    }
+}
