@@ -2,8 +2,8 @@
  * @fileoverview Módulo de Gestão de Reels.
  */
 import { collection, getDocs, addDoc, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from '../firebase-config.js';
-import { DOMElements, showToast } from './ui.js';
+import { db } from '../firebase-config.js'; // Importa a instância db do ficheiro de configuração centralizado
+import { DOMElements, showToast, showAdminConfirmationModal } from './ui.js'; // Importa showAdminConfirmationModal
 
 export async function fetchAndRenderReels() {
     try {
@@ -45,7 +45,9 @@ export async function handleAddReelFormSubmit(e) {
 }
 
 export async function deleteReel(reelId) {
-    if (confirm('Tem a certeza que quer eliminar este reel?')) {
+    // Usa o modal de confirmação personalizado
+    const confirmed = await showAdminConfirmationModal('Tem a certeza que quer eliminar este reel?', 'Eliminar Reel');
+    if (confirmed) {
         try {
             await deleteDoc(doc(db, "reels", reelId));
             showToast('Reel eliminado com sucesso.');
