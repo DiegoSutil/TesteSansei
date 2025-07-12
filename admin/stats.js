@@ -2,7 +2,7 @@
  * @fileoverview Módulo para buscar estatísticas do Dashboard.
  */
 import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { db } from '../firebase-config.js';
+import { db } from '../firebase-config.js'; // Importa a instância db do ficheiro de configuração centralizado
 import { showToast } from './ui.js';
 
 export async function fetchStats() {
