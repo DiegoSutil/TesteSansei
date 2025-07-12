@@ -2,11 +2,11 @@
  * @fileoverview Módulo de Autenticação para o Painel de Admin.
  */
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { auth } from '../firebase-config.js';
+import { auth } from '../firebase-config.js'; // Importa a instância auth do ficheiro de configuração centralizado
 import { DOMElements, showAuthMessage, switchView } from './ui.js';
 import { initializeAdminPanel } from './main.js';
 
-// Lista de emails autorizados. Considere usar Custom Claims para maior segurança.
+// Lista de emails autorizados. Considere usar Custom Claims para maior segurança em produção.
 const ADMIN_EMAILS = ["admin@sansei.com", "diego.sutil@gmail.com", "sanseiadmin@gmail.com"];
 
 /**
@@ -62,6 +62,7 @@ export function authStateObserver() {
                 await signOut(auth);
             }
         }
+        // Garante que os ícones Feather sejam renderizados após as mudanças no DOM
         feather.replace();
     });
 }
